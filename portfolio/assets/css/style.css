@@ -273,6 +273,14 @@ img {
     color: var(--accent);
 }
 
+.btn-sm {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.85rem !important;
+    font-weight: 500;
+    width: auto !important;
+    /* Prevent mobile width stretch */
+}
+
 /* =========================================
    GLASS CARD
    ========================================= */
@@ -1762,6 +1770,34 @@ footer {
     .stat-number {
         font-size: 2.2rem;
     }
+
+    /* ---- Grid Overlap Fixes for Tablet ---- */
+    .about-grid,
+    .contact-page-grid,
+    .skills-container,
+    .soft-skills-grid,
+    .edu-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .projects-featured {
+        grid-template-columns: 1fr;
+    }
+
+    .about-grid,
+    .contact-page-grid {
+        gap: 2.5rem;
+    }
+
+    .projects-featured,
+    .skills-container,
+    .soft-skills-grid {
+        gap: 1.5rem;
+    }
+
+    .edu-grid {
+        gap: 1rem;
+    }
 }
 
 /* =========================================
@@ -1833,12 +1869,13 @@ footer {
 
     /* Add responsiveness for About section */
     .about-grid {
-        gap: 2rem;
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
     }
 
     /* Reduce default card padding on mobile */
     .card-glass {
-        padding: 1.5rem;
+        padding: 1.25rem;
     }
 
     /* Add responsiveness for Timeline section */
@@ -1876,12 +1913,68 @@ footer {
 
     /* Reduce padding more aggressively for very small screens */
     .section {
-        padding: 3.5rem 0;
+        padding: 4rem 0;
     }
 
     /* Reduce container spacing */
     .container {
         padding: 0 1rem;
+    }
+
+    /* ---- Grid Overlap Fixes for Mobile ---- */
+    .projects-featured {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .skills-container {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .soft-skills-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .edu-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .contact-page-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
+}
+
+/* =========================================
+   EXTRA SMALL MOBILE (MAX 400px)
+   ========================================= */
+@media (max-width: 400px) {
+    .container {
+        padding: 0 0.8rem;
+    }
+
+    .card-glass {
+        padding: 1rem;
+    }
+
+    .project-card-full {
+        padding: 1.25rem 1rem;
+    }
+
+    .section-title {
+        font-size: 1.45rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.2rem;
+        font-size: 0.8rem;
+    }
+
+    .hero h1 {
+        font-size: 2.2rem;
     }
 }
 
