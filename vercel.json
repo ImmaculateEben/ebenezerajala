@@ -1,0 +1,6 @@
+{
+  "outputDirectory": "portfolio",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/$1" }
+  ]
+}
