@@ -224,15 +224,16 @@ img {
 .btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.75rem;
+    gap: 0.8rem;
+    padding: 1rem 2rem;
     border-radius: var(--radius-full);
     font-weight: 600;
     font-size: 0.95rem;
-    cursor: pointer;
-    border: 2px solid transparent;
     transition: var(--transition);
-    white-space: nowrap;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-family: var(--font-main);
+    text-decoration: none;
 }
 
 .btn-primary {
@@ -886,7 +887,6 @@ img {
     text-align: center;
 }
 
-.stat-item {}
 
 .stat-number {
     font-size: 2.8rem;
@@ -1731,7 +1731,41 @@ footer {
 }
 
 /* =========================================
-   MOBILE NAV
+   TABLET RESPONSIVENESS (MAX 900px)
+   ========================================= */
+@media (max-width: 900px) {
+    .section {
+        padding: 5rem 0;
+    }
+
+    .section-title {
+        font-size: clamp(1.6rem, 5vw, 2.2rem);
+        margin-bottom: 2rem;
+    }
+
+    .hero {
+        padding: calc(var(--nav-height) + 1rem) clamp(1rem, 4vw, 2rem) 4rem;
+    }
+
+    .hero-content h1 {
+        font-size: clamp(2.5rem, 6vw, 3.5rem);
+    }
+
+    .hero-content h2 {
+        font-size: clamp(1.1rem, 3vw, 1.4rem);
+    }
+
+    .stats-grid {
+        gap: 1.5rem;
+    }
+
+    .stat-number {
+        font-size: 2.2rem;
+    }
+}
+
+/* =========================================
+   MOBILE NAV AND LAYOUT (MAX 768px)
    ========================================= */
 @media (max-width: 768px) {
     .hamburger {
@@ -1831,6 +1865,76 @@ footer {
     .timeline-company {
         font-size: 0.82rem;
     }
+
+    /* Refine Buttons for mobile */
+    .btn {
+        padding: 0.8rem 1.4rem;
+        font-size: 0.85rem;
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Reduce padding more aggressively for very small screens */
+    .section {
+        padding: 3.5rem 0;
+    }
+
+    /* Reduce container spacing */
+    .container {
+        padding: 0 1rem;
+    }
+}
+
+/* =========================================
+   TECH STACK COMPONENT
+   ========================================= */
+.tech-stack-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.tech-stack-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    min-width: 110px;
+    transition: var(--transition);
+}
+
+.tech-stack-item:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent);
+    box-shadow: 0 8px 24px var(--accent-glow);
+}
+
+.tech-stack-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-size: 2rem;
+    transition: var(--transition);
+}
+
+.tech-stack-item:hover .tech-stack-icon-wrapper {
+    background: var(--accent);
+    color: #fff;
+    transform: scale(1.1) rotate(5deg);
+}
+
+.tech-stack-item span {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-primary);
 }
 
 /* =========================================

@@ -12,6 +12,7 @@
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
         /* ---- Admin-specific styles ---- */
@@ -926,6 +927,72 @@
             background: var(--bg-card);
             border-color: var(--border);
         }
+
+        /* ---- Admin Tech Stack Selectable Cards ---- */
+        .tech-stack-admin-card {
+            background: var(--bg-alt);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tech-stack-admin-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .tech-stack-admin-card.selected {
+            background: var(--accent-bg);
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+
+        .tech-stack-admin-card i {
+            font-size: 2rem;
+            color: var(--text-secondary);
+            transition: color 0.2s ease;
+        }
+
+        .tech-stack-admin-card.selected i {
+            color: var(--accent);
+        }
+
+        .tech-stack-admin-card span {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .tech-stack-admin-card .check-indicator {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 18px;
+            height: 18px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.2s ease;
+        }
+
+        .tech-stack-admin-card.selected .check-indicator {
+            opacity: 1;
+            transform: scale(1);
+        }
     </style>
 </head>
 
@@ -1143,14 +1210,26 @@
                 <!-- ===== SKILLS TAB ===== -->
                 <div class="tab-panel" id="tab-skills">
                     <div class="admin-section-header">
-                        <h3>Skills</h3>
+                        <h3>Skills &amp; Tech Stack</h3>
+                        <button class="btn btn-primary" onclick="saveAdminTechStacks()">
+                            <i class="fa-solid fa-floppy-disk"></i> Save Tech Stacks
+                        </button>
                     </div>
                     <div class="admin-card">
                         <p style="color:var(--text-secondary); font-size:0.92rem; line-height:1.7;">
+                            Select the tools, languages, and software you want to highlight on the homepage.
+                        </p>
+                        <br>
+                        <div id="admin-tech-stack-grid"
+                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem;">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                    <div class="admin-card" style="margin-top: 2rem;">
+                        <h4 style="margin-bottom: 1rem;">Detailed Skill Categories</h4>
+                        <p style="color:var(--text-secondary); font-size:0.92rem; line-height:1.7;">
                             Skill categories are managed directly in code (<code>assets/js/data.js</code>).
-                            Edit the <code>DEFAULT_DATA.skills</code> array to add, remove, or rename categories and
-                            items.
-                            After saving the file, click "Reset All Data" in the sidebar to apply your changes.
+                            Edit the <code>DEFAULT_DATA.skills</code> array to add, remove, or rename categories.
                         </p>
                         <br>
                         <a href="#" class="btn btn-outline" onclick="window.open('assets/js/data.js'); return false;">
@@ -1333,7 +1412,7 @@
                 dashboard: ['Dashboard', 'Overview of your portfolio'],
                 projects: ['Projects', 'Add, edit, and manage your project portfolio'],
                 profile: ['Profile & About', 'Edit your personal information and bio'],
-                skills: ['Skills', 'Manage your technical skills'],
+                skills: ['Skills & Tech Stack', 'Manage your technical skills and homepage tech stack'],
                 experience: ['Experience', 'Edit your professional work history']
             };
             const t = titles[tabId] || ['Admin', ''];
@@ -1343,6 +1422,7 @@
             if (tabId === 'dashboard') renderDashboard();
             if (tabId === 'projects') renderProjectsTable();
             if (tabId === 'profile') loadProfileForm();
+            if (tabId === 'skills') renderTechStacksAdmin();
         }
 
         // ---- Dashboard ----
@@ -1422,6 +1502,38 @@
             document.getElementById('m-image').value = '';
             document.getElementById('m-image-file').value = '';
             document.getElementById('m-image-preview').style.display = 'none';
+        }
+
+        // ---- Tech Stack Form ----
+        function renderTechStacksAdmin() {
+            const container = document.getElementById('admin-tech-stack-grid');
+            if (!container) return;
+
+            const selectedStacks = getTechStacks(); // from data.js
+
+            let html = '';
+            AVAILABLE_TECH_STACKS.forEach(stack => {
+                const isSelected = selectedStacks.includes(stack.id);
+                html += `
+                <div class="tech-stack-admin-card ${isSelected ? 'selected' : ''}" data-id="${stack.id}" onclick="toggleTechStack(this)">
+                    <i class="${stack.icon}"></i>
+                    <span>${stack.name}</span>
+                    <div class="check-indicator"><i class="fa-solid fa-check"></i></div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function toggleTechStack(card) {
+            card.classList.toggle('selected');
+        }
+
+        function saveAdminTechStacks() {
+            const cards = document.querySelectorAll('.tech-stack-admin-card.selected');
+            const selectedIds = Array.from(cards).map(c => c.dataset.id);
+
+            saveTechStacks(selectedIds);
+            showToast('Tech stacks updated successfully', 'success');
         }
 
         // ---- Profile form ----

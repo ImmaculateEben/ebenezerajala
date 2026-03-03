@@ -3,6 +3,25 @@
  * All portfolio content lives here and can be edited via admin.html
  */
 
+const AVAILABLE_TECH_STACKS = [
+    { id: "html5", name: "HTML5", icon: "devicon-html5-plain" },
+    { id: "css3", name: "CSS3", icon: "devicon-css3-plain" },
+    { id: "javascript", name: "JavaScript", icon: "devicon-javascript-plain" },
+    { id: "php", name: "PHP", icon: "devicon-php-plain" },
+    { id: "mysql", name: "MySQL", icon: "devicon-mysql-plain" },
+    { id: "wordpress", name: "WordPress", icon: "devicon-wordpress-plain" },
+    { id: "react", name: "React", icon: "devicon-react-original" },
+    { id: "nodejs", name: "Node.js", icon: "devicon-nodejs-plain" },
+    { id: "bootstrap", name: "Bootstrap", icon: "devicon-bootstrap-plain" },
+    { id: "tailwind", name: "Tailwind CSS", icon: "devicon-tailwindcss-original" },
+    { id: "figma", name: "Figma", icon: "devicon-figma-plain" },
+    { id: "photoshop", name: "Photoshop", icon: "devicon-photoshop-plain" },
+    { id: "illustrator", name: "Illustrator", icon: "devicon-illustrator-plain" },
+    { id: "premierepro", name: "Premiere Pro", icon: "devicon-premierepro-plain" },
+    { id: "aftereffects", name: "After Effects", icon: "devicon-aftereffects-plain" },
+    { id: "coreldraw", name: "CorelDRAW", icon: "fa-solid fa-pen-nib" } // Fallback for CorelDRAW
+];
+
 const DEFAULT_DATA = {
     profile: {
         name: "Ebenezer Ajala",
@@ -25,6 +44,7 @@ const DEFAULT_DATA = {
         avgTrafficIncrease: "30%",
         availableForFreelance: true
     },
+    techStacks: ["html5", "css3", "javascript", "wordpress", "figma", "photoshop"], // Default selected stack
     projects: [
         {
             id: "prolific-safety",
@@ -196,6 +216,16 @@ function saveProfile(profile) {
 
 function resetData() {
     saveData(DEFAULT_DATA);
+}
+
+function getTechStacks() {
+    return getData().techStacks || DEFAULT_DATA.techStacks;
+}
+
+function saveTechStacks(stacks) {
+    const data = getData();
+    data.techStacks = stacks;
+    saveData(data);
 }
 
 // Seed on load

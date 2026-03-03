@@ -60,9 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
     renderProjects();
   }
 
-  // Render featured projects if on home page
+  // Render featured projects and tech stack if on home page
   if (document.getElementById('home-projects-grid')) {
     renderFeaturedProjects();
+    renderHomeTechStack();
   }
 
   // 5. Render single project if on project page
@@ -146,6 +147,42 @@ function renderFeaturedProjects() {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
   }, { threshold: 0.1 });
   container.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+}
+
+function renderHomeTechStack() {
+  const container = document.getElementById('home-tech-stack-grid');
+  if (!container) return;
+
+  const selectedStacks = getTechStacks();
+  if (!selectedStacks || selectedStacks.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">No tech stack selected.</p>';
+    return;
+  }
+
+  let html = '';
+  selectedStacks.forEach((stackId, index) => {
+    const stackDef = AVAILABLE_TECH_STACKS.find(s => s.id === stackId);
+    if (!stackDef) return;
+
+    html += `
+      <div class="tech-stack-item reveal" style="animation-delay: ${index * 0.1}s">
+        <div class="tech-stack-icon-wrapper">
+          <i class="${stackDef.icon}"></i>
+        </div>
+        <span>${stackDef.name}</span>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+
+  // Re-observe new reveal elements
+  setTimeout(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
+    }, { threshold: 0.1 });
+    container.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  }, 100);
 }
 
 /* ---- Single Project Detail ---- */
