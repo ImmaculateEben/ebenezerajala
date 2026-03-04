@@ -841,7 +841,6 @@
             }
         }
 
-        /* ---- Login Overlay ---- */
         #login-overlay {
             position: fixed;
             inset: 0;
@@ -852,6 +851,7 @@
             justify-content: center;
             flex-direction: column;
             overflow: hidden;
+            padding: 1rem;
         }
 
         #login-overlay::before {
@@ -893,6 +893,12 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
             position: relative;
             backdrop-filter: blur(20px);
+        }
+
+        @media (max-width: 600px) {
+            .login-box {
+                padding: 1.5rem;
+            }
         }
 
         .login-box::before {
@@ -1528,6 +1534,10 @@
             if (pass === 'admin123') { // Simple hardcoded password
                 sessionStorage.setItem('ea_admin_auth', 'true');
                 document.getElementById('login-overlay').style.display = 'none';
+                renderDashboard();
+                if (window.innerWidth <= 900) {
+                    toggleAdminSidebar();
+                }
             } else {
                 document.getElementById('login-error').style.display = 'block';
             }
@@ -1861,8 +1871,6 @@
         </div>
         <p style="color:var(--text-secondary); font-size:0.88rem;">${e.summary}</p>
       </div>`).join('');
-        }
-
         }
 
         // ---- Testimonials CRUD ----

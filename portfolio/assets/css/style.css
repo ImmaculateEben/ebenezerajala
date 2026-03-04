@@ -629,45 +629,52 @@ img {
 /* Hero stats bar */
 .hero-stats {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     justify-content: center;
     align-items: stretch;
     background: var(--bg-card);
     backdrop-filter: blur(16px);
-    border-top: 1px solid var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
     z-index: 2;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    padding: 0 1rem;
 }
 
 .hero-stat {
     text-align: center;
-    padding: 1.4rem 3rem;
+    padding: 1.4rem 2.5rem;
     flex: 1;
     max-width: 240px;
+    position: relative;
+}
+
+.hero-stat:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 20%;
+    height: 60%;
+    width: 1px;
+    background: var(--border);
 }
 
 .hero-stat h3 {
-    font-size: 2rem;
+    font-size: clamp(1.8rem, 4vw, 2.2rem);
     font-weight: 700;
     color: var(--accent);
     line-height: 1;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.4rem;
 }
 
 .hero-stat p {
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 1px;
-}
-
-.hero-stat-divider {
-    width: 1px;
-    background: var(--border);
-    align-self: stretch;
-    margin: 1rem 0;
 }
 
 .scroll-indicator {
@@ -1610,6 +1617,15 @@ footer {
 }
 
 /* =========================================
+   PROJECTS GRID
+   ========================================= */
+#projects-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+/* =========================================
    SINGLE PROJECT PAGE
    ========================================= */
 .project-hero {
@@ -1841,15 +1857,25 @@ footer {
     }
 
     .hero-stats {
-        flex-wrap: wrap;
+        width: calc(100% - 2rem);
+        bottom: 1.5rem;
+        border-radius: var(--radius);
+        padding: 1.2rem;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.2rem;
     }
 
     .hero-stat {
-        padding: 1rem 1.5rem;
-        min-width: 120px;
+        padding: 0;
+        min-width: 0;
+        max-width: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
-    .hero-stat-divider {
+    .hero-stat::after {
         display: none;
     }
 
@@ -1859,6 +1885,10 @@ footer {
     }
 
     .project-number {
+        display: none;
+    }
+
+    .scroll-indicator {
         display: none;
     }
 
