@@ -33,6 +33,7 @@ const DEFAULT_DATA = {
         phone2: "09120037255",
         linkedin: "https://www.linkedin.com/in/ebenezer-ajala13",
         github: "",
+        githubUsername: "ImmaculateEben",
         bio: "I am a passionate WordPress Website Developer and Graphics Designer based in Lagos, Nigeria, with over 4 years of hands-on experience designing, developing, and optimising websites for a wide variety of clients. My expertise covers both front-end and back-end WordPress development — from custom themes and plugins, to hosting management, server configuration, and performance tuning.",
         bio2: "I also find creative fulfilment in graphic design, using tools like Adobe Photoshop, Illustrator, and CorelDRAW to craft visual assets that bring brands to life across both digital and print media.",
         bio3: "Currently serving as a Website Developer and IT Support Officer under the NYSC program at the Institute for Industrial Technology (IIT).",

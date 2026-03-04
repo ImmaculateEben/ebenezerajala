@@ -1404,6 +1404,10 @@
                                 <input type="url" id="p-linkedin">
                             </div>
                             <div class="form-group">
+                                <label>GitHub Username</label>
+                                <input type="text" id="p-github-username" placeholder="e.g. ImmaculateEben">
+                            </div>
+                            <div class="form-group">
                                 <label>Years Experience (e.g. 4+)</label>
                                 <input type="text" id="p-years">
                             </div>
@@ -1850,6 +1854,7 @@
         // ---- Profile form ----
         function loadProfileForm() {
             const p = getProfile();
+            const githubFromUrl = (p.github || '').replace(/^https?:\/\/github\.com\//i, '').replace(/^@/, '').split('/')[0].trim();
             document.getElementById('p-name').value = p.name || '';
             document.getElementById('p-animated-titles').value = (p.animatedTitles || []).join(', ');
 
@@ -1864,6 +1869,7 @@
             document.getElementById('p-phone2').value = p.phone2 || '';
             document.getElementById('p-location').value = p.location || '';
             document.getElementById('p-linkedin').value = p.linkedin || '';
+            document.getElementById('p-github-username').value = p.githubUsername || githubFromUrl || '';
             document.getElementById('p-years').value = p.yearsExperience || '';
             document.getElementById('p-clients').value = p.clientsServed || '';
             document.getElementById('p-speed').value = p.avgSpeedImprovement || '';
@@ -1893,6 +1899,7 @@
         function saveProfile() {
             const data = getData();
             const newImage = document.getElementById('p-image-base64').value;
+            const githubUsername = document.getElementById('p-github-username').value.trim().replace(/^@/, '');
 
             data.profile = {
                 ...data.profile,
@@ -1904,6 +1911,7 @@
                 phone2: document.getElementById('p-phone2').value,
                 location: document.getElementById('p-location').value,
                 linkedin: document.getElementById('p-linkedin').value,
+                githubUsername,
                 yearsExperience: document.getElementById('p-years').value,
                 clientsServed: document.getElementById('p-clients').value,
                 avgSpeedImprovement: document.getElementById('p-speed').value,

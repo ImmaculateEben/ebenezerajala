@@ -72,8 +72,47 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Init GitHub Calendar
-  if (document.querySelector('.github-calendar') && typeof GitHubCalendar === 'function') {
-    GitHubCalendar(".github-calendar", "ImmaculateEben", { responsive: true, tooltips: true });
+  const initGithubCalendar = () => {
+    const calendarEl = document.querySelector('.github-calendar, .calendar');
+    if (!calendarEl || typeof GitHubCalendar !== 'function') return false;
+
+    const normalizeGithubUsername = (value) => {
+      if (!value) return '';
+      return String(value)
+        .trim()
+        .replace(/^https?:\/\/github\.com\//i, '')
+        .replace(/^@/, '')
+        .split('/')[0]
+        .trim();
+    };
+
+    const profile = (typeof getProfile === 'function') ? getProfile() : null;
+    const profileGithubUsername = normalizeGithubUsername(profile?.githubUsername || profile?.github);
+    const attrGithubUsername = normalizeGithubUsername(calendarEl.dataset.githubUsername);
+    const username = profileGithubUsername || attrGithubUsername || 'ImmaculateEben';
+    calendarEl.dataset.githubUsername = username;
+
+    try {
+      GitHubCalendar(calendarEl, username, {
+        responsive: true,
+        tooltips: true,
+      });
+      return true;
+    } catch (error) {
+      calendarEl.innerHTML = '<p style="color:var(--text-muted);">Unable to load GitHub contributions right now.</p>';
+      return false;
+    }
+  };
+
+  if (!initGithubCalendar()) {
+    window.addEventListener('load', () => {
+      if (!initGithubCalendar()) {
+        const calendarEl = document.querySelector('.github-calendar, .calendar');
+        if (calendarEl) {
+          calendarEl.innerHTML = '<p style="color:var(--text-muted);">GitHub contributions could not be loaded. Check internet access or username.</p>';
+        }
+      }
+    }, { once: true });
   }
 
   // 5. Render single project if on project page

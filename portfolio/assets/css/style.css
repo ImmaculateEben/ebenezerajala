@@ -1765,6 +1765,84 @@ footer {
     overflow-x: auto;
 }
 
+.section-head-row {
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.github-card {
+    border-color: var(--border-hover);
+}
+
+.github-contributions-container .calendar,
+.github-contributions-container .github-calendar {
+    min-height: 140px;
+    color: var(--text-primary);
+}
+
+.github-contributions-container .contrib-number,
+.github-contributions-container .text-muted,
+.github-contributions-container .float-left,
+.github-contributions-container .float-right {
+    color: var(--text-secondary) !important;
+}
+
+.github-contributions-container svg text {
+    fill: var(--text-muted);
+}
+
+.github-contributions-container .ContributionCalendar-day,
+.github-contributions-container rect[data-date] {
+    shape-rendering: geometricPrecision;
+}
+
+/* =========================================
+   LARGE TABLET RESPONSIVENESS (MAX 1024px)
+   ========================================= */
+@media (max-width: 1024px) {
+    .section {
+        padding: 5.2rem 0;
+    }
+
+    .page-header {
+        padding: calc(var(--nav-height) + 2.2rem) clamp(1rem, 3vw, 2rem) 3.2rem;
+    }
+
+    .hero {
+        padding: calc(var(--nav-height) + 1.5rem) clamp(1rem, 3vw, 2rem) 4.5rem;
+    }
+
+    .hero-content {
+        max-width: 760px;
+    }
+
+    .hero>.hero-content>p {
+        font-size: 1rem;
+        line-height: 1.7;
+    }
+
+    .project-card-full {
+        padding: 1.6rem 1.7rem;
+        gap: 1.4rem;
+    }
+
+    .project-info h3 {
+        font-size: 1.28rem;
+    }
+
+    .timeline {
+        max-width: 100%;
+    }
+
+    .cta-strip h2 {
+        font-size: 1.95rem;
+    }
+
+    .github-contributions-container {
+        margin-top: 4rem !important;
+    }
+}
+
 /* =========================================
    TABLET RESPONSIVENESS (MAX 900px)
    ========================================= */
@@ -1780,6 +1858,34 @@ footer {
 
     .hero {
         padding: calc(var(--nav-height) + 1rem) clamp(1rem, 4vw, 2rem) 4rem;
+    }
+
+    .hero-stats {
+        position: relative;
+        left: auto;
+        transform: none;
+        bottom: auto;
+        margin: 2rem auto 0;
+        width: min(100%, 700px);
+        border-radius: var(--radius);
+        padding: 1.1rem 1.2rem;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .hero-stat {
+        max-width: none;
+        padding: 0.4rem 0.6rem;
+    }
+
+    .hero-stat h3 {
+        font-size: 1.95rem;
+    }
+
+    .hero-stat p {
+        font-size: 0.78rem;
+        letter-spacing: 0.7px;
     }
 
     .hero-content h1 {
@@ -1820,6 +1926,10 @@ footer {
     .skills-container,
     .soft-skills-grid {
         gap: 1.5rem;
+    }
+
+    .home-capabilities-grid {
+        max-width: 100% !important;
     }
 
     .edu-grid {
@@ -1869,21 +1979,29 @@ footer {
 
     .hero-stats {
         width: calc(100% - 2rem);
-        bottom: 1.5rem;
+        bottom: auto;
         border-radius: var(--radius);
-        padding: 1.2rem;
+        padding: 1rem;
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 1.2rem;
+        gap: 1rem;
     }
 
     .hero-stat {
-        padding: 0;
+        padding: 0.25rem;
         min-width: 0;
         max-width: none;
         display: flex;
         flex-direction: column;
         justify-content: center;
+    }
+
+    .hero-stat h3 {
+        font-size: 1.75rem;
+    }
+
+    .hero-stat p {
+        font-size: 0.75rem;
     }
 
     .hero-stat::after {
@@ -1962,6 +2080,19 @@ footer {
         padding: 0 1rem;
     }
 
+    .section-head-row {
+        align-items: flex-start !important;
+    }
+
+    .section-head-row .btn {
+        width: auto;
+    }
+
+    .github-contributions-container .calendar,
+    .github-contributions-container .github-calendar {
+        min-width: 620px;
+    }
+
     /* ---- Grid Overlap Fixes for Mobile ---- */
     .projects-featured {
         grid-template-columns: 1fr;
@@ -1993,6 +2124,15 @@ footer {
    EXTRA SMALL MOBILE (MAX 400px)
    ========================================= */
 @media (max-width: 400px) {
+    .nav-links {
+        width: min(90vw, 300px);
+    }
+
+    .nav-link {
+        font-size: 1rem;
+        padding: 0.55rem 1.2rem;
+    }
+
     .container {
         padding: 0 0.8rem;
     }
@@ -2018,6 +2158,25 @@ footer {
         font-size: 2.2rem;
     }
 
+    .hero-stats {
+        grid-template-columns: 1fr;
+        gap: 0.9rem;
+        padding: 1rem;
+        width: 100%;
+    }
+
+    .hero-stat h3 {
+        font-size: 1.7rem;
+    }
+
+    #theme-toggle-btn {
+        padding: 0.45rem 0.7rem;
+    }
+
+    .theme-label {
+        display: none;
+    }
+
     .page-header p {
         font-size: 1rem;
     }
@@ -2036,6 +2195,16 @@ footer {
 
     .timeline-dot {
         left: 6px;
+    }
+
+    .contact-detail-item {
+        gap: 0.85rem;
+        align-items: flex-start;
+    }
+
+    .footer-content {
+        justify-content: center;
+        text-align: center;
     }
 }
 
