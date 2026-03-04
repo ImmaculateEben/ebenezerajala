@@ -143,6 +143,7 @@ function renderProjects() {
     card.className = 'project-card-full card-glass reveal';
     card.style.setProperty('--delay', `${i * 0.08}s`);
     card.innerHTML = `
+      ${p.image ? `<img src="${p.image}" alt="${p.title}" class="project-featured-img">` : ''}
       <div class="project-number">${String(i + 1).padStart(2, '0')}</div>
       <div class="project-info">
         <h3>${p.title}</h3>
@@ -182,6 +183,7 @@ function renderFeaturedProjects() {
     card.href = `project.html?id=${p.id}`;
     card.className = 'project-card-full card-glass reveal delay-' + (i + 1);
     card.innerHTML = `
+      ${p.image ? `<img src="${p.image}" alt="${p.title}" class="project-featured-img">` : ''}
       <div class="project-number">${String(i + 1).padStart(2, '0')}</div>
       <div class="project-info">
         <h3>${p.title}</h3>
@@ -278,7 +280,7 @@ function renderHomeTestimonials() {
 }
 
 // ------------------------------------
-// PROFILE DATA (Image & Animated Titles)
+// PROFILE DATA (Image & Animated Titles & Bio)
 // ------------------------------------
 function renderProfileData() {
   const profile = (typeof getProfile === 'function') ? getProfile() : null;
@@ -290,6 +292,52 @@ function renderProfileData() {
       img.src = profile.profileImage;
     });
   }
+
+  // Inject Basic Profile Info into specific IDs
+  const locationEl = document.getElementById('profile-location');
+  if (locationEl && profile.location) {
+    locationEl.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${profile.location}`;
+  }
+
+  const emailEl = document.getElementById('profile-email');
+  if (emailEl && profile.email) {
+    emailEl.innerHTML = `<i class="fa-solid fa-envelope"></i> ${profile.email}`;
+  }
+
+  const nameEl = document.getElementById('profile-name');
+  if (nameEl && profile.name) {
+    nameEl.textContent = profile.name;
+  }
+
+  // Inject Bio Text into specific IDs
+  // In index.html, we just show the first two paragraph roughly or whatever they typed
+  // In about.html, we show all paragraphs. 
+  const bioContainer = document.getElementById('profile-bio-container');
+  if (bioContainer) {
+    // If it's the home page, there's less text
+    const isHome = window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/');
+    const isAbout = window.location.pathname.endsWith('about.html');
+
+    if (isHome) {
+      bioContainer.innerHTML = `
+        <h2 class="section-title">About <span class="highlight">Me</span></h2>
+        ${profile.bio ? `<p>${profile.bio}</p>` : ''}
+        ${profile.bio2 ? `<p>${profile.bio2}</p>` : ''}
+        <a href="about.html" class="btn btn-primary" style="margin-top: 1rem;">Learn More About Me <i class="fa-solid fa-arrow-right"></i></a>
+      `;
+    } else if (isAbout) {
+      bioContainer.innerHTML = `
+        <h2 class="section-title">Who I Am</h2>
+        ${profile.bio ? `<p>${profile.bio}</p>` : ''}
+        ${profile.bio2 ? `<p>${profile.bio2}</p>` : ''}
+        ${profile.bio3 ? `<p>${profile.bio3}</p>` : ''}
+        <a href="assets/docs/resume.docx" class="btn btn-primary" download style="margin-top:0.5rem;">
+            Download My Resume <i class="fa-solid fa-download"></i>
+        </a>
+      `;
+    }
+  }
+
 
   // 2. Initialize Text Rotator
   const titles = profile.animatedTitles;

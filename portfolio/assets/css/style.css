@@ -1261,6 +1261,22 @@ img {
     align-items: start;
     padding: 2rem 2.2rem;
     transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.project-card-full .project-featured-img {
+    grid-column: 1 / -1;
+    width: calc(100% + 4.4rem);
+    height: 240px;
+    object-fit: cover;
+    margin: -2rem -2.2rem 1.5rem -2.2rem;
+    border-bottom: 1px solid var(--border);
+    transition: transform 0.5s ease;
+}
+
+.project-card-full:hover .project-featured-img {
+    transform: scale(1.03);
 }
 
 .project-card-full:hover {
