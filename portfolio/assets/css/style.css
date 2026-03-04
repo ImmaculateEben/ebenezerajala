@@ -628,38 +628,34 @@ img {
 
 /* Hero stats bar */
 .hero-stats {
-    position: absolute;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
+    position: relative;
+    margin-top: 4rem;
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     align-items: stretch;
     background: var(--bg-card);
     backdrop-filter: blur(16px);
     border: 1px solid var(--border);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius);
     z-index: 2;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    padding: 0 1rem;
+    padding: 1rem;
+    width: min(100%, 1000px);
+    margin-left: auto;
+    margin-right: auto;
+    gap: 1.5rem;
 }
 
 .hero-stat {
     text-align: center;
-    padding: 1.4rem 2.5rem;
-    flex: 1;
-    max-width: 240px;
+    padding: 0.5rem 1.5rem;
+    flex: 1 1 200px;
     position: relative;
 }
 
 .hero-stat:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 20%;
-    height: 60%;
-    width: 1px;
-    background: var(--border);
+    display: none;
 }
 
 .hero-stat h3 {
@@ -1796,10 +1792,17 @@ footer {
     color: var(--text-primary);
 }
 
-.github-contributions-container .contrib-number,
-.github-contributions-container .text-muted,
+/* Hide unwanted GitHub Calendar UI elements */
+.github-contributions-container .contrib-column,
+.github-contributions-container .contrib-footer,
 .github-contributions-container .float-left,
-.github-contributions-container .float-right {
+.github-contributions-container .float-right,
+.github-contributions-container h2.f4,
+.github-contributions-container .color-fg-muted {
+    display: none !important;
+}
+
+.github-contributions-container .text-muted {
     color: var(--text-secondary) !important;
 }
 

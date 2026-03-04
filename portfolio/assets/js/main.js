@@ -137,13 +137,15 @@ function renderProjects() {
   const projects = getProjects();
   container.innerHTML = '';
 
+  const fallbackImg = `data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22800%22%20height%3D%22500%22%20viewBox%3D%220%200%20800%20500%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%22100%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%231a1a2e%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%2316213e%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20fill%3D%22url%28%23g%29%22%20width%3D%22800%22%20height%3D%22500%22%2F%3E%3Ctext%20fill%3D%22rgba%28255%2C255%2C255%2C0.3%29%22%20font-family%3D%22sans-serif%22%20font-size%3D%2240%22%20dy%3D%2215%22%20font-weight%3D%22bold%22%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%3EProject%20Image%3C%2Ftext%3E%3C%2Fsvg%3E`;
+
   projects.forEach((p, i) => {
+    const imgSource = p.image || fallbackImg;
     const card = document.createElement('a');
     card.href = `project.html?id=${p.id}`;
-    card.className = 'project-card-full card-glass reveal';
-    card.style.setProperty('--delay', `${i * 0.08}s`);
+    card.className = 'project-card-full card-glass reveal delay-' + (i % 4);
     card.innerHTML = `
-      ${p.image ? `<img src="${p.image}" alt="${p.title}" class="project-featured-img">` : ''}
+      <img src="${imgSource}" alt="${p.title}" class="project-featured-img">
       <div class="project-number">${String(i + 1).padStart(2, '0')}</div>
       <div class="project-info">
         <h3>${p.title}</h3>
@@ -178,12 +180,15 @@ function renderFeaturedProjects() {
 
   container.innerHTML = '';
 
+  const fallbackImg = `data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22800%22%20height%3D%22500%22%20viewBox%3D%220%200%20800%20500%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%22100%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%231a1a2e%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%2316213e%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20fill%3D%22url%28%23g%29%22%20width%3D%22800%22%20height%3D%22500%22%2F%3E%3Ctext%20fill%3D%22rgba%28255%2C255%2C255%2C0.3%29%22%20font-family%3D%22sans-serif%22%20font-size%3D%2240%22%20dy%3D%2215%22%20font-weight%3D%22bold%22%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%3EProject%20Image%3C%2Ftext%3E%3C%2Fsvg%3E`;
+
   featured.forEach((p, i) => {
+    const imgSource = p.image || fallbackImg;
     const card = document.createElement('a');
     card.href = `project.html?id=${p.id}`;
     card.className = 'project-card-full card-glass reveal delay-' + (i + 1);
     card.innerHTML = `
-      ${p.image ? `<img src="${p.image}" alt="${p.title}" class="project-featured-img">` : ''}
+      <img src="${imgSource}" alt="${p.title}" class="project-featured-img">
       <div class="project-number">${String(i + 1).padStart(2, '0')}</div>
       <div class="project-info">
         <h3>${p.title}</h3>
@@ -424,7 +429,7 @@ function renderProjectDetail() {
         <div class="project-detail-grid">
           <div class="project-main-content">
               <div class="project-long-desc reveal ck-content custom-html-content">
-                ${project.image ? `<img src="${project.image}" alt="${project.title}" class="project-featured-img" style="width:100%; max-height:400px; object-fit:cover; border-radius:14px; margin-bottom:2rem; box-shadow:0 8px 30px rgba(0,0,0,0.3);">` : ''}
+                <img src="${project.image || 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22800%22%20height%3D%22500%22%20viewBox%3D%220%200%20800%20500%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%22100%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%231a1a2e%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%2316213e%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20fill%3D%22url%28%23g%29%22%20width%3D%22800%22%20height%3D%22500%22%2F%3E%3Ctext%20fill%3D%22rgba%28255%2C255%2C255%2C0.3%29%22%20font-family%3D%22sans-serif%22%20font-size%3D%2240%22%20dy%3D%2215%22%20font-weight%3D%22bold%22%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%3EProject%20Image%3C%2Ftext%3E%3C%2Fsvg%3E'}" alt="${project.title}" class="project-featured-img" style="width:100%; max-height:400px; object-fit:cover; border-radius:14px; margin-bottom:2rem; box-shadow:0 8px 30px rgba(0,0,0,0.3);">
                 <h2 class="section-title">Project Overview</h2>
                 ${(project.longDesc || project.shortDesc).includes('<') ? (project.longDesc || project.shortDesc) : (project.longDesc || project.shortDesc).split('\n').map(p => `<p>${p}</p>`).join('')}
               </div>
