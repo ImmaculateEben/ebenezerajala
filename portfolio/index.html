@@ -1,638 +1,174 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ebenezer Ajala | WordPress Developer & Graphics Designer</title>
-    <meta name="description"
-        content="Ebenezer Ajala — WordPress Website Developer and Graphics Designer with 4+ years of experience based in Lagos, Nigeria.">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css">
-    <style>
-        /* ---- Particle Canvas ---- */
-        #particle-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        /* ---- Floating 3D Shapes ---- */
-        .hero-shapes {
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-            pointer-events: none;
-            overflow: hidden;
-        }
-
-        .shape {
-            position: absolute;
-            opacity: 0.15;
-            animation: shapeFloat 20s ease-in-out infinite;
-        }
-
-        .shape-cube {
-            width: 60px;
-            height: 60px;
-            top: 18%;
-            right: 12%;
-            border: 2px solid var(--accent);
-            transform: rotate(45deg);
-            animation: shapeSpin 15s linear infinite;
-        }
-
-        .shape-ring {
-            width: 100px;
-            height: 100px;
-            bottom: 25%;
-            left: 8%;
-            border: 2px solid var(--accent-2);
-            border-radius: 50%;
-            animation: shapeFloat 18s ease-in-out infinite, shapePulseRing 4s ease-in-out infinite;
-        }
-
-        .shape-triangle {
-            width: 0;
-            height: 0;
-            border-left: 35px solid transparent;
-            border-right: 35px solid transparent;
-            border-bottom: 60px solid var(--accent);
-            opacity: 0.08;
-            top: 30%;
-            left: 18%;
-            animation: shapeFloat 22s ease-in-out infinite reverse;
-        }
-
-        .shape-dots {
-            width: 120px;
-            height: 120px;
-            top: 12%;
-            left: 5%;
-            background-image: radial-gradient(var(--accent) 1.5px, transparent 1.5px);
-            background-size: 15px 15px;
-            opacity: 0.08;
-            animation: shapeFloat 25s ease-in-out infinite;
-        }
-
-        .shape-cross {
-            width: 40px;
-            height: 40px;
-            bottom: 30%;
-            right: 8%;
-            opacity: 0.12;
-            animation: shapeSpin 20s linear infinite reverse;
-        }
-
-        .shape-cross::before,
-        .shape-cross::after {
-            content: '';
-            position: absolute;
-            background: var(--accent-2);
-            border-radius: 2px;
-        }
-
-        .shape-cross::before {
-            width: 100%;
-            height: 3px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        .shape-cross::after {
-            width: 3px;
-            height: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .shape-hex {
-            width: 50px;
-            height: 28px;
-            background: transparent;
-            border-top: 2px solid var(--accent);
-            border-bottom: 2px solid var(--accent);
-            position: absolute;
-            top: 55%;
-            right: 20%;
-            opacity: 0.1;
-            animation: shapeFloat 16s ease-in-out infinite;
-        }
-
-        @keyframes shapeSpin {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        @keyframes shapeFloat {
-
-            0%,
-            100% {
-                transform: translateY(0) translateX(0);
-            }
-
-            25% {
-                transform: translateY(-20px) translateX(10px);
-            }
-
-            50% {
-                transform: translateY(-10px) translateX(-15px);
-            }
-
-            75% {
-                transform: translateY(-30px) translateX(5px);
-            }
-        }
-
-        @keyframes shapePulseRing {
-
-            0%,
-            100% {
-                transform: scale(1);
-                opacity: 0.15;
-            }
-
-            50% {
-                transform: scale(1.1);
-                opacity: 0.25;
-            }
-        }
-
-        /* ---- Glowing Section Divider ---- */
-        .section-glow-divider {
-            width: 100%;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--accent), var(--accent-2), transparent);
-            opacity: 0.3;
-            margin: 0;
-        }
-
-        /* ---- CTA Animated BG ---- */
-        .cta-section {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cta-section::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(ellipse at 30% 50%, var(--accent-bg) 0%, transparent 70%),
-                radial-gradient(ellipse at 70% 50%, rgba(168, 85, 247, 0.05) 0%, transparent 70%);
-            animation: ctaPulse 6s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        @keyframes ctaPulse {
-
-            0%,
-            100% {
-                opacity: 0.6;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: 1;
-                transform: scale(1.05);
-            }
-        }
-
-        /* ---- Hero stat tilt on hover ---- */
-        .hero-stat {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .hero-stat:hover {
-            transform: translateY(-3px) scale(1.03);
-        }
-
-        /* Skill card 3D hover */
-        .skill-category {
-            transition: transform 0.4s ease, box-shadow 0.4s ease;
-            perspective: 800px;
-        }
-
-        .skill-category:hover {
-            transform: translateY(-6px) rotateX(2deg) rotateY(-2deg);
-        }
-    </style>
-    <!-- Google Analytics (Placeholder) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'G-XXXXXXXXXX');
-    </script>
-
-    <!-- GitHub Calendar -->
-    <link rel="stylesheet" href="https://unpkg.com/github-calendar@latest/dist/github-calendar-responsive.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ebenezer Ajala | WordPress Developer and Graphics Designer</title>
+  <meta name="description" content="Ebenezer Ajala builds fast, conversion-focused WordPress websites, visual assets, and SEO-ready digital experiences.">
+  <meta property="og:title" content="Ebenezer Ajala | Portfolio">
+  <meta property="og:description" content="WordPress development, design, SEO, and performance work for client websites.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/images/profile-placeholder.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Ebenezer Ajala | Portfolio">
+  <meta name="twitter:description" content="A modern portfolio showcasing WordPress, design, and web performance work.">
+  <link rel="canonical" href="/">
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css">
 </head>
-
 <body>
-    <nav id="navbar">
-        <div class="nav-container">
-            <a href="index.html" class="logo">EA<span>.</span></a>
-            <div class="nav-links" id="navLinks">
-                <a href="index.html" class="nav-link active">Home</a>
-                <a href="about.html" class="nav-link">About</a>
-                <a href="skills.html" class="nav-link">Skills</a>
-                <a href="experience.html" class="nav-link">Experience</a>
-                <a href="projects.html" class="nav-link">Projects</a>
-                <a href="contact.html" class="nav-link">Contact</a>
-            </div>
-            <div class="hamburger" id="hamburger">
-                <div class="line1"></div>
-                <div class="line2"></div>
-                <div class="line3"></div>
-            </div>
+  <nav id="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo">EA<span>.</span></a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html" class="nav-link active">Home</a>
+        <a href="about.html" class="nav-link">About</a>
+        <a href="skills.html" class="nav-link">Skills</a>
+        <a href="experience.html" class="nav-link">Experience</a>
+        <a href="projects.html" class="nav-link">Projects</a>
+        <a href="contact.html" class="nav-link">Contact</a>
+        <a href="admin.html" class="nav-link admin-link">Admin</a>
+      </div>
+      <div class="hamburger" id="hamburger">
+        <div class="line1"></div>
+        <div class="line2"></div>
+        <div class="line3"></div>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-content">
+      <p class="hero-tag fade-in-up" id="availability-badge">Available for new work</p>
+      <h1 class="fade-in-up delay-1">Hi, I'm <span class="highlight" id="hero-name">Ebenezer Ajala</span></h1>
+      <h2 class="fade-in-up delay-2" data-animated-title>WordPress Website Developer</h2>
+      <p class="fade-in-up delay-3" id="hero-tagline">Building high-performance websites that improve user experience and drive measurable growth.</p>
+      <div class="hero-buttons fade-in-up delay-3">
+        <a href="projects.html" class="btn btn-primary">View Projects <i class="fa-solid fa-arrow-right"></i></a>
+        <a href="assets/docs/resume.docx" class="btn btn-outline" download>Download Resume <i class="fa-solid fa-download"></i></a>
+      </div>
+      <div class="social-links fade-in-up delay-4">
+        <a href="https://www.linkedin.com/in/ebenezer-ajala13" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+        <a href="mailto:ebenezerajala1305@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope"></i></a>
+      </div>
+    </div>
+    <div class="hero-stats fade-in-up delay-4">
+      <div class="hero-stat">
+        <h3 id="stat-years">4+</h3>
+        <p>Years Experience</p>
+      </div>
+      <div class="hero-stat">
+        <h3 id="stat-clients">30+</h3>
+        <p>Clients Served</p>
+      </div>
+      <div class="hero-stat">
+        <h3 id="stat-speed">40%</h3>
+        <p>Avg Speed Boost</p>
+      </div>
+      <div class="hero-stat">
+        <h3 id="stat-traffic">30%</h3>
+        <p>Avg Traffic Increase</p>
+      </div>
+    </div>
+    <div class="scroll-indicator"><a href="about.html"><i class="fa-solid fa-chevron-down"></i></a></div>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </header>
+
+  <section class="section">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-text reveal">
+          <h2 class="section-title">About <span class="highlight">Me</span></h2>
+          <p id="about-summary">I build reliable, modern websites that make businesses look credible and convert visitors into enquiries.</p>
+          <p id="about-summary-2">My work combines development, design, SEO foundations, and performance work so each project ships cleaner and grows faster.</p>
+          <a href="about.html" class="btn btn-primary">More About Me <i class="fa-solid fa-arrow-right"></i></a>
         </div>
-    </nav>
-
-    <!-- Hero -->
-    <header class="hero" id="home">
-        <!-- Particle Canvas -->
-        <canvas id="particle-canvas"></canvas>
-
-        <!-- Floating 3D Shapes -->
-        <div class="hero-shapes">
-            <div class="shape shape-cube"></div>
-            <div class="shape shape-ring"></div>
-            <div class="shape shape-triangle"></div>
-            <div class="shape shape-dots"></div>
-            <div class="shape shape-cross"></div>
-            <div class="shape shape-hex"></div>
+        <div class="about-image reveal delay-1">
+          <div class="profile-card">
+            <div class="profile-image-wrap">
+              <img class="profile-img-dynamic" src="assets/images/profile-placeholder.svg" alt="Ebenezer Ajala">
+            </div>
+            <div class="profile-info">
+              <h3 id="profile-name">Ebenezer Ajala</h3>
+              <p class="accent-text" data-animated-title>WordPress Website Developer</p>
+              <ul class="profile-details">
+                <li><i class="fa-solid fa-location-dot"></i> <span id="profile-location">Lagos, Nigeria</span></li>
+                <li><i class="fa-solid fa-envelope"></i> <span id="profile-email">ebenezerajala1305@gmail.com</span></li>
+                <li><i class="fa-brands fa-linkedin"></i> <a id="profile-linkedin" href="https://www.linkedin.com/in/ebenezer-ajala13" target="_blank" rel="noopener noreferrer">linkedin.com/in/ebenezer-ajala13</a></li>
+              </ul>
+            </div>
+          </div>
         </div>
+      </div>
+    </div>
+  </section>
 
-        <div class="hero-content">
-            <p class="hero-tag fade-in-up">Available for Freelance Projects</p>
-            <h1 class="fade-in-up delay-1">Hi, I'm<br><span class="highlight">Ebenezer Ajala</span></h1>
-            <h2 class="fade-in-up delay-2 animated-titles-container" id="hero-animated-title">WordPress Developer</h2>
-            <p class="fade-in-up delay-3">Building high-performance websites that enhance user experience and drive
-                business growth. Based in Lagos, Nigeria.</p>
-            <div class="hero-buttons fade-in-up delay-3">
-                <a href="projects.html" class="btn btn-primary">View My Work <i class="fa-solid fa-arrow-right"></i></a>
-                <a href="assets/docs/resume.docx" class="btn btn-outline" download>Download Resume <i
-                        class="fa-solid fa-download"></i></a>
-            </div>
-            <div class="social-links fade-in-up delay-4">
-                <a href="https://www.linkedin.com/in/ebenezer-ajala13" target="_blank" aria-label="LinkedIn"><i
-                        class="fa-brands fa-linkedin-in"></i></a>
-                <a href="mailto:ebenezerajala1305@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope"></i></a>
-            </div>
+  <section class="section alt-bg">
+    <div class="container">
+      <div class="section-head-row" style="display:flex;justify-content:space-between;align-items:flex-end;">
+        <div>
+          <h2 class="section-title reveal">Featured <span class="highlight">Projects</span></h2>
+          <p class="section-subtitle reveal">A curated selection of builds focused on speed, usability, and business outcomes.</p>
         </div>
+        <a href="projects.html" class="btn btn-outline btn-sm reveal">View All</a>
+      </div>
+      <div id="home-projects-grid"></div>
+    </div>
+  </section>
 
-        <!-- Stats bar -->
-        <div class="hero-stats fade-in-up delay-4">
-            <div class="hero-stat">
-                <h3 data-count="4" data-suffix="+">0</h3>
-                <p>Years Experience</p>
-            </div>
-            <div class="hero-stat">
-                <h3 data-count="30" data-suffix="+">0</h3>
-                <p>Clients Served</p>
-            </div>
-            <div class="hero-stat">
-                <h3 data-count="40" data-suffix="%">0</h3>
-                <p>Avg Speed Boost</p>
-            </div>
-            <div class="hero-stat">
-                <h3 data-count="30" data-suffix="%">0</h3>
-                <p>Avg Traffic Increase</p>
-            </div>
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title reveal" style="text-align:center;">Core <span class="highlight">Tech Stack</span></h2>
+      <div id="home-tech-stack-grid" style="display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;"></div>
+    </div>
+  </section>
+
+  <section class="section alt-bg">
+    <div class="container">
+      <div class="section-head-row" style="display:flex;justify-content:space-between;align-items:flex-end;">
+        <div>
+          <h2 class="section-title reveal">Client <span class="highlight">Feedback</span></h2>
+          <p class="section-subtitle reveal">Recent comments from people and teams I have built for.</p>
         </div>
+        <a href="contact.html" class="btn btn-outline btn-sm reveal">Start a Project</a>
+      </div>
+      <div id="home-testimonials-grid" class="soft-skills-grid"></div>
+    </div>
+  </section>
 
-        <div class="scroll-indicator"><a href="about.html"><i class="fa-solid fa-chevron-down"></i></a></div>
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
-    </header>
+  <section class="section">
+    <div class="container cta-strip reveal">
+      <h2>Need a website that looks sharper and performs better?</h2>
+      <p>I work with businesses, institutions, and founders that need cleaner websites, stronger SEO, and a more credible digital presence.</p>
+      <a href="contact.html" class="btn btn-primary">Let's Talk <i class="fa-solid fa-paper-plane"></i></a>
+    </div>
+    <p id="page-status" class="container" hidden></p>
+  </section>
 
-    <!-- About Section -->
-    <section class="section" id="about">
-        <div class="container">
-            <div class="about-grid">
-                <div class="about-text reveal" id="profile-bio-container">
-                    <h2 class="section-title">About <span class="highlight">Me</span></h2>
-                    <p>I am a passionate <strong>WordPress Website Developer</strong> and <strong>Graphics
-                            Designer</strong> based in Lagos, Nigeria, with over 4 years of hands-on experience
-                        designing, developing, and optimising websites for a wide variety of clients.</p>
-                    <p>From custom themes and plugins to full server management, I bring ideas to life on the web with
-                        performance and beauty.</p>
-                    <a href="about.html" class="btn btn-primary" style="margin-top: 1rem;">Learn More About Me <i
-                            class="fa-solid fa-arrow-right"></i></a>
-                </div>
-                <div class="about-image reveal delay-1">
-                    <div class="profile-card">
-                        <div class="profile-image-wrap">
-                            <img class="profile-img-dynamic" src="assets/images/profile.jpg" alt="Ebenezer Ajala"
-                                onerror="this.parentElement.innerHTML='<div class=\'image-placeholder\'><i class=\'fa-solid fa-user\'></i></div>'">
-                        </div>
-                        <div class="profile-info">
-                            <h3>Ebenezer Ajala</h3>
-                            <p class="accent-text animated-titles-container" id="about-animated-title">WordPress
-                                Developer</p>
-                            <ul class="profile-details">
-                                <li id="profile-location"><i class="fa-solid fa-location-dot"></i> Lagos, Nigeria</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <a href="index.html" class="logo">EA<span>.</span></a>
+        <p>&copy; 2026 Ebenezer Ajala. All Rights Reserved.</p>
+        <div class="footer-links">
+          <a href="about.html">About</a>
+          <a href="projects.html">Projects</a>
+          <a href="contact.html">Contact</a>
         </div>
-    </section>
+      </div>
+    </div>
+  </footer>
 
-    <!-- Featured Projects Section -->
-    <section class="section" id="featured-projects">
-        <div class="container">
-            <div class="section-head-row"
-                style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
-                <h2 class="section-title reveal" style="margin-bottom: 0;">Featured <span class="highlight">Work</span>
-                </h2>
-                <a href="projects.html" class="btn btn-outline btn-sm reveal delay-1">View All <i
-                        class="fa-solid fa-arrow-right"></i></a>
-            </div>
-
-            <!-- Cards will be injected by main.js -->
-            <div class="projects-list" id="home-projects-grid"></div>
-        </div>
-    </section>
-
-    <!-- Top Skills Mini Section -->
-    <section class="section alt-bg">
-        <div class="container">
-            <h2 class="section-title reveal" style="text-align: center; margin-bottom: 3rem;">Core <span
-                    class="highlight">Capabilities</span></h2>
-
-            <div class="skills-container home-capabilities-grid"
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 900px; margin: 0 auto;">
-                <div class="skill-category reveal card-glass" style="box-shadow: none;">
-                    <h3><i class="fa-brands fa-wordpress"></i> WordPress Dev</h3>
-                    <p style="color:var(--text-secondary); font-size:0.9rem; line-height: 1.6;">Custom theme
-                        development, Elementor mastery, plugin configuration, and WooCommerce integration.</p>
-                </div>
-                <div class="skill-category reveal delay-1 card-glass" style="box-shadow: none;">
-                    <h3><i class="fa-solid fa-palette"></i> UX &amp; Graphic Design</h3>
-                    <p style="color:var(--text-secondary); font-size:0.9rem; line-height: 1.6;">Translating brand
-                        requirements into stunning visual assets using Photoshop, Illustrator and CorelDRAW.</p>
-                </div>
-                <div class="skill-category reveal delay-2 card-glass" style="box-shadow: none;">
-                    <h3><i class="fa-solid fa-server"></i> Performance &amp; SEO</h3>
-                    <p style="color:var(--text-secondary); font-size:0.9rem; line-height: 1.6;">Speed optimization,
-                        server configuration, SSL management, and comprehensive technical SEO.</p>
-                </div>
-            </div>
-
-            <div style="text-align: center; margin-top: 2.5rem;" class="reveal delay-3">
-                <a href="skills.html" class="btn btn-outline">See Full Skillset</a>
-            </div>
-
-            <!-- Tech Stack Selection -->
-            <div class="tech-stack-container reveal delay-4" style="margin-top: 4rem; text-align: center;">
-                <h3 style="margin-bottom: 2rem; font-size: 1.5rem; color: var(--text-secondary);">My Tech Stack</h3>
-                <div id="home-tech-stack-grid"
-                    style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem;">
-                    <!-- Injected by main.js -->
-                </div>
-            </div>
-
-            <!-- GitHub Contributions -->
-            <div class="github-contributions-container reveal" style="margin-top: 5rem; text-align: center;">
-                <h3 style="margin-bottom: 2rem; font-size: 1.5rem; color: var(--text-secondary);">GitHub Contributions
-                </h3>
-                <div class="card-glass github-card"
-                    style="margin: 0 auto; padding: 1.5rem; max-width: 900px; overflow-x: auto;">
-                    <div class="calendar github-calendar" data-github-username="ImmaculateEben">
-                        <!-- Loading stuff -->
-                        Loading the data just for you.
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Experience Section -->
-    <section class="section">
-        <div class="container">
-            <div class="section-head-row"
-                style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
-                <h2 class="section-title reveal" style="margin-bottom: 0;">Professional <span
-                        class="highlight">Journey</span></h2>
-                <a href="experience.html" class="btn btn-outline btn-sm reveal delay-1">View All <i
-                        class="fa-solid fa-arrow-right"></i></a>
-            </div>
-
-            <div class="timeline">
-                <div class="timeline-item reveal">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content card-glass">
-                        <div class="timeline-header">
-                            <span class="timeline-date"><i class="fa-solid fa-calendar-days"></i> Oct 2025 –
-                                Present</span>
-                            <span class="timeline-badge badge-gold">Current</span>
-                        </div>
-                        <h3 class="timeline-role">Volunteer WordPress Developer (Pro Bono)</h3>
-                        <div class="timeline-company"><i class="fa-solid fa-building"></i> Youthup Global <span>·</span>
-                            Remote</div>
-                        <p>Supporting the Youthup Global and Utidia platforms, contributing to digital transformation
-                            initiatives across Africa.</p>
-                    </div>
-                </div>
-
-                <div class="timeline-item reveal delay-1">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content card-glass">
-                        <div class="timeline-header">
-                            <span class="timeline-date"><i class="fa-solid fa-calendar-days"></i> Apr 2025 – Mar
-                                2026</span>
-                            <span class="timeline-badge badge-blue">NYSC</span>
-                        </div>
-                        <h3 class="timeline-role">Website Developer & IT/Technical Support</h3>
-                        <div class="timeline-company"><i class="fa-solid fa-building"></i> Institute for Industrial
-                            Technology (IIT) <span>·</span> Onsite</div>
-                        <p>Serving as the institute's website developer and IT support officer under the NYSC program.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Glow Divider -->
-    <div class="section-glow-divider"></div>
-
-    <!-- Call to action -->
-    <section class="section cta-section" style="text-align: center; padding: 6rem 1rem;">
-        <div class="container" style="position: relative; z-index: 2;">
-            <h2 class="reveal" style="font-size: 2.5rem; font-family: var(--font-heading); margin-bottom: 1rem;">Let's
-                work together</h2>
-            <p class="reveal delay-1"
-                style="color: var(--text-secondary); max-width: 500px; margin: 0 auto 2rem; font-size: 1.05rem;">Looking
-                for a dedicated developer to bring your digital vision to life? I'm currently taking on new clients.</p>
-            <a href="contact.html" class="btn btn-primary reveal delay-2"
-                style="font-size: 1.1rem; padding: 1rem 2rem;">Start a Project <i
-                    class="fa-solid fa-paper-plane"></i></a>
-        </div>
-    </section>
-
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <a href="index.html" class="logo">EA<span>.</span></a>
-                <p>&copy; 2026 Ebenezer Ajala. All Rights Reserved.</p>
-                <div class="footer-links">
-                    <a href="about.html">About</a>
-                    <a href="projects.html">Projects</a>
-                    <a href="contact.html">Contact</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- GitHub Calendar Library -->
-    <script src="https://unpkg.com/github-calendar@latest/dist/github-calendar.min.js"></script>
-
-    <script src="assets/js/data.js"></script>
-    <script src="assets/js/theme.js"></script>
-    <script src="assets/js/main.js"></script>
-
-    <script>
-        // ========== Particle Canvas ==========
-        (function () {
-            const canvas = document.getElementById('particle-canvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            let particles = [];
-            let mouse = { x: null, y: null };
-            const PARTICLE_COUNT = 70;
-            const CONNECTION_DIST = 130;
-
-            function resize() {
-                canvas.width = canvas.parentElement.offsetWidth;
-                canvas.height = canvas.parentElement.offsetHeight;
-            }
-            resize();
-            window.addEventListener('resize', resize);
-
-            canvas.parentElement.addEventListener('mousemove', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                mouse.x = e.clientX - rect.left;
-                mouse.y = e.clientY - rect.top;
-            });
-            canvas.parentElement.addEventListener('mouseleave', () => {
-                mouse.x = null;
-                mouse.y = null;
-            });
-
-            class Particle {
-                constructor() {
-                    this.x = Math.random() * canvas.width;
-                    this.y = Math.random() * canvas.height;
-                    this.size = Math.random() * 2 + 0.5;
-                    this.speedX = (Math.random() - 0.5) * 0.6;
-                    this.speedY = (Math.random() - 0.5) * 0.6;
-                    this.opacity = Math.random() * 0.5 + 0.1;
-                }
-                update() {
-                    this.x += this.speedX;
-                    this.y += this.speedY;
-
-                    if (mouse.x !== null) {
-                        const dx = mouse.x - this.x;
-                        const dy = mouse.y - this.y;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-                        if (dist < 150) {
-                            this.x -= dx * 0.01;
-                            this.y -= dy * 0.01;
-                        }
-                    }
-
-                    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
-                    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
-                }
-                draw() {
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(59, 130, 246, ${this.opacity})`;
-                    ctx.fill();
-                }
-            }
-
-            for (let i = 0; i < PARTICLE_COUNT; i++) {
-                particles.push(new Particle());
-            }
-
-            function animate() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                particles.forEach(p => { p.update(); p.draw(); });
-
-                // Draw connections
-                for (let i = 0; i < particles.length; i++) {
-                    for (let j = i + 1; j < particles.length; j++) {
-                        const dx = particles[i].x - particles[j].x;
-                        const dy = particles[i].y - particles[j].y;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-                        if (dist < CONNECTION_DIST) {
-                            const opacity = 0.08 * (1 - dist / CONNECTION_DIST);
-                            ctx.beginPath();
-                            ctx.moveTo(particles[i].x, particles[i].y);
-                            ctx.lineTo(particles[j].x, particles[j].y);
-                            ctx.strokeStyle = `rgba(59, 130, 246, ${opacity})`;
-                            ctx.lineWidth = 0.5;
-                            ctx.stroke();
-                        }
-                    }
-                }
-
-                requestAnimationFrame(animate);
-            }
-            animate();
-        })();
-
-        // ========== Counter Animation ==========
-        (function () {
-            const counters = document.querySelectorAll('[data-count]');
-            const speed = 1500;
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const el = entry.target;
-                        const target = parseInt(el.dataset.count);
-                        const suffix = el.dataset.suffix || '';
-                        let current = 0;
-                        const increment = target / (speed / 16);
-                        const timer = setInterval(() => {
-                            current += increment;
-                            if (current >= target) {
-                                current = target;
-                                clearInterval(timer);
-                            }
-                            el.textContent = Math.floor(current) + suffix;
-                        }, 16);
-                        observer.unobserve(el);
-                    }
-                });
-            }, { threshold: 0.5 });
-
-            counters.forEach(c => observer.observe(c));
-        })();
-    </script>
+  <script src="assets/js/runtime-config.js"></script>
+  <script src="assets/js/theme.js"></script>
+  <script type="module" src="assets/js/main.js"></script>
 </body>
-
 </html>

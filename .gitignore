@@ -1,0 +1,13 @@
+# Secrets
+.env
+.env.local
+supabase/.env
+supabase/functions/.env
+
+# Local tooling
+.vercel/
+supabase/.branches/
+supabase/.temp/
+
+# Dependencies
+node_modules/

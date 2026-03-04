@@ -1,504 +1,605 @@
-/**
- * main.js — Shared portfolio interactivity
- */
+import {
+  getAvailableTechStacks,
+  loadProject,
+  loadProjects,
+  loadSiteContent,
+  loadTestimonials
+} from "./content-service.js";
+import { hydrateContactDetails, initContactForm } from "./contact.js";
+import {
+  applyExternalLinkSafety,
+  attachImageFallbacks,
+  escapeHtml,
+  safeSetHtml,
+  sanitizeUrl
+} from "./security.js";
 
-document.addEventListener('DOMContentLoaded', () => {
+function $(selector) {
+  return document.querySelector(selector);
+}
 
-  // 1. Mobile Menu Toggle
-  const hamburger = document.getElementById('hamburger');
-  const navLinks = document.getElementById('navLinks');
+function setMetaDescription(content) {
+  let meta = document.querySelector('meta[name="description"]');
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.name = "description";
+    document.head.appendChild(meta);
+  }
+  meta.content = content;
+}
+
+function setCanonical() {
+  let canonical = document.querySelector('link[rel="canonical"]');
+  if (!canonical) {
+    canonical = document.createElement("link");
+    canonical.rel = "canonical";
+    document.head.appendChild(canonical);
+  }
+  canonical.href = window.location.href;
+}
+
+function injectAnalytics(measurementId) {
+  if (!measurementId || document.querySelector('[data-analytics="ea-ga"]')) {
+    return;
+  }
+
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = window.gtag || function gtag() {
+    window.dataLayer.push(arguments);
+  };
+  window.gtag("js", new Date());
+
+  const loader = document.createElement("script");
+  loader.async = true;
+  loader.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
+  loader.dataset.analytics = "ea-ga";
+  loader.addEventListener("load", () => {
+    window.gtag("config", measurementId);
+  });
+
+  document.head.appendChild(loader);
+}
+
+function initNav() {
+  const hamburger = $("#hamburger");
+  const navLinks = $("#navLinks");
+  const navbar = $("#navbar");
 
   if (hamburger && navLinks) {
-    hamburger.addEventListener('click', () => {
-      navLinks.classList.toggle('nav-active');
-      hamburger.classList.toggle('toggle');
+    hamburger.addEventListener("click", () => {
+      navLinks.classList.toggle("nav-active");
+      hamburger.classList.toggle("toggle");
     });
 
-    // Close on nav link click
-    navLinks.querySelectorAll('.nav-link').forEach(link => {
-      link.addEventListener('click', () => {
-        navLinks.classList.remove('nav-active');
-        hamburger.classList.remove('toggle');
+    navLinks.querySelectorAll(".nav-link").forEach((link) => {
+      link.addEventListener("click", () => {
+        navLinks.classList.remove("nav-active");
+        hamburger.classList.remove("toggle");
       });
     });
 
-    // Close on outside click
-    document.addEventListener('click', (e) => {
-      if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
-        navLinks.classList.remove('nav-active');
-        hamburger.classList.remove('toggle');
+    document.addEventListener("click", (event) => {
+      if (!hamburger.contains(event.target) && !navLinks.contains(event.target)) {
+        navLinks.classList.remove("nav-active");
+        hamburger.classList.remove("toggle");
       }
     });
   }
 
-  // 2. Navbar scroll effect
-  const navbar = document.getElementById('navbar');
   if (navbar) {
-    const updateNav = () => {
-      navbar.classList.toggle('scrolled', window.scrollY > 40);
+    const update = () => {
+      navbar.classList.toggle("scrolled", window.scrollY > 16);
     };
-    window.addEventListener('scroll', updateNav, { passive: true });
-    updateNav();
+    window.addEventListener("scroll", update, { passive: true });
+    update();
+  }
+}
+
+function initRevealObserver() {
+  const items = document.querySelectorAll(".reveal");
+  if (!items.length) {
+    return;
   }
 
-  // 3. Scroll reveal
-  const reveals = document.querySelectorAll('.reveal');
-  if (reveals.length) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          entry.target.classList.add('active');
+          entry.target.classList.add("active");
         }
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    },
+    { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+  );
 
-    reveals.forEach(el => observer.observe(el));
+  items.forEach((item) => observer.observe(item));
+}
+
+function buildProjectCard(project, index, options = {}) {
+  const card = document.createElement("article");
+  card.className = "project-card-full card-glass reveal";
+
+  const link = document.createElement("a");
+  link.className = "project-card-link";
+  link.href = `project.html?id=${encodeURIComponent(project.id)}`;
+  card.appendChild(link);
+
+  if (project.image) {
+    const image = document.createElement("img");
+    image.className = "project-featured-img";
+    image.src = project.image;
+    image.alt = project.title;
+    link.appendChild(image);
   }
 
-  // 4. Render projects if on projects page
-  if (document.getElementById('projects-container')) {
-    renderProjects();
+  const number = document.createElement("div");
+  number.className = "project-number";
+  number.textContent = String(index + 1).padStart(2, "0");
+  link.appendChild(number);
+
+  const info = document.createElement("div");
+  info.className = "project-info";
+  link.appendChild(info);
+
+  const title = document.createElement("h3");
+  title.textContent = project.title;
+  info.appendChild(title);
+
+  const summary = document.createElement("p");
+  summary.textContent = project.shortDesc;
+  info.appendChild(summary);
+
+  const tags = document.createElement("div");
+  tags.className = "project-tags";
+  project.tags.forEach((tag) => {
+    const pill = document.createElement("span");
+    pill.textContent = tag;
+    tags.appendChild(pill);
+  });
+  info.appendChild(tags);
+
+  const actions = document.createElement("div");
+  actions.className = "project-actions";
+  info.appendChild(actions);
+
+  const details = document.createElement("span");
+  details.className = "btn btn-primary";
+  details.textContent = "View Details";
+  actions.appendChild(details);
+
+  if (options.includeExternal && project.url) {
+    const external = document.createElement("a");
+    external.className = "btn btn-outline";
+    external.href = project.url;
+    external.target = "_blank";
+    external.rel = "noopener noreferrer";
+    external.innerHTML = 'Live Site <i class="fa-solid fa-arrow-up-right-from-square"></i>';
+    actions.appendChild(external);
   }
 
-  // Render featured projects and tech stack if on home page
-  if (document.getElementById('home-projects-grid')) {
-    renderFeaturedProjects();
-    renderHomeTechStack();
+  return card;
+}
+
+function setText(id, value) {
+  const element = document.getElementById(id);
+  if (element) {
+    element.textContent = value;
+  }
+}
+
+function setLink(id, value, label) {
+  const element = document.getElementById(id);
+  if (!element) {
+    return;
   }
 
-  // Render testimonials if on home page
-  if (document.getElementById('home-testimonials-grid')) {
-    renderHomeTestimonials();
+  const safe = sanitizeUrl(value);
+  if (!safe) {
+    element.removeAttribute("href");
+    return;
   }
 
-  // Init GitHub Calendar
-  const initGithubCalendar = () => {
-    const calendarEl = document.querySelector('.github-calendar, .calendar');
-    if (!calendarEl || typeof GitHubCalendar !== 'function') return false;
+  element.href = safe;
+  if (label) {
+    element.textContent = label;
+  }
+}
 
-    const normalizeGithubUsername = (value) => {
-      if (!value) return '';
-      return String(value)
-        .trim()
-        .replace(/^https?:\/\/github\.com\//i, '')
-        .replace(/^@/, '')
-        .split('/')[0]
-        .trim();
+function renderProfileBlocks(siteContent) {
+  const profile = siteContent.profile;
+  document.querySelectorAll(".profile-img-dynamic").forEach((image) => {
+    image.src = profile.profileImage || "assets/images/profile-placeholder.svg";
+    image.alt = profile.name;
+  });
+
+  setText("profile-name", profile.name);
+  setText("profile-location", profile.location);
+  setText("profile-email", profile.email);
+  setText("stat-years", profile.yearsExperience);
+  setText("stat-clients", profile.clientsServed);
+  setText("stat-speed", profile.avgSpeedImprovement);
+  setText("stat-traffic", profile.avgTrafficIncrease);
+  setText("hero-name", profile.name);
+  setText("hero-tagline", profile.tagline);
+  setText("hero-location", profile.location);
+  setText("about-summary", profile.bio);
+  setText("about-summary-2", profile.bio2);
+  setText("contact-recipient-label", siteContent.settings.adminContactLabel || "Primary inbox");
+
+  const bioContainer = document.getElementById("profile-bio-container");
+  if (bioContainer) {
+    bioContainer.innerHTML = [
+      `<p>${escapeHtml(profile.bio)}</p>`,
+      profile.bio2 ? `<p>${escapeHtml(profile.bio2)}</p>` : "",
+      profile.bio3 ? `<p>${escapeHtml(profile.bio3)}</p>` : ""
+    ].join("");
+  }
+
+  const aboutCta = document.getElementById("about-resume-link");
+  if (aboutCta) {
+    aboutCta.href = "assets/docs/resume.docx";
+  }
+
+  const linkedin = document.getElementById("profile-linkedin");
+  if (linkedin) {
+    const safeLinkedIn = sanitizeUrl(profile.linkedin);
+    if (safeLinkedIn) {
+      linkedin.href = safeLinkedIn;
+      linkedin.textContent = safeLinkedIn.replace(/^https?:\/\/(www\.)?/, "");
+      linkedin.target = "_blank";
+      linkedin.rel = "noopener noreferrer";
+    }
+  }
+
+  const githubLink = document.getElementById("profile-github");
+  if (githubLink) {
+    const safeGitHub = sanitizeUrl(profile.github);
+    if (safeGitHub) {
+      githubLink.href = safeGitHub;
+      githubLink.textContent = safeGitHub.replace(/^https?:\/\/(www\.)?/, "");
+      githubLink.target = "_blank";
+      githubLink.rel = "noopener noreferrer";
+    }
+  }
+
+  const availabilityBadge = document.getElementById("availability-badge");
+  if (availabilityBadge) {
+    availabilityBadge.textContent = profile.availableForFreelance ? "Available for new work" : "Currently booked";
+  }
+
+  initTitleRotators(profile.animatedTitles || []);
+}
+
+function initTitleRotators(titles) {
+  const containers = document.querySelectorAll("[data-animated-title]");
+  if (!containers.length || !titles.length) {
+    return;
+  }
+
+  containers.forEach((container) => {
+    let index = 0;
+
+    const tick = () => {
+      container.textContent = titles[index % titles.length];
+      index += 1;
     };
 
-    const profile = (typeof getProfile === 'function') ? getProfile() : null;
-    const profileGithubUsername = normalizeGithubUsername(profile?.githubUsername || profile?.github);
-    const attrGithubUsername = normalizeGithubUsername(calendarEl.dataset.githubUsername);
-    const username = profileGithubUsername || attrGithubUsername || 'ImmaculateEben';
-    calendarEl.dataset.githubUsername = username;
+    tick();
+    window.setInterval(tick, 2600);
+  });
+}
 
-    try {
-      GitHubCalendar(calendarEl, username, {
-        responsive: true,
-        tooltips: true,
+async function renderHomePage(siteContent, projects, testimonials) {
+  const featuredGrid = document.getElementById("home-projects-grid");
+  if (featuredGrid) {
+    featuredGrid.innerHTML = "";
+    const featured = projects.filter((project) => project.featured).slice(0, 3);
+    const items = featured.length ? featured : projects.slice(0, 3);
+    items.forEach((project, index) => {
+      featuredGrid.appendChild(buildProjectCard(project, index));
+    });
+  }
+
+  const techGrid = document.getElementById("home-tech-stack-grid");
+  if (techGrid) {
+    techGrid.innerHTML = "";
+    const definitions = getAvailableTechStacks();
+    siteContent.techStacks.forEach((stackId) => {
+      const item = definitions.find((entry) => entry.id === stackId);
+      if (!item) {
+        return;
+      }
+      const tile = document.createElement("div");
+      tile.className = "tech-stack-item reveal";
+      tile.innerHTML = `<div class="tech-stack-icon-wrapper"><i class="${item.icon}"></i></div><span>${escapeHtml(
+        item.name
+      )}</span>`;
+      techGrid.appendChild(tile);
+    });
+  }
+
+  const testimonialsGrid = document.getElementById("home-testimonials-grid");
+  if (testimonialsGrid) {
+    testimonialsGrid.innerHTML = "";
+    testimonials
+      .filter((item) => item.published)
+      .slice(0, 3)
+      .forEach((item) => {
+        const card = document.createElement("article");
+        card.className = "card-glass reveal testimonial-card";
+        card.innerHTML = `
+          <div class="testimonial-copy">
+            <i class="fa-solid fa-quote-left"></i>
+            <p>${escapeHtml(item.content)}</p>
+          </div>
+          <div class="testimonial-meta">
+            <strong>${escapeHtml(item.name)}</strong>
+            <span>${escapeHtml(item.role)}</span>
+          </div>
+        `;
+        testimonialsGrid.appendChild(card);
       });
-      return true;
-    } catch (error) {
-      calendarEl.innerHTML = '<p style="color:var(--text-muted);">Unable to load GitHub contributions right now.</p>';
-      return false;
-    }
+  }
+}
+
+function renderEducation(siteContent) {
+  const educationGrid = document.getElementById("education-grid");
+  if (!educationGrid) {
+    return;
+  }
+
+  educationGrid.innerHTML = "";
+  siteContent.education.forEach((entry, index) => {
+    const card = document.createElement("article");
+    card.className = `edu-card card-glass reveal${index ? ` delay-${Math.min(index, 4)}` : ""}`;
+    card.innerHTML = `
+      <div class="edu-icon"><i class="${escapeHtml(entry.icon)}"></i></div>
+      <div>
+        <span class="edu-badge">${escapeHtml(entry.period)}</span>
+        <h3>${escapeHtml(entry.degree)}</h3>
+        <p class="edu-school">${escapeHtml(entry.school)}</p>
+      </div>
+    `;
+    educationGrid.appendChild(card);
+  });
+}
+
+function renderSkills(siteContent) {
+  const technicalGrid = document.getElementById("skill-technical-grid");
+  if (technicalGrid) {
+    technicalGrid.innerHTML = "";
+    siteContent.skills.technical.forEach((entry, index) => {
+      const card = document.createElement("article");
+      card.className = `skill-category reveal${index ? ` delay-${Math.min(index, 4)}` : ""}`;
+      const items = entry.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+      card.innerHTML = `
+        <h3><i class="${escapeHtml(entry.icon)}"></i> ${escapeHtml(entry.category)}</h3>
+        <ul class="skill-list">${items}</ul>
+      `;
+      technicalGrid.appendChild(card);
+    });
+  }
+
+  const softGrid = document.getElementById("skill-soft-grid");
+  if (softGrid) {
+    softGrid.innerHTML = "";
+    siteContent.skills.soft.forEach((entry, index) => {
+      const card = document.createElement("article");
+      card.className = `soft-skill-item reveal${index ? ` delay-${Math.min(index, 4)}` : ""}`;
+      card.innerHTML = `
+        <div class="soft-skill-icon"><i class="${escapeHtml(entry.icon)}"></i></div>
+        <h3>${escapeHtml(entry.title)}</h3>
+        <p>${escapeHtml(entry.desc)}</p>
+      `;
+      softGrid.appendChild(card);
+    });
+  }
+}
+
+function renderExperience(siteContent) {
+  const timeline = document.getElementById("experience-timeline");
+  if (timeline) {
+    timeline.innerHTML = "";
+    siteContent.experience.forEach((entry, index) => {
+      const item = document.createElement("article");
+      item.className = `timeline-item reveal${index ? ` delay-${Math.min(index, 4)}` : ""}`;
+      const badge = entry.badge
+        ? `<span class="timeline-badge ${escapeHtml(entry.badgeClass)}">${escapeHtml(entry.badge)}</span>`
+        : "";
+      const bullets = entry.bullets.map((bullet) => `<li>${escapeHtml(bullet)}</li>`).join("");
+      item.innerHTML = `
+        <div class="timeline-dot"></div>
+        <div class="timeline-content card-glass">
+          <div class="timeline-header">
+            <span class="timeline-date"><i class="fa-solid fa-calendar-days"></i> ${escapeHtml(entry.date)}</span>
+            ${badge}
+          </div>
+          <h3 class="timeline-role">${escapeHtml(entry.role)}</h3>
+          <div class="timeline-company"><i class="fa-solid fa-building"></i> ${escapeHtml(entry.company)} <span>•</span> ${escapeHtml(
+            entry.type
+          )}</div>
+          <p>${escapeHtml(entry.summary)}</p>
+          <ul class="timeline-bullets">${bullets}</ul>
+        </div>
+      `;
+      timeline.appendChild(item);
+    });
+  }
+}
+
+function renderProjectsPage(projects) {
+  const container = document.getElementById("projects-container");
+  const filterBar = document.getElementById("project-filter-list");
+  if (!container) {
+    return;
+  }
+
+  const tags = [...new Set(projects.flatMap((project) => project.tags))];
+  let activeTag = "All";
+
+  const renderCards = () => {
+    container.innerHTML = "";
+    const filtered = activeTag === "All" ? projects : projects.filter((project) => project.tags.includes(activeTag));
+    filtered.forEach((project, index) => {
+      container.appendChild(buildProjectCard(project, index, { includeExternal: true }));
+    });
+    initRevealObserver();
+    applyExternalLinkSafety(container);
+    attachImageFallbacks(container);
   };
 
-  if (!initGithubCalendar()) {
-    window.addEventListener('load', () => {
-      if (!initGithubCalendar()) {
-        const calendarEl = document.querySelector('.github-calendar, .calendar');
-        if (calendarEl) {
-          calendarEl.innerHTML = '<p style="color:var(--text-muted);">GitHub contributions could not be loaded. Check internet access or username.</p>';
-        }
-      }
-    }, { once: true });
-  }
-
-  // 5. Render single project if on project page
-  if (document.getElementById('project-detail')) {
-    renderProjectDetail();
-  }
-
-  // 6. Dashboard init if on admin page
-  if (document.getElementById('admin-dashboard')) {
-    initAdmin();
-  }
-
-  // 7. Inject Profile data (image and animated titles)
-  renderProfileData();
-});
-
-/* ---- Projects Rendering ---- */
-function renderProjects() {
-  const container = document.getElementById('projects-container');
-  if (!container) return;
-
-  const projects = getProjects();
-  container.innerHTML = '';
-
-  const fallbackImg = `data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22800%22%20height%3D%22500%22%20viewBox%3D%220%200%20800%20500%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%22100%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%231a1a2e%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%2316213e%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20fill%3D%22url%28%23g%29%22%20width%3D%22800%22%20height%3D%22500%22%2F%3E%3Ctext%20fill%3D%22rgba%28255%2C255%2C255%2C0.3%29%22%20font-family%3D%22sans-serif%22%20font-size%3D%2240%22%20dy%3D%2215%22%20font-weight%3D%22bold%22%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%3EProject%20Image%3C%2Ftext%3E%3C%2Fsvg%3E`;
-
-  projects.forEach((p, i) => {
-    const imgSource = p.image || fallbackImg;
-    const card = document.createElement('a');
-    card.href = `project.html?id=${p.id}`;
-    card.className = 'project-card-full card-glass reveal delay-' + (i % 4);
-    card.innerHTML = `
-      <img src="${imgSource}" alt="${p.title}" class="project-featured-img">
-      <div class="project-number">${String(i + 1).padStart(2, '0')}</div>
-      <div class="project-info">
-        <h3>${p.title}</h3>
-        <p>${p.shortDesc}</p>
-        <div class="project-tags">${p.tags.map(t => `<span>${t}</span>`).join('')}</div>
-        <div class="project-actions">
-          <span class="btn btn-primary" style="pointer-events:none;">View Details <i class="fa-solid fa-arrow-right"></i></span>
-          ${p.url ? `<a href="${p.url}" target="_blank" class="btn btn-outline" onclick="event.stopPropagation()">Live Site <i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
-        </div>
-      </div>`;
-    container.appendChild(card);
-  });
-
-  // Re-observe new reveal elements
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
-  }, { threshold: 0.1 });
-  container.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-}
-
-function renderFeaturedProjects() {
-  const container = document.getElementById('home-projects-grid');
-  if (!container) return;
-
-  // Get only featured projects or up to 3 latest
-  let projects = getProjects();
-  let featured = projects.filter(p => p.featured);
-
-  // If no featured projects, just take the first 3
-  if (featured.length === 0) featured = projects.slice(0, 3);
-  else featured = featured.slice(0, 3);
-
-  container.innerHTML = '';
-
-  const fallbackImg = `data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22800%22%20height%3D%22500%22%20viewBox%3D%220%200%20800%20500%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%22100%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%231a1a2e%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%2316213e%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20fill%3D%22url%28%23g%29%22%20width%3D%22800%22%20height%3D%22500%22%2F%3E%3Ctext%20fill%3D%22rgba%28255%2C255%2C255%2C0.3%29%22%20font-family%3D%22sans-serif%22%20font-size%3D%2240%22%20dy%3D%2215%22%20font-weight%3D%22bold%22%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%3EProject%20Image%3C%2Ftext%3E%3C%2Fsvg%3E`;
-
-  featured.forEach((p, i) => {
-    const imgSource = p.image || fallbackImg;
-    const card = document.createElement('a');
-    card.href = `project.html?id=${p.id}`;
-    card.className = 'project-card-full card-glass reveal delay-' + (i + 1);
-    card.innerHTML = `
-      <img src="${imgSource}" alt="${p.title}" class="project-featured-img">
-      <div class="project-number">${String(i + 1).padStart(2, '0')}</div>
-      <div class="project-info">
-        <h3>${p.title}</h3>
-        <p>${p.shortDesc}</p>
-        <div class="project-tags">${p.tags.slice(0, 3).map(t => `<span>${t}</span>`).join('')}</div>
-        <div class="project-actions">
-          <span class="btn btn-primary" style="pointer-events:none;">View Details <i class="fa-solid fa-arrow-right"></i></span>
-        </div>
-      </div>`;
-    container.appendChild(card);
-  });
-
-  // Re-observe new reveal elements
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
-  }, { threshold: 0.1 });
-  container.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-}
-
-function renderHomeTechStack() {
-  const container = document.getElementById('home-tech-stack-grid');
-  if (!container) return;
-
-  const selectedStacks = getTechStacks();
-  if (!selectedStacks || selectedStacks.length === 0) {
-    container.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">No tech stack selected.</p>';
-    return;
-  }
-
-  let html = '';
-  selectedStacks.forEach((stackId, index) => {
-    const stackDef = AVAILABLE_TECH_STACKS.find(s => s.id === stackId);
-    if (!stackDef) return;
-
-    html += `
-      <div class="tech-stack-item reveal" style="animation-delay: ${index * 0.1}s">
-        <div class="tech-stack-icon-wrapper">
-          <i class="${stackDef.icon}"></i>
-        </div>
-        <span>${stackDef.name}</span>
-      </div>
-    `;
-  });
-
-  container.innerHTML = html;
-
-  // Re-observe new reveal elements
-  setTimeout(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
-    }, { threshold: 0.1 });
-    container.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-  }, 100);
-}
-
-// ------------------------------------
-// FRONTEND TESTIMONIALS RENDERING
-// ------------------------------------
-function renderHomeTestimonials() {
-  const container = document.getElementById('home-testimonials-grid');
-  if (!container) return;
-
-  const testimonials = (typeof getTestimonials === 'function') ? getTestimonials() : [];
-  if (!testimonials || testimonials.length === 0) {
-    container.innerHTML = '<p style="color:var(--text-muted); text-align:center; width:100%;">No testimonials added yet.</p>';
-    return;
-  }
-
-  let html = '';
-  testimonials.forEach((t, i) => {
-    html += `
-      <div class="card-glass reveal" style="padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem; animation-delay: ${i * 0.1}s">
-        <div>
-          <i class="fa-solid fa-quote-left" style="color: var(--accent); font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-          <p style="color: var(--text-primary); font-size: 1rem; line-height: 1.7; font-style: italic;">"${t.content}"</p>
-        </div>
-        <div style="border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 1rem;">
-          <h4 style="color: var(--accent); margin-bottom: 0.25rem;">${t.name}</h4>
-          <span style="color: var(--text-secondary); font-size: 0.85rem;">${t.role}</span>
-        </div>
-      </div>
-    `;
-  });
-
-  container.innerHTML = html;
-
-  // Re-observe new reveal elements
-  setTimeout(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
-    }, { threshold: 0.1 });
-    container.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-  }, 100);
-}
-
-// ------------------------------------
-// PROFILE DATA (Image & Animated Titles & Bio)
-// ------------------------------------
-function renderProfileData() {
-  const profile = (typeof getProfile === 'function') ? getProfile() : null;
-  if (!profile) return;
-
-  // 1. Inject Profile Image
-  if (profile.profileImage) {
-    document.querySelectorAll('.profile-img-dynamic').forEach(img => {
-      img.src = profile.profileImage;
+  if (filterBar) {
+    const options = ["All", ...tags];
+    filterBar.innerHTML = "";
+    options.forEach((tag) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `filter-chip${tag === activeTag ? " active" : ""}`;
+      button.textContent = tag;
+      button.addEventListener("click", () => {
+        activeTag = tag;
+        filterBar.querySelectorAll(".filter-chip").forEach((chip) => chip.classList.remove("active"));
+        button.classList.add("active");
+        renderCards();
+      });
+      filterBar.appendChild(button);
     });
   }
 
-  // Inject Basic Profile Info into specific IDs
-  const locationEl = document.getElementById('profile-location');
-  if (locationEl && profile.location) {
-    locationEl.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${profile.location}`;
-  }
-
-  const emailEl = document.getElementById('profile-email');
-  if (emailEl && profile.email) {
-    emailEl.innerHTML = `<i class="fa-solid fa-envelope"></i> ${profile.email}`;
-  }
-
-  const nameEl = document.getElementById('profile-name');
-  if (nameEl && profile.name) {
-    nameEl.textContent = profile.name;
-  }
-
-  // Inject Bio Text into specific IDs
-  // In index.html, we just show the first two paragraph roughly or whatever they typed
-  // In about.html, we show all paragraphs. 
-  const bioContainer = document.getElementById('profile-bio-container');
-  if (bioContainer) {
-    // If it's the home page, there's less text
-    const isHome = window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/');
-    const isAbout = window.location.pathname.endsWith('about.html');
-
-    if (isHome) {
-      bioContainer.innerHTML = `
-        <h2 class="section-title">About <span class="highlight">Me</span></h2>
-        ${profile.bio ? `<p>${profile.bio}</p>` : ''}
-        ${profile.bio2 ? `<p>${profile.bio2}</p>` : ''}
-        <a href="about.html" class="btn btn-primary" style="margin-top: 1rem;">Learn More About Me <i class="fa-solid fa-arrow-right"></i></a>
-      `;
-    } else if (isAbout) {
-      bioContainer.innerHTML = `
-        <h2 class="section-title">Who I Am</h2>
-        ${profile.bio ? `<p>${profile.bio}</p>` : ''}
-        ${profile.bio2 ? `<p>${profile.bio2}</p>` : ''}
-        ${profile.bio3 ? `<p>${profile.bio3}</p>` : ''}
-        <a href="assets/docs/resume.docx" class="btn btn-primary" download style="margin-top:0.5rem;">
-            Download My Resume <i class="fa-solid fa-download"></i>
-        </a>
-      `;
-    }
-  }
-
-
-  // 2. Initialize Text Rotator
-  const titles = profile.animatedTitles;
-  if (titles && titles.length > 0) {
-    const containers = document.querySelectorAll('.animated-titles-container');
-
-    containers.forEach(container => {
-      let index = 0;
-      let charIndex = 0;
-      let isDeleting = false;
-      let currentString = '';
-
-      const typeSpeed = 100;
-      const deleteSpeed = 50;
-      const pauseEnd = 2000;
-      const pauseStart = 500;
-
-      function type() {
-        const fullString = titles[index % titles.length] || '';
-
-        if (isDeleting) {
-          currentString = fullString.substring(0, charIndex - 1);
-          charIndex--;
-        } else {
-          currentString = fullString.substring(0, charIndex + 1);
-          charIndex++;
-        }
-
-        container.innerHTML = `<span class="typing-text">${currentString}</span><span class="typing-cursor">|</span>`;
-
-        let typeDelay = isDeleting ? deleteSpeed : typeSpeed;
-
-        if (!isDeleting && currentString === fullString) {
-          typeDelay = pauseEnd;
-          isDeleting = true;
-        } else if (isDeleting && currentString === '') {
-          isDeleting = false;
-          index++;
-          typeDelay = pauseStart;
-        }
-
-        setTimeout(type, typeDelay);
-      }
-
-      type(); // Start looping for this container
-    });
-  }
+  renderCards();
 }
 
-/* ---- Single Project Detail ---- */
-function renderProjectDetail() {
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get('id');
-  const project = getProject(id);
-  const container = document.getElementById('project-detail');
+async function renderProjectDetailPage() {
+  const container = document.getElementById("project-detail");
+  if (!container) {
+    return;
+  }
+
+  const id = new URLSearchParams(window.location.search).get("id");
+  const project = await loadProject(id);
 
   if (!project) {
-    container.innerHTML = `<div class="container" style="padding:8rem 0; text-align:center;">
-      <h2>Project not found</h2>
-      <p style="color:var(--text-secondary);margin:1rem 0 2rem;">The project you're looking for doesn't exist.</p>
-      <a href="projects.html" class="btn btn-primary">← Back to Projects</a>
-    </div>`;
+    container.innerHTML = `
+      <section class="section">
+        <div class="container card-glass">
+          <h1>Project not found</h1>
+          <p>The requested project could not be loaded.</p>
+          <a class="btn btn-primary" href="projects.html">Back to Projects</a>
+        </div>
+      </section>
+    `;
     return;
   }
 
   document.title = `${project.title} | Ebenezer Ajala`;
+  setMetaDescription(project.shortDesc);
 
   container.innerHTML = `
-    <!-- Project Hero -->
-    <div class="project-hero" style="background: ${project.gradient || 'var(--bg-alt)'};">
+    <div class="project-hero" style="background:${escapeHtml(project.gradient)};">
       <div class="blob blob-1"></div>
       <div class="blob blob-2"></div>
       <div class="project-hero-content fade-in-up">
         <a href="projects.html" class="project-back"><i class="fa-solid fa-arrow-left"></i> Back to Projects</a>
-        <div class="project-tags" style="margin-bottom:1rem;">${project.tags.map(t => `<span>${t}</span>`).join('')}</div>
-        <h1>${project.title}</h1>
-        <p style="color:rgba(255,255,255,0.7); font-size:1.05rem; max-width:600px;">${project.shortDesc}</p>
+        <div class="project-tags">${project.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
+        <h1>${escapeHtml(project.title)}</h1>
+        <p>${escapeHtml(project.shortDesc)}</p>
       </div>
     </div>
-
-    <!-- Project Content -->
     <section class="section">
       <div class="container">
         <div class="project-detail-grid">
-          <div class="project-main-content">
-              <div class="project-long-desc reveal ck-content custom-html-content">
-                <img src="${project.image || 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22800%22%20height%3D%22500%22%20viewBox%3D%220%200%20800%20500%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%22100%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%231a1a2e%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%2316213e%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20fill%3D%22url%28%23g%29%22%20width%3D%22800%22%20height%3D%22500%22%2F%3E%3Ctext%20fill%3D%22rgba%28255%2C255%2C255%2C0.3%29%22%20font-family%3D%22sans-serif%22%20font-size%3D%2240%22%20dy%3D%2215%22%20font-weight%3D%22bold%22%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%3EProject%20Image%3C%2Ftext%3E%3C%2Fsvg%3E'}" alt="${project.title}" class="project-featured-img" style="width:100%; max-height:400px; object-fit:cover; border-radius:14px; margin-bottom:2rem; box-shadow:0 8px 30px rgba(0,0,0,0.3);">
-                <h2 class="section-title">Project Overview</h2>
-                ${(project.longDesc || project.shortDesc).includes('<') ? (project.longDesc || project.shortDesc) : (project.longDesc || project.shortDesc).split('\n').map(p => `<p>${p}</p>`).join('')}
-              </div>
-
-              ${project.gallery && project.gallery.length > 0 ? `
-              <div class="project-gallery reveal">
-                <h3 class="section-title" style="margin-top:3rem;">Project Gallery</h3>
-                <div class="project-gallery-grid">
-                    ${project.gallery.map(imgSrc => `
-                        <div class="gallery-item" onclick="openLightbox('${imgSrc}')">
-                            <img src="${imgSrc}" alt="${project.title} gallery image">
-                        </div>
-                    `).join('')}
-                </div>
-              </div>
-              
-              <!-- Lightbox Overlay -->
-              <div id="project-lightbox" class="lightbox" onclick="closeLightbox()">
-                  <span class="lightbox-close">&times;</span>
-                  <img class="lightbox-content" id="lightbox-img">
-              </div>
-              
-              <script>
-                function openLightbox(src) {
-                    const lightbox = document.getElementById('project-lightbox');
-                    const lightboxImg = document.getElementById('lightbox-img');
-                    lightboxImg.src = src;
-                    lightbox.classList.add('active');
-                }
-                function closeLightbox() {
-                    const lightbox = document.getElementById('project-lightbox');
-                    lightbox.classList.remove('active');
-                }
-              </script>
-              ` : ''}
-          </div>
-
-          <div class="project-detail-sidebar reveal delay-1">
-            ${(project.url || project.github) ? `
+          <div class="project-long-desc reveal ck-content custom-html-content" id="project-rich-copy"></div>
+          <aside class="project-detail-sidebar reveal delay-1">
             <div class="sidebar-card card-glass">
-              <h4>Links</h4>
-              <div class="sidebar-links">
-                ${project.url ? `<a href="${project.url}" target="_blank" class="sidebar-link"><i class="fa-solid fa-globe"></i> Visit Live Site</a>` : ''}
-                ${project.github ? `<a href="${project.github}" target="_blank" class="sidebar-link"><i class="fa-brands fa-github"></i> View Source</a>` : ''}
-              </div>
-            </div>` : ''}
-
-            <div class="sidebar-card card-glass">
-              <h4>Technologies</h4>
-              <div class="project-tags">${project.tags.map(t => `<span>${t}</span>`).join('')}</div>
+              <h4>Project Links</h4>
+              <div class="sidebar-links" id="project-link-list"></div>
             </div>
-
             <div class="sidebar-card card-glass">
-              <h4>More Projects</h4>
-              <a href="projects.html" class="btn btn-outline" style="width:100%; justify-content:center;">
-                <i class="fa-solid fa-grid-2"></i> View All Projects
-              </a>
+              <h4>Technology Stack</h4>
+              <div class="project-tags">${project.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
             </div>
-          </div>
+          </aside>
         </div>
       </div>
     </section>
   `;
 
-  // Activate reveals
-  setTimeout(() => {
-    container.querySelectorAll('.reveal').forEach(el => {
-      const obs = new IntersectionObserver(e => { e.forEach(x => { if (x.isIntersecting) x.target.classList.add('active'); }); }, { threshold: 0.1 });
-      obs.observe(el);
-    });
-  }, 100);
+  const copy = document.getElementById("project-rich-copy");
+  const image = project.image
+    ? `<img src="${escapeHtml(project.image)}" alt="${escapeHtml(project.title)}" class="project-featured-img">`
+    : "";
+  safeSetHtml(copy, `${image}<h2 class="section-title">Project Overview</h2>${project.longDesc || `<p>${escapeHtml(project.shortDesc)}</p>`}`);
+
+  const linkList = document.getElementById("project-link-list");
+  if (project.url) {
+    linkList.insertAdjacentHTML(
+      "beforeend",
+      `<a class="sidebar-link" href="${escapeHtml(project.url)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe"></i> Visit Live Site</a>`
+    );
+  }
+  if (project.github) {
+    linkList.insertAdjacentHTML(
+      "beforeend",
+      `<a class="sidebar-link" href="${escapeHtml(project.github)}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-github"></i> View Source</a>`
+    );
+  }
+  if (!linkList.children.length) {
+    linkList.innerHTML = '<p class="muted-copy">No external links have been added for this project yet.</p>';
+  }
+
+  initRevealObserver();
+  applyExternalLinkSafety(container);
+  attachImageFallbacks(container);
 }
+
+function renderHomeAndAboutEducation(siteContent) {
+  renderEducation(siteContent);
+}
+
+async function initPage() {
+  initNav();
+  setCanonical();
+
+  const [siteContent, projects, testimonials] = await Promise.all([
+    loadSiteContent(),
+    loadProjects(),
+    loadTestimonials()
+  ]);
+
+  injectAnalytics(siteContent.settings.analyticsMeasurementId);
+  renderProfileBlocks(siteContent);
+  renderHomeAndAboutEducation(siteContent);
+  renderSkills(siteContent);
+  renderExperience(siteContent);
+  renderProjectsPage(projects);
+
+  if (document.getElementById("home-projects-grid")) {
+    await renderHomePage(siteContent, projects, testimonials);
+  }
+
+  if (document.getElementById("contactForm")) {
+    await hydrateContactDetails();
+    initContactForm();
+  }
+
+  await renderProjectDetailPage();
+
+  initRevealObserver();
+  applyExternalLinkSafety();
+  attachImageFallbacks();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initPage().catch((error) => {
+    console.error("Portfolio bootstrap failed.", error);
+    const status = document.getElementById("page-status");
+    if (status) {
+      status.hidden = false;
+      status.textContent = "Some live content could not be loaded. Default content is still available.";
+    }
+    initNav();
+    initRevealObserver();
+    applyExternalLinkSafety();
+    attachImageFallbacks();
+  });
+});

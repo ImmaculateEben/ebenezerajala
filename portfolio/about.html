@@ -1,169 +1,130 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About | Ebenezer Ajala</title>
-    <meta name="description"
-        content="Learn more about Ebenezer Ajala, WordPress Developer and Graphics Designer with 4+ years of experience.">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Analytics (Placeholder) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'G-XXXXXXXXXX');
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About | Ebenezer Ajala</title>
+  <meta name="description" content="Learn more about Ebenezer Ajala, his work background, education, and approach to building modern WordPress experiences.">
+  <meta property="og:title" content="About | Ebenezer Ajala">
+  <meta property="og:description" content="Experience, background, and professional focus.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/images/profile-placeholder.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="/about.html">
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-
 <body>
-    <nav id="navbar" class="scrolled">
-        <div class="nav-container">
-            <a href="index.html" class="logo">EA<span>.</span></a>
-            <div class="nav-links" id="navLinks">
-                <a href="index.html" class="nav-link">Home</a>
-                <a href="about.html" class="nav-link active">About</a>
-                <a href="skills.html" class="nav-link">Skills</a>
-                <a href="experience.html" class="nav-link">Experience</a>
-                <a href="projects.html" class="nav-link">Projects</a>
-                <a href="contact.html" class="nav-link">Contact</a>
-            </div>
-            <div class="hamburger" id="hamburger">
-                <div class="line1"></div>
-                <div class="line2"></div>
-                <div class="line3"></div>
-            </div>
-        </div>
-    </nav>
-
-    <section class="page-header">
-        <div class="container">
-            <h1 class="fade-in-up">About <span class="highlight">Me</span></h1>
-            <p class="fade-in-up delay-1 animated-titles-container">WordPress Developer</p>
-        </div>
-        <div class="blob blob-1"></div>
-    </section>
-
-    <section class="section">
-        <div class="container">
-            <div class="about-grid">
-                <div class="about-text reveal" id="profile-bio-container">
-                    <h2 class="section-title">Who I Am</h2>
-                    <p>I am a passionate <strong>WordPress Website Developer</strong> and <strong>Graphics
-                            Designer</strong> based in Lagos, Nigeria, with over 4 years of hands-on experience
-                        designing, developing, and optimising websites for a wide variety of clients.</p>
-                    <p>My expertise covers both front-end and back-end WordPress development — from custom themes and
-                        plugins, to hosting management, server configuration, and performance tuning. I love taking a
-                        brief from a client and transforming it into a fast, beautiful, and scalable digital product.
-                    </p>
-                    <p>I also find creative fulfilment in graphic design, using tools like Adobe Photoshop, Illustrator,
-                        and CorelDRAW to craft visual assets that bring brands to life across both digital and print
-                        media.</p>
-                    <p>Currently serving as a Website Developer and IT Support Officer at the Institute for Industrial
-                        Technology (IIT) under the NYSC program.</p>
-                    <a href="assets/docs/resume.docx" class="btn btn-primary" download style="margin-top:0.5rem;">
-                        Download My Resume <i class="fa-solid fa-download"></i>
-                    </a>
-                </div>
-
-                <div class="about-image reveal delay-1">
-                    <div class="profile-card">
-                        <div class="profile-image-wrap">
-                            <img class="profile-img-dynamic" src="assets/images/profile.jpg" alt="Ebenezer Ajala"
-                                onerror="this.parentElement.innerHTML='<div class=image-placeholder><i class=fa-solid fa-user></i></div>'">
-                        </div>
-                        <div class="profile-info">
-                            <h3 id="profile-name">Ebenezer Ajala</h3>
-                            <p class="accent-text animated-titles-container">WordPress Developer</p>
-                            <ul class="profile-details">
-                                <li id="profile-location"><i class="fa-solid fa-location-dot"></i> Lagos, Nigeria</li>
-                                <li id="profile-email"><i class="fa-solid fa-envelope"></i> ebenezerajala1305@gmail.com
-                                </li>
-                                <li><i class="fa-brands fa-linkedin"></i> <a
-                                        href="https://www.linkedin.com/in/ebenezer-ajala13"
-                                        target="_blank">ebenezer-ajala13</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Stats -->
-    <div class="stats-strip">
-        <div class="container">
-            <div class="stats-grid reveal">
-                <div class="stat-item">
-                    <div class="stat-number">4+</div>
-                    <div class="stat-label">Years Experience</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">30+</div>
-                    <div class="stat-label">Clients Served</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">40%</div>
-                    <div class="stat-label">Avg Speed Boost</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">30%</div>
-                    <div class="stat-label">Avg Traffic Increase</div>
-                </div>
-            </div>
-        </div>
+  <nav id="navbar" class="scrolled">
+    <div class="nav-container">
+      <a href="index.html" class="logo">EA<span>.</span></a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="about.html" class="nav-link active">About</a>
+        <a href="skills.html" class="nav-link">Skills</a>
+        <a href="experience.html" class="nav-link">Experience</a>
+        <a href="projects.html" class="nav-link">Projects</a>
+        <a href="contact.html" class="nav-link">Contact</a>
+        <a href="admin.html" class="nav-link admin-link">Admin</a>
+      </div>
+      <div class="hamburger" id="hamburger">
+        <div class="line1"></div>
+        <div class="line2"></div>
+        <div class="line3"></div>
+      </div>
     </div>
+  </nav>
 
-    <!-- Education -->
-    <section class="section">
-        <div class="container">
-            <h2 class="section-title reveal">Education</h2>
-            <div class="edu-grid">
-                <div class="edu-card card-glass reveal">
-                    <div class="edu-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-                    <div>
-                        <span class="edu-badge">2019 – 2024</span>
-                        <h3>B.Sc Statistics</h3>
-                        <p class="edu-school">Federal University Wukari, Taraba State, Nigeria</p>
-                    </div>
-                </div>
-                <div class="edu-card card-glass reveal delay-1">
-                    <div class="edu-icon"><i class="fa-solid fa-school"></i></div>
-                    <div>
-                        <span class="edu-badge">2016 – 2019</span>
-                        <h3>Senior Secondary School</h3>
-                        <p class="edu-school">Loyola College, Ibadan, Oyo State, Nigeria</p>
-                    </div>
-                </div>
-            </div>
+  <section class="page-header">
+    <div class="container">
+      <h1 class="fade-in-up">About <span class="highlight">Me</span></h1>
+      <p class="fade-in-up delay-1" data-animated-title>WordPress Website Developer</p>
+    </div>
+    <div class="blob blob-1"></div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-text reveal">
+          <h2 class="section-title">Who I Am</h2>
+          <div id="profile-bio-container">
+            <p>I help businesses ship clearer, faster websites that support credibility, search visibility, and conversion.</p>
+          </div>
+          <a id="about-resume-link" href="assets/docs/resume.docx" class="btn btn-primary" download>Download Resume <i class="fa-solid fa-download"></i></a>
         </div>
-    </section>
-
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <a href="index.html" class="logo">EA<span>.</span></a>
-                <p>&copy; 2026 Ebenezer Ajala. All Rights Reserved.</p>
-                <div class="footer-links">
-                    <a href="about.html">About</a>
-                    <a href="projects.html">Projects</a>
-                    <a href="contact.html">Contact</a>
-                </div>
+        <div class="about-image reveal delay-1">
+          <div class="profile-card">
+            <div class="profile-image-wrap">
+              <img class="profile-img-dynamic" src="assets/images/profile-placeholder.svg" alt="Ebenezer Ajala">
             </div>
+            <div class="profile-info">
+              <h3 id="profile-name">Ebenezer Ajala</h3>
+              <p class="accent-text" data-animated-title>WordPress Website Developer</p>
+              <ul class="profile-details">
+                <li><i class="fa-solid fa-location-dot"></i> <span id="profile-location">Lagos, Nigeria</span></li>
+                <li><i class="fa-solid fa-envelope"></i> <span id="profile-email">ebenezerajala1305@gmail.com</span></li>
+                <li><i class="fa-brands fa-linkedin"></i> <a id="profile-linkedin" href="https://www.linkedin.com/in/ebenezer-ajala13" target="_blank" rel="noopener noreferrer">linkedin.com/in/ebenezer-ajala13</a></li>
+                <li><i class="fa-brands fa-github"></i> <a id="profile-github" href="https://github.com/ImmaculateEben" target="_blank" rel="noopener noreferrer">github.com/ImmaculateEben</a></li>
+              </ul>
+            </div>
+          </div>
         </div>
-    </footer>
+      </div>
+    </div>
+  </section>
 
-    <script src="assets/js/data.js"></script>
-    <script src="assets/js/theme.js"></script>
-    <script src="assets/js/main.js"></script>
+  <div class="stats-strip">
+    <div class="container">
+      <div class="stats-grid reveal">
+        <div class="stat-item">
+          <div class="stat-number" id="stat-years">4+</div>
+          <div class="stat-label">Years Experience</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="stat-clients">30+</div>
+          <div class="stat-label">Clients Served</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="stat-speed">40%</div>
+          <div class="stat-label">Avg Speed Boost</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="stat-traffic">30%</div>
+          <div class="stat-label">Avg Traffic Increase</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title reveal">Education</h2>
+      <div class="edu-grid" id="education-grid"></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <a href="index.html" class="logo">EA<span>.</span></a>
+        <p>&copy; 2026 Ebenezer Ajala. All Rights Reserved.</p>
+        <div class="footer-links">
+          <a href="about.html">About</a>
+          <a href="projects.html">Projects</a>
+          <a href="contact.html">Contact</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/runtime-config.js"></script>
+  <script src="assets/js/theme.js"></script>
+  <script type="module" src="assets/js/main.js"></script>
 </body>
-
 </html>

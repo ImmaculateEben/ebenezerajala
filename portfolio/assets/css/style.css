@@ -1245,27 +1245,35 @@ img {
    PROJECTS PAGE
    ========================================= */
 .projects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* New Grid Layout for Projects */
+.projects-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 2.5rem;
 }
 
 .project-card-full {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    padding: 2rem;
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 2rem;
+    align-items: start;
+    padding: 2rem 2.2rem;
     transition: var(--transition);
     position: relative;
     overflow: hidden;
-    height: 100%;
 }
 
 .project-card-full .project-featured-img {
-    width: calc(100% + 4rem);
-    height: 220px;
+    grid-column: 1 / -1;
+    width: calc(100% + 4.4rem);
+    height: 240px;
     object-fit: cover;
-    margin: -2rem -2rem 1.5rem -2rem;
+    margin: -2rem -2.2rem 1.5rem -2.2rem;
     border-bottom: 1px solid var(--border);
     transition: transform 0.5s ease;
 }
@@ -1275,13 +1283,20 @@ img {
 }
 
 .project-card-full:hover {
-    transform: translateY(-6px);
+    transform: translateX(6px);
     border-color: var(--accent);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 0 0 0 1px var(--accent);
+    box-shadow: -4px 0 0 0 var(--accent), var(--shadow-hover);
 }
 
 .project-number {
-    display: none;
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: var(--font-heading);
+    line-height: 1;
+    opacity: 0.15;
+    user-select: none;
+    padding-top: 0.2rem;
 }
 
 .project-info {
@@ -1305,6 +1320,60 @@ img {
     font-size: 0.96rem;
     line-height: 1.7;
     margin-bottom: 1.2rem;
+}
+
+.project-actions {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+/* Vertical Grid Card Style */
+.project-card-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 2rem;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+
+.project-card-grid .project-featured-img {
+    width: calc(100% + 4rem);
+    height: 220px;
+    object-fit: cover;
+    margin: -2rem -2rem 1.5rem -2rem;
+    border-bottom: 1px solid var(--border);
+    transition: transform 0.5s ease;
+}
+
+.project-card-grid .project-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.project-card-grid .project-actions {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    margin-top: auto;
+}
+
+.project-card-grid:hover {
+    transform: translateY(-6px);
+    border-color: var(--accent);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 0 0 0 1px var(--accent);
+}
+
+.project-card-grid:hover .project-featured-img {
+    transform: scale(1.03);
+}
+
+.project-card-grid:hover h3 {
+    color: var(--accent);
 }
 
 .project-tags {
@@ -2134,110 +2203,120 @@ footer {
         padding: 1.5rem;
     }
 
-    display: none;
-}
+    .project-number {
+        display: none;
+    }
 
-.scroll-indicator {
-    display: none;
-}
+    .projects-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
 
-#theme-toggle-btn {
-    bottom: 1rem;
-    right: 1rem;
-}
+    .project-card-grid {
+        padding: 1.5rem;
+    }
 
-/* Add responsiveness for About section */
-.about-grid {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
-}
+    .scroll-indicator {
+        display: none;
+    }
 
-/* Reduce default card padding on mobile */
-.card-glass {
-    padding: 1.25rem;
-}
+    #theme-toggle-btn {
+        bottom: 1rem;
+        right: 1rem;
+    }
 
-/* Add responsiveness for Timeline section */
-.timeline-item {
-    padding-left: 45px;
-    margin-bottom: 2rem;
-}
+    /* Add responsiveness for About section */
+    .about-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
 
-.timeline::before {
-    left: 15px;
-}
+    /* Reduce default card padding on mobile */
+    .card-glass {
+        padding: 1.25rem;
+    }
 
-.timeline-dot {
-    left: 8px;
-    width: 14px;
-    height: 14px;
-    top: 24px;
-}
+    /* Add responsiveness for Timeline section */
+    .timeline-item {
+        padding-left: 45px;
+        margin-bottom: 2rem;
+    }
 
-.timeline-role {
-    font-size: 1.1rem;
-}
+    .timeline::before {
+        left: 15px;
+    }
 
-.timeline-company {
-    font-size: 0.82rem;
-}
+    .timeline-dot {
+        left: 8px;
+        width: 14px;
+        height: 14px;
+        top: 24px;
+    }
 
-/* Refine Buttons for mobile */
-.btn {
-    padding: 0.8rem 1.4rem;
-    font-size: 0.85rem;
-    width: 100%;
-    justify-content: center;
-}
+    .timeline-role {
+        font-size: 1.1rem;
+    }
 
-/* Reduce padding more aggressively for very small screens */
-.section {
-    padding: 4rem 0;
-}
+    .timeline-company {
+        font-size: 0.82rem;
+    }
 
-/* Reduce container spacing */
-.container {
-    padding: 0 1rem;
-}
+    /* Refine Buttons for mobile */
+    .btn {
+        padding: 0.8rem 1.4rem;
+        font-size: 0.85rem;
+        width: 100%;
+        justify-content: center;
+    }
 
-.section-head-row {
-    align-items: flex-start !important;
-}
+    /* Reduce padding more aggressively for very small screens */
+    .section {
+        padding: 4rem 0;
+    }
 
-.section-head-row .btn {
-    width: auto;
-}
+    /* Reduce container spacing */
+    .container {
+        padding: 0 1rem;
+    }
 
-.github-contributions-container .calendar,
-.github-contributions-container .github-calendar {
-    min-width: 620px;
-}
+    .section-head-row {
+        align-items: flex-start !important;
+    }
 
-/* ---- Grid Overlap Fixes for Mobile ---- */
-.projects-featured {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-}
+    .section-head-row .btn {
+        width: auto;
+    }
 
-.skills-container {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-}
+    .github-contributions-container .calendar,
+    .github-contributions-container .github-calendar {
+        min-width: 620px;
+    }
 
-.soft-skills-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-}
+    /* ---- Grid Overlap Fixes for Mobile ---- */
+    .projects-featured {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
 
-.edu-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-}
+    .skills-container {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
 
-.contact-page-grid {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
-}
+    .soft-skills-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .edu-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .contact-page-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
 }
 
 /* =========================================
@@ -2401,6 +2480,82 @@ footer {
     color: var(--accent);
     font-weight: 300;
     margin-left: 2px;
+}
+
+.project-card-link {
+    display: contents;
+    color: inherit;
+}
+
+.filter-chip {
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    padding: 0.45rem 0.85rem;
+    border-radius: var(--radius-full);
+    font: inherit;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.filter-chip:hover,
+.filter-chip.active {
+    border-color: var(--accent);
+    background: var(--accent-bg);
+    color: var(--accent);
+}
+
+.selector-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.testimonial-card {
+    display: grid;
+    gap: 1.1rem;
+    align-content: start;
+}
+
+.testimonial-card i {
+    color: var(--accent);
+    font-size: 1.35rem;
+    opacity: 0.7;
+    margin-bottom: 0.8rem;
+}
+
+.testimonial-card p,
+.muted-copy {
+    color: var(--text-secondary);
+}
+
+.testimonial-meta {
+    display: grid;
+    gap: 0.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.testimonial-meta span {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+#page-status {
+    margin-top: 1rem;
+    color: var(--text-secondary);
+}
+
+.form-success.is-error {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.form-success.is-success {
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.08);
+    border-color: rgba(34, 197, 94, 0.2);
 }
 
 @keyframes blinkCursor {

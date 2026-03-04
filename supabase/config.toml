@@ -1,0 +1,11 @@
+project_id = "your-project-ref"
+
+[api]
+enabled = true
+port = 54321
+
+[db]
+port = 54322
+
+[functions.submit-contact]
+verify_jwt = false

@@ -1,2243 +1,461 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | Ebenezer Ajala Portfolio</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css">
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <style>
-        /* ---- Admin-specific styles ---- */
-        body {
-            overflow: hidden;
-        }
-
-        .admin-layout {
-            display: grid;
-            grid-template-columns: 260px 1fr;
-            grid-template-rows: 1fr;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* ---- Sidebar ---- */
-        .admin-sidebar {
-            background: var(--bg-alt);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            z-index: 10;
-            position: relative;
-        }
-
-        .admin-sidebar::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--gradient-text);
-            z-index: 11;
-        }
-
-        .sidebar-header {
-            padding: 1.8rem 1.5rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            background: linear-gradient(180deg, var(--accent-bg), transparent);
-        }
-
-        .sidebar-header .logo {
-            font-size: 1.4rem;
-        }
-
-        .sidebar-badge {
-            background: var(--accent-bg);
-            border: 1px solid var(--accent);
-            color: var(--accent);
-            font-size: 0.72rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            animation: badgePulse 3s ease-in-out infinite;
-        }
-
-        @keyframes badgePulse {
-
-            0%,
-            100% {
-                box-shadow: 0 0 0 0 var(--accent-glow);
-            }
-
-            50% {
-                box-shadow: 0 0 8px 2px var(--accent-glow);
-            }
-        }
-
-        .sidebar-nav {
-            padding: 1rem;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        .sidebar-section {
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--text-muted);
-            padding: 0.8rem 0.75rem 0.4rem;
-            margin-top: 0.5rem;
-        }
-
-        .sidebar-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.65rem 0.85rem;
-            border-radius: 10px;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-            border: 1px solid transparent;
-            background: none;
-            width: 100%;
-            text-align: left;
-            font-family: var(--font-main);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .sidebar-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 0;
-            background: var(--accent);
-            border-radius: 10px 0 0 10px;
-            transition: width 0.25s ease;
-        }
-
-        .sidebar-item i {
-            font-size: 0.95rem;
-            width: 16px;
-            text-align: center;
-            color: var(--text-muted);
-            transition: all 0.25s;
-            position: relative;
-            z-index: 1;
-        }
-
-        .sidebar-item span {
-            position: relative;
-            z-index: 1;
-        }
-
-        .sidebar-item:hover {
-            background: var(--accent-bg);
-            color: var(--text-primary);
-            border-color: var(--border);
-            transform: translateX(4px);
-        }
-
-        .sidebar-item:hover i {
-            color: var(--accent);
-        }
-
-        .sidebar-item.active {
-            background: var(--accent-bg);
-            color: var(--accent);
-            border-color: var(--border-hover);
-        }
-
-        .sidebar-item.active::before {
-            width: 3px;
-        }
-
-        .sidebar-item.active i {
-            color: var(--accent);
-        }
-
-        .sidebar-footer {
-            padding: 1rem;
-            border-top: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        /* ---- Main area ---- */
-        .admin-main {
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* Subtle dot pattern background */
-        .admin-content::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image: radial-gradient(var(--border) 1px, transparent 1px);
-            background-size: 24px 24px;
-            opacity: 0.4;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .admin-topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1rem 2rem;
-            border-bottom: 1px solid var(--border);
-            background: var(--bg-main);
-            flex-shrink: 0;
-            gap: 1rem;
-            position: relative;
-        }
-
-        .admin-topbar::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
-        }
-
-        .topbar-title h2 {
-            font-size: 1.15rem;
-            font-weight: 600;
-            margin-bottom: 0.1rem;
-        }
-
-        .topbar-title p {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-        }
-
-        .topbar-actions {
-            display: flex;
-            gap: 0.75rem;
-            align-items: center;
-            flex-shrink: 0;
-        }
-
-        .topbar-title {
-            min-width: 0;
-        }
-
-        .topbar-title>div {
-            min-width: 0;
-        }
-
-        .topbar-title h2,
-        .topbar-title p {
-            word-break: break-word;
-        }
-
-        .admin-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 2rem;
-            position: relative;
-        }
-
-        .admin-content>* {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* ---- Tabs ---- */
-        .tab-panel {
-            display: none;
-            animation: fadeIn 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        .tab-panel.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(12px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* ---- Dashboard stats ---- */
-        .dash-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1.2rem;
-            margin-bottom: 2rem;
-        }
-
-        .dash-stat-card {
-            padding: 1.5rem;
-            border-radius: var(--radius);
-            background: var(--gradient-card);
-            border: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            gap: 0.6rem;
-            transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .dash-stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--gradient-text);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .dash-stat-card:hover {
-            border-color: var(--accent);
-            box-shadow: 0 8px 32px var(--accent-glow);
-            transform: translateY(-4px);
-        }
-
-        .dash-stat-card:hover::before {
-            opacity: 1;
-        }
-
-        .dash-stat-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            background: var(--accent-bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--accent);
-            font-size: 1.1rem;
-            transition: all 0.35s;
-        }
-
-        .dash-stat-card:hover .dash-stat-icon {
-            background: var(--accent);
-            color: #fff;
-            transform: scale(1.08) rotate(-3deg);
-            box-shadow: 0 4px 16px var(--accent-glow);
-        }
-
-        .dash-stat-num {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--accent);
-            line-height: 1;
-            background: var(--gradient-text);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .dash-stat-label {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .quick-action-btn {
-            padding: 1.3rem 1.5rem;
-            border-radius: var(--radius);
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            font-family: var(--font-main);
-            font-size: 0.88rem;
-            font-weight: 500;
-            color: var(--text-primary);
-            text-align: left;
-            width: 100%;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .quick-action-btn::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, var(--accent-bg), transparent);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .quick-action-btn:hover::after {
-            opacity: 1;
-        }
-
-        .quick-action-btn i {
-            font-size: 1.1rem;
-            color: var(--accent);
-            width: 20px;
-            text-align: center;
-            position: relative;
-            z-index: 1;
-            transition: transform 0.3s;
-        }
-
-        .quick-action-btn span {
-            position: relative;
-            z-index: 1;
-        }
-
-        .quick-action-btn:hover {
-            border-color: var(--accent);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        }
-
-        .quick-action-btn:hover i {
-            transform: scale(1.15);
-        }
-
-        /* ---- Projects table ---- */
-        .projects-admin-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .projects-admin-table th {
-            text-align: left;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            padding: 0.8rem 1rem;
-            border-bottom: 1px solid var(--border);
-            font-weight: 600;
-            background: var(--bg-alt);
-        }
-
-        .projects-admin-table th:first-child {
-            border-radius: var(--radius-sm) 0 0 0;
-        }
-
-        .projects-admin-table th:last-child {
-            border-radius: 0 var(--radius-sm) 0 0;
-        }
-
-        .projects-admin-table td {
-            padding: 1rem 1rem;
-            border-bottom: 1px solid var(--border);
-            vertical-align: middle;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-        }
-
-        .projects-admin-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .projects-admin-table tr:hover td {
-            background: var(--accent-bg);
-        }
-
-        .project-row-title {
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 0.2rem;
-        }
-
-        .project-row-url {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-        }
-
-        .table-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.3rem;
-        }
-
-        .table-tags span {
-            background: var(--accent-bg);
-            color: var(--accent);
-            font-size: 0.72rem;
-            padding: 0.2rem 0.6rem;
-            border-radius: var(--radius-full);
-            font-weight: 500;
-        }
-
-        .table-actions {
-            display: flex;
-            gap: 0.4rem;
-        }
-
-        .icon-btn {
-            width: 34px;
-            height: 34px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: transparent;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-            font-family: var(--font-main);
-        }
-
-        .icon-btn:hover {
-            background: var(--accent-bg);
-            color: var(--accent);
-            border-color: var(--accent);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px var(--accent-glow);
-        }
-
-        .icon-btn.danger:hover {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            border-color: #ef4444;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
-        }
-
-        .featured-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            font-size: 0.75rem;
-            padding: 0.25rem 0.7rem;
-            border-radius: var(--radius-full);
-            background: var(--accent-bg);
-            color: var(--accent);
-            font-weight: 600;
-            border: 1px solid var(--accent-bg);
-        }
-
-        /* ---- Modal ---- */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-        }
-
-        .modal-overlay.open {
-            display: flex;
-        }
-
-        .modal {
-            background: var(--bg-main);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            width: 100%;
-            max-width: 680px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            animation: modalIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            position: relative;
-        }
-
-        .modal::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--gradient-text);
-            border-radius: var(--radius) var(--radius) 0 0;
-        }
-
-        @keyframes modalIn {
-            from {
-                transform: scale(0.9) translateY(20px);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1) translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1.5rem 2rem;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            background: var(--bg-main);
-            z-index: 1;
-        }
-
-        .modal-header h3 {
-            font-size: 1.1rem;
-            background: var(--gradient-text);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .modal-body {
-            padding: 2rem;
-        }
-
-        .modal-footer {
-            padding: 1.2rem 2rem;
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 0.8rem;
-            justify-content: flex-end;
-            position: sticky;
-            bottom: 0;
-            background: var(--bg-main);
-        }
-
-        /* ---- Toggle switch ---- */
-        .toggle-wrap {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1.3rem;
-        }
-
-        .toggle-wrap label {
-            font-size: 0.88rem;
-            color: var(--text-secondary);
-            cursor: pointer;
-        }
-
-        .toggle {
-            position: relative;
-            width: 44px;
-            height: 24px;
-            flex-shrink: 0;
-        }
-
-        .toggle input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            inset: 0;
-            background: var(--border-hover);
-            border-radius: 12px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .toggle-slider::before {
-            content: '';
-            position: absolute;
-            left: 3px;
-            bottom: 3px;
-            width: 18px;
-            height: 18px;
-            background: #fff;
-            border-radius: 50%;
-            transition: 0.3s;
-        }
-
-        .toggle input:checked+.toggle-slider {
-            background: var(--accent);
-            box-shadow: 0 0 12px var(--accent-glow);
-        }
-
-        .toggle input:checked+.toggle-slider::before {
-            transform: translateX(20px);
-        }
-
-        /* ---- Toast ---- */
-        #toast-container {
-            position: fixed;
-            bottom: 5rem;
-            right: 2rem;
-            z-index: 3000;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            pointer-events: none;
-        }
-
-        .toast {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-left: 4px solid var(--accent);
-            border-radius: var(--radius-sm);
-            padding: 0.85rem 1.2rem;
-            font-size: 0.88rem;
-            color: var(--text-primary);
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
-            animation: slideInRight 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
-            backdrop-filter: blur(16px);
-            max-width: 340px;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-        }
-
-        .toast.success {
-            border-left-color: #22c55e;
-        }
-
-        .toast.error {
-            border-left-color: #ef4444;
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(120%);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        /* ---- Section header ---- */
-        .admin-section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .admin-section-header h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .admin-card {
-            background: var(--gradient-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            overflow: hidden;
-            transition: border-color 0.3s;
-        }
-
-        .admin-card:hover {
-            border-color: var(--border-hover);
-        }
-
-        .admin-grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.2rem;
-        }
-
-        .admin-flex-inline {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .table-responsive {
-            overflow-x: auto;
-        }
-
-        #admin-hamburger {
-            display: none;
-        }
-
-        .admin-sidebar-overlay {
-            display: none;
-        }
-
-        /* Responsive sidebar */
-        @media (max-width: 900px) {
-            body {
-                overflow: auto;
-            }
-
-            .admin-layout {
-                grid-template-columns: 1fr;
-                height: auto;
-            }
-
-            .admin-sidebar {
-                position: fixed;
-                top: 0;
-                left: -280px;
-                bottom: 0;
-                width: 260px;
-                z-index: 9999;
-                transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-                box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
-            }
-
-            .admin-sidebar.open {
-                left: 0;
-            }
-
-            .admin-sidebar-overlay {
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.6);
-                z-index: 9998;
-                backdrop-filter: blur(4px);
-                opacity: 0;
-                pointer-events: none;
-                transition: opacity 0.3s;
-                display: block;
-            }
-
-            .admin-sidebar-overlay.open {
-                opacity: 1;
-                pointer-events: auto;
-            }
-
-            #admin-hamburger {
-                display: flex;
-            }
-
-            .admin-main {
-                height: auto;
-            }
-
-            .admin-content {
-                overflow: visible;
-            }
-
-            .admin-content::before {
-                display: none;
-            }
-
-            .admin-topbar {
-                padding: 1rem;
-                align-items: flex-start;
-                flex-wrap: wrap;
-            }
-
-            .quick-actions {
-                grid-template-columns: 1fr;
-            }
-
-            .topbar-actions {
-                width: 100%;
-                justify-content: flex-start;
-                flex-wrap: wrap;
-            }
-
-            .topbar-actions .btn {
-                flex: 1 1 calc(50% - 0.4rem);
-                justify-content: center;
-                padding: 0.85rem 1rem;
-            }
-
-            .admin-content {
-                padding: 1.25rem;
-            }
-
-            .admin-card {
-                padding: 1rem;
-            }
-
-            .projects-admin-table {
-                min-width: 680px;
-            }
-
-            .admin-grid-2 {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-
-            .admin-flex-inline {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.75rem;
-            }
-
-            #toast-container {
-                left: 1rem;
-                right: 1rem;
-                bottom: 1rem;
-            }
-
-            .toast {
-                max-width: none;
-            }
-
-            .table-actions {
-                flex-wrap: wrap;
-            }
-        }
-
-        #login-overlay {
-            position: fixed;
-            inset: 0;
-            background: var(--bg-main);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            overflow: hidden;
-            padding: 1rem;
-        }
-
-        #login-overlay::before {
-            content: '';
-            position: absolute;
-            width: 500px;
-            height: 500px;
-            border-radius: 50%;
-            background: var(--accent-glow);
-            filter: blur(120px);
-            top: -150px;
-            right: -100px;
-            animation: floatBlob 12s ease-in-out infinite alternate;
-            pointer-events: none;
-        }
-
-        #login-overlay::after {
-            content: '';
-            position: absolute;
-            width: 350px;
-            height: 350px;
-            border-radius: 50%;
-            background: rgba(168, 85, 247, 0.15);
-            filter: blur(100px);
-            bottom: -80px;
-            left: -60px;
-            animation: floatBlob 15s ease-in-out infinite alternate-reverse;
-            pointer-events: none;
-        }
-
-        .login-box {
-            background: var(--gradient-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 2.5rem;
-            width: 100%;
-            max-width: 420px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-            position: relative;
-            backdrop-filter: blur(20px);
-        }
-
-        @media (max-width: 600px) {
-            .admin-content {
-                padding: 1rem;
-            }
-
-            .topbar-actions .btn {
-                flex: 1 1 100%;
-                width: 100%;
-            }
-
-            .admin-section-header .btn {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .modal-overlay {
-                padding: 0.75rem;
-            }
-
-            .modal-header,
-            .modal-body,
-            .modal-footer {
-                padding: 1rem;
-            }
-
-            .modal-footer {
-                flex-wrap: wrap;
-            }
-
-            .modal-footer .btn {
-                flex: 1 1 100%;
-                justify-content: center;
-            }
-
-            .login-box {
-                padding: 1.5rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .admin-sidebar {
-                width: min(86vw, 260px);
-                left: -100%;
-            }
-
-            .admin-topbar {
-                padding: 0.85rem;
-            }
-
-            .topbar-title h2 {
-                font-size: 1rem;
-            }
-
-            .topbar-title p {
-                font-size: 0.75rem;
-            }
-
-            .dash-stats {
-                grid-template-columns: 1fr;
-            }
-
-            .dash-stat-card {
-                padding: 1.1rem;
-            }
-
-            .quick-action-btn {
-                padding: 1rem;
-            }
-
-            .admin-card {
-                padding: 0.9rem;
-            }
-
-            .modal {
-                max-height: 94vh;
-            }
-
-            .modal-header h3 {
-                font-size: 1rem;
-            }
-        }
-
-        .login-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--gradient-text);
-            border-radius: var(--radius) var(--radius) 0 0;
-        }
-
-        .login-box h2 {
-            margin-bottom: 0.5rem;
-            background: var(--gradient-text);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .login-box p {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .login-box input {
-            width: 100%;
-            margin-bottom: 1rem;
-        }
-
-        /* ---- Quill overrides for dark mode ---- */
-        .ql-toolbar.ql-snow {
-            background: var(--bg-alt);
-            border-color: var(--border);
-            border-top-left-radius: var(--radius-sm);
-            border-top-right-radius: var(--radius-sm);
-        }
-
-        .ql-container.ql-snow {
-            border-color: var(--border);
-            border-bottom-left-radius: var(--radius-sm);
-            border-bottom-right-radius: var(--radius-sm);
-            font-family: var(--font-main);
-            font-size: 0.95rem;
-        }
-
-        .ql-editor {
-            min-height: 200px;
-            color: var(--text-primary);
-        }
-
-        .ql-snow .ql-stroke {
-            stroke: var(--text-primary);
-        }
-
-        .ql-snow .ql-fill {
-            fill: var(--text-primary);
-        }
-
-        .ql-snow .ql-picker {
-            color: var(--text-primary);
-        }
-
-        .ql-snow .ql-tooltip {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            box-shadow: var(--shadow-card);
-        }
-
-        .ql-snow .ql-tooltip input[type=text] {
-            background: var(--bg-main);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-        }
-
-        .ql-snow .ql-picker-options {
-            background: var(--bg-card);
-            border-color: var(--border);
-        }
-
-        /* ---- Admin Tech Stack Selectable Cards ---- */
-        .tech-stack-admin-card {
-            background: var(--bg-alt);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 1rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .tech-stack-admin-card:hover {
-            border-color: var(--accent);
-            transform: translateY(-2px);
-        }
-
-        .tech-stack-admin-card.selected {
-            background: var(--accent-bg);
-            border-color: var(--accent);
-            box-shadow: 0 4px 12px var(--accent-glow);
-        }
-
-        .tech-stack-admin-card i {
-            font-size: 2rem;
-            color: var(--text-secondary);
-            transition: color 0.2s ease;
-        }
-
-        .tech-stack-admin-card.selected i {
-            color: var(--accent);
-        }
-
-        .tech-stack-admin-card span {
-            font-size: 0.85rem;
-            color: var(--text-primary);
-            font-weight: 500;
-        }
-
-        .tech-stack-admin-card .check-indicator {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            width: 18px;
-            height: 18px;
-            background: var(--accent);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.6rem;
-            opacity: 0;
-            transform: scale(0.5);
-            transition: all 0.2s ease;
-        }
-
-        .tech-stack-admin-card.selected .check-indicator {
-            opacity: 1;
-            transform: scale(1);
-        }
-    </style>
-    <!-- Google Analytics (Placeholder) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'G-XXXXXXXXXX');
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | Ebenezer Ajala</title>
+  <meta name="description" content="Task-first admin dashboard for portfolio content, messages, settings, and media.">
+  <link rel="canonical" href="/admin.html">
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/admin.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css">
 </head>
-
-<body id="admin-dashboard">
-
-    <div id="login-overlay">
-        <div class="login-box">
-            <h2>Admin Login</h2>
-            <p>Please enter the admin password.</p>
-            <div class="form-group" style="text-align:left;">
-                <input type="password" id="admin-pass" placeholder="Password (default: admin123)"
-                    onkeypress="if(event.key === 'Enter') checkLogin()">
-            </div>
-            <button class="btn btn-primary" style="width:100%; justify-content:center;"
-                onclick="checkLogin()">Login</button>
-            <p id="login-error" style="color:#ef4444; font-size:0.85rem; margin-top:1rem; display:none;">Incorrect
-                password</p>
-            <a href="index.html"
-                style="display:inline-block; margin-top:1.5rem; color:var(--text-secondary); font-size:0.85rem;">&larr;
-                Back to Portfolio</a>
+<body class="admin-body">
+  <div id="admin-login-overlay" class="admin-login-overlay">
+    <div class="card-glass admin-login-card">
+      <h1 class="section-title" style="margin-bottom:1.25rem;">Admin Access</h1>
+      <p class="section-subtitle" style="margin-bottom:1.5rem;">Sign in with your Supabase admin account, or start local preview mode before configuration is complete.</p>
+      <form id="admin-login-form" class="admin-form-grid">
+        <div class="form-group">
+          <label for="admin-email">Email</label>
+          <input type="email" id="admin-email" required placeholder="admin@example.com">
         </div>
-    </div>
-
-    <div class="admin-layout">
-        <div class="admin-sidebar-overlay" id="admin-overlay" onclick="toggleAdminSidebar()"></div>
-        <!-- Sidebar -->
-        <aside class="admin-sidebar">
-            <div class="sidebar-header">
-                <a href="index.html" class="logo">EA<span>.</span></a>
-                <span class="sidebar-badge">Admin</span>
-            </div>
-
-            <nav class="sidebar-nav">
-                <div class="sidebar-section">Overview</div>
-                <button class="sidebar-item active" data-tab="dashboard" onclick="switchTab('dashboard', this)">
-                    <i class="fa-solid fa-gauge-high"></i> Dashboard
-                </button>
-
-                <div class="sidebar-section">Content</div>
-                <button class="sidebar-item" data-tab="projects" onclick="switchTab('projects', this)">
-                    <i class="fa-solid fa-briefcase"></i> Projects
-                </button>
-                <button class="sidebar-item" data-tab="profile" onclick="switchTab('profile', this)">
-                    <i class="fa-solid fa-user-circle"></i> Profile & About
-                </button>
-                <button class="sidebar-item" data-tab="skills" onclick="switchTab('skills', this)">
-                    <i class="fa-solid fa-code"></i> Skills
-                </button>
-                <button class="sidebar-item" data-tab="experience" onclick="switchTab('experience', this)">
-                    <i class="fa-solid fa-briefcase-clock"></i> Experience
-                </button>
-                <button class="sidebar-item" data-tab="testimonials" onclick="switchTab('testimonials', this)">
-                    <i class="fa-solid fa-comments"></i> Testimonials
-                </button>
-
-                <div class="sidebar-section">Settings</div>
-                <button class="sidebar-item" onclick="resetAndConfirm()">
-                    <i class="fa-solid fa-rotate-left"></i> Reset All Data
-                </button>
-            </nav>
-
-            <div class="sidebar-footer">
-                <a href="index.html" class="sidebar-item" style="text-decoration:none;">
-                    <i class="fa-solid fa-arrow-left"></i> Back to Portfolio
-                </a>
-            </div>
-        </aside>
-
-        <!-- Main -->
-        <div class="admin-main">
-            <div class="admin-topbar">
-                <div class="topbar-title admin-flex-inline">
-                    <button id="admin-hamburger" class="icon-btn" onclick="toggleAdminSidebar()">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-                    <div>
-                        <h2 id="topbar-heading">Dashboard</h2>
-                        <p id="topbar-sub">Welcome back, Ebenezer</p>
-                    </div>
-                </div>
-                <div class="topbar-actions">
-                    <button class="btn btn-outline" onclick="exportData()">
-                        <i class="fa-solid fa-download"></i> Export
-                    </button>
-                    <button class="btn btn-primary" onclick="openAddProjectModal()">
-                        <i class="fa-solid fa-plus"></i> Add Project
-                    </button>
-                </div>
-            </div>
-
-            <div class="admin-content">
-
-                <!-- ===== DASHBOARD TAB ===== -->
-                <div class="tab-panel active" id="tab-dashboard">
-                    <div class="dash-stats" id="dash-stats-container"></div>
-
-                    <div class="admin-section-header">
-                        <h3>Quick Actions</h3>
-                    </div>
-                    <div class="quick-actions">
-                        <button class="quick-action-btn"
-                            onclick="switchTab('projects', document.querySelector('[data-tab=projects]'))">
-                            <i class="fa-solid fa-plus"></i> Add New Project
-                        </button>
-                        <button class="quick-action-btn"
-                            onclick="switchTab('profile', document.querySelector('[data-tab=profile]'))">
-                            <i class="fa-solid fa-pen"></i> Edit Profile
-                        </button>
-                        <button class="quick-action-btn" onclick="window.open('projects.html','_blank')">
-                            <i class="fa-solid fa-eye"></i> Preview Portfolio
-                        </button>
-                        <button class="quick-action-btn" onclick="exportData()">
-                            <i class="fa-solid fa-download"></i> Export Data
-                        </button>
-                        <button class="quick-action-btn"
-                            onclick="switchTab('testimonials', document.querySelector('[data-tab=testimonials]'))">
-                            <i class="fa-solid fa-comments"></i> Manage Testimonials
-                        </button>
-                    </div>
-
-                    <div class="admin-section-header">
-                        <h3>Recent Projects</h3>
-                    </div>
-                    <div class="admin-card table-responsive" style="padding:0; overflow:auto;">
-                        <table class="projects-admin-table" id="dash-recent-projects"></table>
-                    </div>
-                </div>
-
-                <!-- ===== PROJECTS TAB ===== -->
-                <div class="tab-panel" id="tab-projects">
-                    <div class="admin-section-header">
-                        <h3>All Projects <span id="proj-count"
-                                style="color:var(--text-muted); font-size:0.85rem; font-weight:400;"></span></h3>
-                        <button class="btn btn-primary" onclick="openAddProjectModal()">
-                            <i class="fa-solid fa-plus"></i> Add Project
-                        </button>
-                    </div>
-                    <div class="admin-card table-responsive" style="padding:0; overflow:auto;">
-                        <table class="projects-admin-table" id="admin-projects-table"></table>
-                    </div>
-                </div>
-
-                <!-- ===== PROFILE TAB ===== -->
-                <div class="tab-panel" id="tab-profile">
-                    <div class="admin-section-header">
-                        <h3>Profile &amp; About</h3>
-                        <button class="btn btn-primary" onclick="saveProfile()">
-                            <i class="fa-solid fa-floppy-disk"></i> Save Changes
-                        </button>
-                    </div>
-                    <form class="admin-card" id="profile-form" onsubmit="return false;">
-                        <div class="admin-grid-2">
-                            <div class="form-group">
-                                <label>Full Name</label>
-                                <input type="text" id="p-name">
-                            </div>
-                            <div class="form-group" style="grid-column: 1 / -1;">
-                                <label>Animated Titles (comma-separated)</label>
-                                <input type="text" id="p-animated-titles"
-                                    placeholder="e.g. WordPress Developer, Graphics Designer, UX Expert">
-                            </div>
-                            <div class="form-group"
-                                style="grid-column: 1 / -1; display:flex; flex-direction:column; gap:0.5rem;">
-                                <label>Profile Image (Upload new or leave blank to keep current)</label>
-                                <div class="admin-flex-inline">
-                                    <img id="p-image-preview" src=""
-                                        style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); display: none;">
-                                    <input type="file" id="p-image-file" accept="image/*"
-                                        onchange="handleProfileImageUpload(event)">
-                                    <input type="hidden" id="p-image-base64">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>Email</label>
-                                <input type="email" id="p-email">
-                            </div>
-                            <div class="form-group">
-                                <label>Phone 1</label>
-                                <input type="text" id="p-phone1">
-                            </div>
-                            <div class="form-group">
-                                <label>Phone 2</label>
-                                <input type="text" id="p-phone2">
-                            </div>
-                            <div class="form-group">
-                                <label>Location</label>
-                                <input type="text" id="p-location">
-                            </div>
-                            <div class="form-group">
-                                <label>LinkedIn URL</label>
-                                <input type="url" id="p-linkedin">
-                            </div>
-                            <div class="form-group">
-                                <label>GitHub Username</label>
-                                <input type="text" id="p-github-username" placeholder="e.g. ImmaculateEben">
-                            </div>
-                            <div class="form-group">
-                                <label>Years Experience (e.g. 4+)</label>
-                                <input type="text" id="p-years">
-                            </div>
-                            <div class="form-group">
-                                <label>Clients Served (e.g. 30+)</label>
-                                <input type="text" id="p-clients">
-                            </div>
-                            <div class="form-group">
-                                <label>Avg Speed Improvement (e.g. 40%)</label>
-                                <input type="text" id="p-speed">
-                            </div>
-                            <div class="form-group">
-                                <label>Avg Traffic Increase (e.g. 30%)</label>
-                                <input type="text" id="p-traffic">
-                            </div>
-                        </div>
-                        <div class="form-group" style="margin-top:0.5rem;">
-                            <label>Tagline / Hero Subtitle</label>
-                            <input type="text" id="p-tagline">
-                        </div>
-                        <div class="form-group">
-                            <label>Bio Paragraph 1</label>
-                            <textarea id="p-bio" rows="3"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Bio Paragraph 2</label>
-                            <textarea id="p-bio2" rows="3"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Bio Paragraph 3</label>
-                            <textarea id="p-bio3" rows="3"></textarea>
-                        </div>
-                        <div class="toggle-wrap">
-                            <label class="toggle">
-                                <input type="checkbox" id="p-available">
-                                <span class="toggle-slider"></span>
-                            </label>
-                            <label for="p-available">Available for freelance projects</label>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- ===== SKILLS TAB ===== -->
-                <div class="tab-panel" id="tab-skills">
-                    <div class="admin-section-header">
-                        <h3>Skills &amp; Tech Stack</h3>
-                        <button class="btn btn-primary" onclick="saveAdminTechStacks()">
-                            <i class="fa-solid fa-floppy-disk"></i> Save Tech Stacks
-                        </button>
-                    </div>
-                    <div class="admin-card">
-                        <p style="color:var(--text-secondary); font-size:0.92rem; line-height:1.7;">
-                            Select the tools, languages, and software you want to highlight on the homepage.
-                        </p>
-                        <br>
-                        <div id="admin-tech-stack-grid"
-                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem;">
-                            <!-- Populated by JS -->
-                        </div>
-                    </div>
-                    <div class="admin-card" style="margin-top: 2rem;">
-                        <h4 style="margin-bottom: 1rem;">Detailed Skill Categories</h4>
-                        <p style="color:var(--text-secondary); font-size:0.92rem; line-height:1.7;">
-                            Skill categories are managed directly in code (<code>assets/js/data.js</code>).
-                            Edit the <code>DEFAULT_DATA.skills</code> array to add, remove, or rename categories.
-                        </p>
-                        <br>
-                        <a href="#" class="btn btn-outline" onclick="window.open('assets/js/data.js'); return false;">
-                            <i class="fa-solid fa-file-code"></i> Open data.js
-                        </a>
-                    </div>
-                </div>
-
-                <!-- ===== EXPERIENCE TAB ===== -->
-                <div class="tab-panel" id="tab-experience">
-                    <div class="admin-section-header">
-                        <h3>Experience</h3>
-                    </div>
-                    <div class="admin-card">
-                        <p style="color:var(--text-secondary); font-size:0.92rem; line-height:1.7;">
-                            Experience entries are managed in code (<code>assets/js/data.js</code>).
-                            Edit the <code>DEFAULT_DATA.experience</code> array to update your work history.
-                            After saving, click "Reset All Data" to apply.
-                        </p>
-                        <br>
-                        <div style="display:flex; gap:0.8rem; flex-wrap:wrap;">
-                            <button class="btn btn-outline" onclick="showExperiencePreview()">
-                                <i class="fa-solid fa-eye"></i> Preview Entries
-                            </button>
-                        </div>
-                        <div id="exp-preview" style="margin-top:1.5rem;"></div>
-                    </div>
-                </div>
-
-                <!-- ===== TESTIMONIALS TAB ===== -->
-                <div class="tab-panel" id="tab-testimonials">
-                    <div class="admin-section-header">
-                        <h3>Client Testimonials</h3>
-                        <button class="btn btn-primary" onclick="openAddTestimonialModal()"><i
-                                class="fa-solid fa-plus"></i> Add Testimonial</button>
-                    </div>
-                    <div class="admin-card table-responsive">
-                        <table class="projects-admin-table">
-                            <thead>
-                                <tr>
-                                    <th style="width:25%">Client Name</th>
-                                    <th style="width:25%">Role/Company</th>
-                                    <th style="width:40%">Content</th>
-                                    <th style="width:10%; text-align:right;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="testimonials-table-body">
-                                <!-- Testimonials rows injected here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div><!-- end admin-content -->
-        </div><!-- end admin-main -->
-    </div><!-- end admin-layout -->
-
-    <!-- ===== ADD / EDIT PROJECT MODAL ===== -->
-    <div class="modal-overlay" id="project-modal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="modal-title">Add New Project</h3>
-                <button class="icon-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="m-project-id">
-                <div class="admin-grid-2">
-                    <div class="form-group">
-                        <label>Project Title *</label>
-                        <input type="text" id="m-title" placeholder="e.g. Prolific Safety Nigeria" required>
-                    </div>
-                    <div class="form-group">
-                        <label>URL Slug / ID *</label>
-                        <input type="text" id="m-id" placeholder="e.g. prolific-safety" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Short Description *</label>
-                    <input type="text" id="m-short-desc" placeholder="One-line summary shown in the projects list">
-                </div>
-                <div class="form-group">
-                    <label>Full Description (Formatting & Images Supported)</label>
-                    <div id="m-long-desc-editor"></div>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Use the image button in
-                        the toolbar to add images by their URL (e.g. assets/images/proj.jpg)</p>
-                </div>
-                <div class="form-group">
-                    <label>Featured Image (Upload)</label>
-                    <input type="file" id="m-image-file" accept="image/*" onchange="handleFeaturedImageUpload(event)">
-                    <input type="hidden" id="m-image">
-                    <div id="m-image-preview" style="margin-top: 0.5rem; display: none;">
-                        <img src=""
-                            style="width: 100%; max-height: 200px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border);">
-                        <button class="btn btn-ghost"
-                            style="margin-top: 0.5rem; padding: 0.3rem 0.8rem; font-size: 0.8rem;"
-                            onclick="removeFeaturedImage(event)"><i class="fa-solid fa-trash"></i> Remove Image</button>
-                    </div>
-                </div>
-                <div class="admin-grid-2">
-                    <div class="form-group">
-                        <label>Live Site URL</label>
-                        <input type="url" id="m-url" placeholder="https://example.com">
-                    </div>
-                    <div class="form-group">
-                        <label>GitHub URL (optional)</label>
-                        <input type="url" id="m-github" placeholder="https://github.com/...">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Tags (comma separated)</label>
-                    <input type="text" id="m-tags" placeholder="WordPress, Elementor, SEO">
-                </div>
-                <div class="form-group">
-                    <label>Card Background Gradient (CSS)</label>
-                    <input type="text" id="m-gradient" placeholder="linear-gradient(135deg, #1a1a2e, #16213e)">
-                </div>
-                <div class="toggle-wrap">
-                    <label class="toggle">
-                        <input type="checkbox" id="m-featured">
-                        <span class="toggle-slider"></span>
-                    </label>
-                    <label for="m-featured">Featured project (shown prominently)</label>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveProjectFromModal()">
-                    <i class="fa-solid fa-floppy-disk"></i> Save Project
-                </button>
-            </div>
+        <div class="form-group">
+          <label for="admin-password">Password</label>
+          <input type="password" id="admin-password" required placeholder="At least 6 characters">
         </div>
+        <button type="submit" id="admin-login-submit" class="btn btn-primary">Sign in</button>
+      </form>
+      <div id="admin-login-error" class="admin-status is-error" hidden></div>
     </div>
+  </div>
 
-    <!-- Add / Edit Testimonial Modal -->
-    <div class="modal-overlay" id="testimonial-modal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="t-modal-title">Add Testimonial</h3>
-                <button class="icon-btn" onclick="closeTModal()"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="t-id">
-                <div class="form-row admin-grid-2">
-                    <div class="form-group">
-                        <label>Client Name *</label>
-                        <input type="text" id="t-name" required placeholder="e.g. John Doe">
-                    </div>
-                    <div class="form-group">
-                        <label>Role / Company</label>
-                        <input type="text" id="t-role" placeholder="e.g. CEO of X Corp">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Testimonial Content *</label>
-                    <textarea id="t-content" required rows="4"
-                        style="width:100%; border:1px solid var(--border); border-radius:var(--radius-sm); padding:0.8rem; background:var(--bg-alt); color:var(--text-primary); font-family:var(--font-main);"
-                        placeholder="What did the client say about your work?"></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeTModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveTestimonialFromModal()">
-                    <i class="fa-solid fa-floppy-disk"></i> Save
-                </button>
-            </div>
-        </div>
-    </div>
+  <div id="admin-shell" class="admin-shell" hidden>
+    <aside class="admin-sidebar">
+      <div class="admin-brand">
+        <a href="index.html" class="logo">EA<span>.</span></a>
+        <p class="muted-copy" style="margin-top:0.5rem;">Task-first content operations</p>
+      </div>
+      <nav class="admin-nav">
+        <button class="admin-nav-btn active" data-section="overview">Overview</button>
+        <button class="admin-nav-btn" data-section="messages">Messages</button>
+        <button class="admin-nav-btn" data-section="projects">Projects</button>
+        <button class="admin-nav-btn" data-section="profile">Profile</button>
+        <button class="admin-nav-btn" data-section="experience">Experience</button>
+        <button class="admin-nav-btn" data-section="skills">Skills</button>
+        <button class="admin-nav-btn" data-section="testimonials">Testimonials</button>
+        <button class="admin-nav-btn" data-section="settings">Settings</button>
+      </nav>
+      <div class="admin-sidebar-footer">
+        <button type="button" id="admin-logout-btn" class="btn btn-outline">Log Out</button>
+      </div>
+    </aside>
 
-    <!-- Toast container -->
-    <div id="toast-container"></div>
+    <main class="admin-main">
+      <div id="admin-runtime-banner" class="admin-runtime-banner"></div>
 
-    <script src="assets/js/data.js"></script>
-    <script src="assets/js/theme.js"></script>
-    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-    <script>
-        // Initialize Quill Editor
-        var quill = new Quill('#m-long-desc-editor', {
-            theme: 'snow',
-            modules: {
-                toolbar: {
-                    container: [
-                        [{ 'header': [2, 3, false] }],
-                        ['bold', 'italic', 'underline'],
-                        ['link', 'image', 'video'],
-                        [{ 'list': 'ordered' }, { 'list': 'bullet' }]
-                    ],
-                    handlers: {
-                        image: function () {
-                            const input = document.createElement('input');
-                            input.setAttribute('type', 'file');
-                            input.setAttribute('accept', 'image/*');
-                            input.click();
-
-                            input.onchange = () => {
-                                const file = input.files[0];
-                                if (file) {
-                                    const reader = new FileReader();
-                                    reader.onload = (e) => {
-                                        const range = this.quill.getSelection();
-                                        this.quill.insertEmbed(range.index, 'image', e.target.result, Quill.sources.USER);
-                                    };
-                                    reader.readAsDataURL(file);
-                                }
-                            };
-                        }
-                    }
-                }
-            },
-            placeholder: 'Detailed project overview shown on the individual project page...'
-        });
-
-        // =========================================
-        // ADMIN DASHBOARD JS
-        // =========================================
-
-        // ---- Login Auth ----
-        function checkLogin() {
-            const pass = document.getElementById('admin-pass').value;
-            if (pass === 'admin123') { // Simple hardcoded password
-                sessionStorage.setItem('ea_admin_auth', 'true');
-                document.getElementById('login-overlay').style.display = 'none';
-                renderDashboard();
-                if (window.innerWidth <= 900) {
-                    toggleAdminSidebar();
-                }
-            } else {
-                document.getElementById('login-error').style.display = 'block';
-            }
-        }
-
-        // Check on load
-        if (sessionStorage.getItem('ea_admin_auth') === 'true') {
-            document.getElementById('login-overlay').style.display = 'none';
-        }
-
-        function toggleAdminSidebar() {
-            document.querySelector('.admin-sidebar').classList.toggle('open');
-            document.getElementById('admin-overlay').classList.toggle('open');
-        }
-
-        function switchTab(tabId, btn) {
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
-            if (window.innerWidth <= 900) {
-                document.querySelector('.admin-sidebar').classList.remove('open');
-                document.getElementById('admin-overlay').classList.remove('open');
-            }
-            document.getElementById('tab-' + tabId).classList.add('active');
-            if (btn) btn.classList.add('active');
-
-            const titles = {
-                dashboard: ['Dashboard', 'Overview of your portfolio'],
-                projects: ['Projects', 'Add, edit, and manage your project portfolio'],
-                profile: ['Profile & About', 'Edit your personal information and bio'],
-                skills: ['Skills & Tech Stack', 'Manage your technical skills and homepage tech stack'],
-                experience: ['Experience', 'Edit your professional work history']
-            };
-            const t = titles[tabId] || ['Admin', ''];
-            document.getElementById('topbar-heading').textContent = t[0];
-            document.getElementById('topbar-sub').textContent = t[1];
-
-            if (tabId === 'dashboard') renderDashboard();
-            if (tabId === 'projects') renderProjectsTable();
-            if (tabId === 'profile') loadProfileForm();
-            if (tabId === 'skills') renderTechStacksAdmin();
-        }
-
-        // ---- Dashboard ----
-        function renderDashboard() {
-            const projects = getProjects();
-            const profile = getProfile();
-            const featured = projects.filter(p => p.featured).length;
-
-            const statCards = [
-                { icon: 'fa-briefcase', num: projects.length, label: 'Total Projects' },
-                { icon: 'fa-star', num: featured, label: 'Featured' },
-                { icon: 'fa-users', num: profile.clientsServed, label: 'Clients Served' },
-                { icon: 'fa-clock', num: profile.yearsExperience, label: 'Years Experience' }
-            ];
-
-            document.getElementById('dash-stats-container').innerHTML = statCards.map(s => `
-      <div class="dash-stat-card">
-        <div class="dash-stat-icon"><i class="fa-solid ${s.icon}"></i></div>
-        <div class="dash-stat-num">${s.num}</div>
-        <div class="dash-stat-label">${s.label}</div>
-      </div>`).join('');
-
-            const recent = projects.slice(0, 4);
-            renderTableRows(document.getElementById('dash-recent-projects'), recent, true);
-        }
-
-        // ---- Projects table ----
-        function renderProjectsTable() {
-            const projects = getProjects();
-            document.getElementById('proj-count').textContent = `(${projects.length})`;
-            renderTableRows(document.getElementById('admin-projects-table'), projects, false);
-        }
-
-        function renderTableRows(table, projects, compact) {
-            const headers = compact
-                ? `<tr><th>Project</th><th>Tags</th><th>Actions</th></tr>`
-                : `<tr><th>Project</th><th>Tags</th><th>Featured</th><th>Actions</th></tr>`;
-
-            const rows = projects.map(p => `
-      <tr>
-        <td>
-          <div class="project-row-title">${p.title}</div>
-          ${p.url ? `<div class="project-row-url">${p.url}</div>` : ''}
-        </td>
-        <td><div class="table-tags">${p.tags.slice(0, 3).map(t => `<span>${t}</span>`).join('')}</div></td>
-        ${!compact ? `<td>${p.featured ? '<span class="featured-badge"><i class="fa-solid fa-star"></i> Featured</span>' : '<span style="color:var(--text-muted);font-size:0.8rem;">—</span>'}</td>` : ''}
-        <td>
-          <div class="table-actions">
-            ${p.url ? `<a href="${p.url}" target="_blank" class="icon-btn" title="Open live site"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
-            <button class="icon-btn" title="Edit project" onclick="openEditProjectModal('${p.id}')"><i class="fa-solid fa-pen"></i></button>
-            <button class="icon-btn danger" title="Delete project" onclick="deleteProjectConfirm('${p.id}', '${p.title.replace(/'/g, "\\'")}')"><i class="fa-solid fa-trash"></i></button>
-          </div>
-        </td>
-      </tr>`).join('');
-
-            table.innerHTML = headers + rows;
-        }
-
-        // ---- Image Upload Handlers ----
-        function handleFeaturedImageUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const base64Str = e.target.result;
-                    document.getElementById('m-image').value = base64Str;
-                    const preview = document.getElementById('m-image-preview');
-                    preview.querySelector('img').src = base64Str;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function removeFeaturedImage(event) {
-            if (event) event.preventDefault();
-            document.getElementById('m-image').value = '';
-            document.getElementById('m-image-file').value = '';
-            document.getElementById('m-image-preview').style.display = 'none';
-        }
-
-        // Gallery Images Handling
-        let currentGallery = [];
-
-        function handleGalleryUpload(event) {
-            const files = event.target.files;
-            if (!files || files.length === 0) return;
-
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    currentGallery.push(e.target.result);
-                    renderGalleryPreview();
-                };
-                reader.readAsDataURL(file);
-            });
-            // Reset file input so same files can be selected again if removed
-            document.getElementById('m-gallery-file').value = '';
-        }
-
-        function removeGalleryImage(index, event) {
-            if (event) event.preventDefault();
-            currentGallery.splice(index, 1);
-            renderGalleryPreview();
-        }
-
-        function renderGalleryPreview() {
-            const previewContainer = document.getElementById('m-gallery-preview');
-            if (currentGallery.length === 0) {
-                previewContainer.innerHTML = '';
-                return;
-            }
-
-            previewContainer.innerHTML = currentGallery.map((imgSrc, index) => `
-                <div style="position:relative; width: 100px; height: 100px;">
-                    <img src="${imgSrc}" style="width:100%; height:100%; object-fit:cover; border-radius:var(--radius-sm); border:1px solid var(--border);">
-                    <button type="button" class="icon-btn danger" onclick="removeGalleryImage(${index}, event)"
-                        style="position:absolute; top:-8px; right:-8px; padding:0.2rem; min-width:24px; min-height:24px; font-size:0.7rem;">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        // ---- Tech Stack Form ----
-        function renderTechStacksAdmin() {
-            const container = document.getElementById('admin-tech-stack-grid');
-            if (!container) return;
-
-            const selectedStacks = getTechStacks(); // from data.js
-
-            let html = '';
-            AVAILABLE_TECH_STACKS.forEach(stack => {
-                const isSelected = selectedStacks.includes(stack.id);
-                html += `
-                <div class="tech-stack-admin-card ${isSelected ? 'selected' : ''}" data-id="${stack.id}" onclick="toggleTechStack(this)">
-                    <i class="${stack.icon}"></i>
-                    <span>${stack.name}</span>
-                    <div class="check-indicator"><i class="fa-solid fa-check"></i></div>
-                </div>`;
-            });
-            container.innerHTML = html;
-        }
-
-        function toggleTechStack(card) {
-            card.classList.toggle('selected');
-        }
-
-        function saveAdminTechStacks() {
-            const cards = document.querySelectorAll('.tech-stack-admin-card.selected');
-            const selectedIds = Array.from(cards).map(c => c.dataset.id);
-
-            saveTechStacks(selectedIds);
-            showToast('Tech stacks updated successfully', 'success');
-        }
-
-        // ---- Profile form ----
-        function loadProfileForm() {
-            const p = getProfile();
-            const githubFromUrl = (p.github || '').replace(/^https?:\/\/github\.com\//i, '').replace(/^@/, '').split('/')[0].trim();
-            document.getElementById('p-name').value = p.name || '';
-            document.getElementById('p-animated-titles').value = (p.animatedTitles || []).join(', ');
-
-            if (p.profileImage) {
-                document.getElementById('p-image-preview').src = p.profileImage;
-                document.getElementById('p-image-preview').style.display = 'block';
-                document.getElementById('p-image-base64').value = p.profileImage;
-            }
-
-            document.getElementById('p-email').value = p.email || '';
-            document.getElementById('p-phone1').value = p.phone1 || '';
-            document.getElementById('p-phone2').value = p.phone2 || '';
-            document.getElementById('p-location').value = p.location || '';
-            document.getElementById('p-linkedin').value = p.linkedin || '';
-            document.getElementById('p-github-username').value = p.githubUsername || githubFromUrl || '';
-            document.getElementById('p-years').value = p.yearsExperience || '';
-            document.getElementById('p-clients').value = p.clientsServed || '';
-            document.getElementById('p-speed').value = p.avgSpeedImprovement || '';
-            document.getElementById('p-traffic').value = p.avgTrafficIncrease || '';
-            document.getElementById('p-tagline').value = p.tagline || '';
-            document.getElementById('p-bio').value = p.bio || '';
-            document.getElementById('p-bio2').value = p.bio2 || '';
-            document.getElementById('p-bio3').value = p.bio3 || '';
-            document.getElementById('p-available').checked = !!p.availableForFreelance;
-        }
-
-        function handleProfileImageUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const base64Str = e.target.result;
-                    document.getElementById('p-image-base64').value = base64Str;
-                    const preview = document.getElementById('p-image-preview');
-                    preview.src = base64Str;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function saveProfile() {
-            const data = getData();
-            const newImage = document.getElementById('p-image-base64').value;
-            const githubUsername = document.getElementById('p-github-username').value.trim().replace(/^@/, '');
-
-            data.profile = {
-                ...data.profile,
-                name: document.getElementById('p-name').value,
-                animatedTitles: document.getElementById('p-animated-titles').value.split(',').map(s => s.trim()).filter(Boolean),
-                profileImage: newImage || data.profile.profileImage || '',
-                email: document.getElementById('p-email').value,
-                phone1: document.getElementById('p-phone1').value,
-                phone2: document.getElementById('p-phone2').value,
-                location: document.getElementById('p-location').value,
-                linkedin: document.getElementById('p-linkedin').value,
-                githubUsername,
-                yearsExperience: document.getElementById('p-years').value,
-                clientsServed: document.getElementById('p-clients').value,
-                avgSpeedImprovement: document.getElementById('p-speed').value,
-                avgTrafficIncrease: document.getElementById('p-traffic').value,
-                tagline: document.getElementById('p-tagline').value,
-                bio: document.getElementById('p-bio').value,
-                bio2: document.getElementById('p-bio2').value,
-                bio3: document.getElementById('p-bio3').value,
-                availableForFreelance: document.getElementById('p-available').checked
-            };
-            saveData(data);
-            showToast('Profile saved successfully!', 'success');
-        }
-
-        // ---- Modal ----
-        function openAddProjectModal() {
-            document.getElementById('modal-title').textContent = 'Add New Project';
-            document.getElementById('m-project-id').value = '';
-            document.getElementById('m-title').value = '';
-            document.getElementById('m-id').value = '';
-            document.getElementById('m-short-desc').value = '';
-            quill.root.innerHTML = '';
-            removeFeaturedImage();
-            document.getElementById('m-url').value = '';
-            document.getElementById('m-github').value = '';
-            document.getElementById('m-tags').value = '';
-            document.getElementById('m-gradient').value = 'linear-gradient(135deg, #1a1a2e, #16213e)';
-            document.getElementById('m-featured').checked = false;
-            currentGallery = [];
-            renderGalleryPreview();
-            document.getElementById('project-modal').classList.add('open');
-        }
-
-        function openEditProjectModal(id) {
-            const p = getProject(id);
-            if (!p) return;
-            document.getElementById('modal-title').textContent = 'Edit Project';
-            document.getElementById('m-project-id').value = p.id;
-            document.getElementById('m-title').value = p.title;
-            document.getElementById('m-id').value = p.id;
-            document.getElementById('m-short-desc').value = p.shortDesc;
-
-            // Set quill content vs plain text
-            if (p.longDesc && (p.longDesc.includes('<p>') || p.longDesc.includes('<h'))) {
-                quill.root.innerHTML = p.longDesc;
-            } else {
-                quill.root.innerHTML = (p.longDesc || '').split('\n').map(text => '<p>' + text + '</p>').join('');
-            }
-
-            if (p.image) {
-                document.getElementById('m-image').value = p.image;
-                const preview = document.getElementById('m-image-preview');
-                preview.querySelector('img').src = p.image;
-                preview.style.display = 'block';
-            } else {
-                removeFeaturedImage();
-            }
-
-            document.getElementById('m-url').value = p.url || '';
-            document.getElementById('m-github').value = p.github || '';
-            document.getElementById('m-tags').value = p.tags.join(', ');
-            document.getElementById('m-gradient').value = p.gradient || '';
-            document.getElementById('m-featured').checked = !!p.featured;
-            currentGallery = Array.isArray(p.gallery) ? [...p.gallery] : [];
-            renderGalleryPreview();
-            document.getElementById('project-modal').classList.add('open');
-        }
-
-        function closeModal() {
-            document.getElementById('project-modal').classList.remove('open');
-        }
-
-        function saveProjectFromModal() {
-            const title = document.getElementById('m-title').value.trim();
-            const id = document.getElementById('m-id').value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-
-            if (!title || !id) {
-                showToast('Title and ID are required!', 'error');
-                return;
-            }
-
-            const tags = document.getElementById('m-tags').value.split(',').map(t => t.trim()).filter(Boolean);
-
-            const project = {
-                id,
-                title,
-                shortDesc: document.getElementById('m-short-desc').value.trim(),
-                longDesc: quill.root.innerHTML.trim(),
-                url: document.getElementById('m-url').value.trim(),
-                github: document.getElementById('m-github').value.trim(),
-                tags,
-                gradient: document.getElementById('m-gradient').value.trim() || 'linear-gradient(135deg, #1a1a2e, #16213e)',
-                featured: document.getElementById('m-featured').checked,
-                image: document.getElementById('m-image').value.trim(),
-                gallery: [...currentGallery]
-            };
-
-            saveProject(project);
-            closeModal();
-            renderProjectsTable();
-            renderDashboard();
-            showToast(`Project "${title}" saved!`, 'success');
-        }
-
-        function deleteProjectConfirm(id, name) {
-            if (confirm(`Delete "${name}"? This cannot be undone.`)) {
-                deleteProject(id);
-                renderProjectsTable();
-                renderDashboard();
-                showToast(`"${name}" deleted.`);
-            }
-        }
-
-        // ---- Experience preview ----
-        function showExperiencePreview() {
-            const data = getData();
-            const container = document.getElementById('exp-preview');
-            container.innerHTML = data.experience.map(e => `
-      <div style="border:1px solid var(--border); border-radius:10px; padding:1.2rem; margin-bottom:1rem;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem;">
+      <section class="admin-section" data-admin-panel="overview">
+        <div class="admin-hero">
           <div>
-            <div style="font-weight:600; font-size:1rem;">${e.role}</div>
-            <div style="color:var(--text-secondary); font-size:0.85rem;">${e.company} · ${e.type}</div>
+            <h1 class="section-title" style="margin-bottom:0.75rem;">Overview</h1>
+            <p class="section-subtitle">Track portfolio health, unread messages, and the current delivery status at a glance.</p>
           </div>
-          <span style="font-size:0.78rem; padding:0.2rem 0.7rem; background:var(--accent-bg); color:var(--accent); border-radius:4px;">${e.date}</span>
         </div>
-        <p style="color:var(--text-secondary); font-size:0.88rem;">${e.summary}</p>
-      </div>`).join('');
-        }
+        <div class="admin-grid cols-3">
+          <div class="admin-card admin-kpi"><span>Total Projects</span><strong id="overview-project-count">0</strong></div>
+          <div class="admin-card admin-kpi"><span>Featured Projects</span><strong id="overview-featured-count">0</strong></div>
+          <div class="admin-card admin-kpi"><span>Unread Messages</span><strong id="overview-unread-count">0</strong></div>
+          <div class="admin-card admin-kpi"><span>Testimonials</span><strong id="overview-testimonial-count">0</strong></div>
+          <div class="admin-card admin-kpi"><span>Contact Inbox</span><strong id="overview-contact-email">-</strong></div>
+          <div class="admin-card admin-kpi"><span>Availability</span><strong id="overview-availability">-</strong></div>
+        </div>
+        <div class="admin-card">
+          <h3>Quick Actions</h3>
+          <div class="admin-actions-row" style="margin-top:1rem;">
+            <button type="button" class="btn btn-primary" data-jump-section="projects">Add or Edit Projects</button>
+            <button type="button" class="btn btn-outline" data-jump-section="messages">Open Inbox</button>
+            <button type="button" class="btn btn-outline" data-jump-section="profile">Update Profile</button>
+            <button type="button" class="btn btn-outline" data-jump-section="settings">Change Contact Email</button>
+          </div>
+        </div>
+      </section>
 
-        // ---- Testimonials CRUD ----
-        function renderTestimonialsTable() {
-            const tbody = document.getElementById('testimonials-table-body');
-            if (!tbody) return;
-            const testimonials = getTestimonials(); // from data.js
+      <section class="admin-section" data-admin-panel="messages" hidden>
+        <div class="admin-hero">
+          <div>
+            <h1 class="section-title" style="margin-bottom:0.75rem;">Messages</h1>
+            <p class="section-subtitle">Every contact submission lands here and can be reviewed, marked as read, or archived.</p>
+          </div>
+        </div>
+        <div class="admin-grid cols-2">
+          <div class="admin-card admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Subject</th>
+                  <th>Received</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="messages-table-body"></tbody>
+            </table>
+          </div>
+          <div class="admin-card" id="message-detail">
+            <p>Select a message to inspect it here.</p>
+          </div>
+        </div>
+      </section>
 
-            if (testimonials.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:2rem; color:var(--text-muted);">No testimonials added yet.</td></tr>`;
-                return;
-            }
+      <section class="admin-section" data-admin-panel="projects" hidden>
+        <div class="admin-hero">
+          <div>
+            <h1 class="section-title" style="margin-bottom:0.75rem;">Projects</h1>
+            <p class="section-subtitle">Manage project content, URLs, featured status, and hero styling from one form.</p>
+          </div>
+        </div>
+        <div class="admin-grid cols-2">
+          <div class="admin-card admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Tags</th>
+                  <th>Type</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="projects-table-body"></tbody>
+            </table>
+          </div>
+          <div class="admin-card">
+            <h3>Project Editor</h3>
+            <form id="project-form" class="admin-form-grid" style="margin-top:1rem;">
+              <input type="hidden" id="project-id">
+              <div class="form-group">
+                <label for="project-title">Title</label>
+                <input type="text" id="project-title" required>
+              </div>
+              <div class="form-group">
+                <label for="project-short">Short Description</label>
+                <textarea id="project-short" rows="3" required></textarea>
+              </div>
+              <div class="form-group">
+                <label for="project-long">Long Description (simple HTML allowed)</label>
+                <textarea id="project-long" rows="8"></textarea>
+              </div>
+              <div class="admin-form-grid cols-2">
+                <div class="form-group">
+                  <label for="project-url">Live URL</label>
+                  <input type="url" id="project-url">
+                </div>
+                <div class="form-group">
+                  <label for="project-github">Source URL</label>
+                  <input type="url" id="project-github">
+                </div>
+              </div>
+              <div class="admin-form-grid cols-2">
+                <div class="form-group">
+                  <label for="project-tags">Tags (comma separated)</label>
+                  <input type="text" id="project-tags">
+                </div>
+                <div class="form-group">
+                  <label for="project-gradient">Background Gradient</label>
+                  <input type="text" id="project-gradient">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="project-image-file">Project Image</label>
+                <input type="file" id="project-image-file" accept="image/*">
+              </div>
+              <img id="project-image-preview" class="admin-image-preview" src="assets/images/profile-placeholder.svg" alt="Project preview">
+              <label><input type="checkbox" id="project-featured"> Mark as featured</label>
+              <div class="admin-actions-row">
+                <button type="submit" class="btn btn-primary">Save Project</button>
+                <button type="button" id="project-reset-btn" class="btn btn-outline">New Project</button>
+              </div>
+            </form>
+            <div id="project-form-status" class="admin-status is-success" hidden></div>
+          </div>
+        </div>
+      </section>
 
-            tbody.innerHTML = testimonials.map(t => `
-            <tr>
-                <td style="font-weight:600; color:var(--text-primary);">${t.name}</td>
-                <td style="color:var(--text-secondary);">${t.role || '-'}</td>
-                <td style="color:var(--text-secondary); font-size:0.88rem;">${(t.content || '').substring(0, 80)}...</td>
-                <td style="text-align:right;">
-                    <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
-                        <button class="icon-btn" onclick="openEditTestimonialModal('${t.id}')"><i class="fa-solid fa-pen"></i></button>
-                        <button class="icon-btn danger" onclick="deleteTestimonialConfirm('${t.id}', '${t.name.replace(/'/g, "\\'")}')"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </td>
-            </tr>
-            `).join('');
-        }
+      <section class="admin-section" data-admin-panel="profile" hidden>
+        <div class="admin-hero">
+          <div>
+            <h1 class="section-title" style="margin-bottom:0.75rem;">Profile</h1>
+            <p class="section-subtitle">Update hero content, stats, social links, and the public profile copy.</p>
+          </div>
+        </div>
+        <div class="admin-grid cols-2">
+          <div class="admin-card">
+            <form id="profile-form" class="admin-form-grid">
+              <div class="admin-form-grid cols-2">
+                <div class="form-group">
+                  <label for="profile-name-input">Name</label>
+                  <input type="text" id="profile-name-input">
+                </div>
+                <div class="form-group">
+                  <label for="profile-titles-input">Animated Titles</label>
+                  <input type="text" id="profile-titles-input">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="profile-tagline-input">Tagline</label>
+                <textarea id="profile-tagline-input" rows="3"></textarea>
+              </div>
+              <div class="admin-form-grid cols-2">
+                <div class="form-group">
+                  <label for="profile-location-input">Location</label>
+                  <input type="text" id="profile-location-input">
+                </div>
+                <div class="form-group">
+                  <label for="profile-email-input">Email</label>
+                  <input type="email" id="profile-email-input">
+                </div>
+              </div>
+              <div class="admin-form-grid cols-2">
+                <div class="form-group">
+                  <label for="profile-phone1-input">Phone 1</label>
+                  <input type="text" id="profile-phone1-input">
+                </div>
+                <div class="form-group">
+                  <label for="profile-phone2-input">Phone 2</label>
+                  <input type="text" id="profile-phone2-input">
+                </div>
+              </div>
+              <div class="admin-form-grid cols-2">
+                <div class="form-group">
+                  <label for="profile-linkedin-input">LinkedIn</label>
+                  <input type="url" id="profile-linkedin-input">
+                </div>
+                <div class="form-group">
+                  <label for="profile-github-input">GitHub</label>
+                  <input type="url" id="profile-github-input">
+                </div>
+              </div>
+              <div class="admin-form-grid cols-2">
+                <div class="form-group">
+                  <label for="profile-github-username-input">GitHub Username</label>
+                  <input type="text" id="profile-github-username-input">
+                </div>
+                <div class="form-group">
+                  <label for="profile-image-file">Profile Image</label>
+                  <input type="file" id="profile-image-file" accept="image/*">
+                </div>
+              </div>
+              <div class="admin-form-grid cols-2">
+                <div class="form-group">
+                  <label for="profile-years-input">Years Experience</label>
+                  <input type="text" id="profile-years-input">
+                </div>
+                <div class="form-group">
+                  <label for="profile-clients-input">Clients Served</label>
+                  <input type="text" id="profile-clients-input">
+                </div>
+              </div>
+              <div class="admin-form-grid cols-2">
+                <div class="form-group">
+                  <label for="profile-speed-input">Avg Speed Improvement</label>
+                  <input type="text" id="profile-speed-input">
+                </div>
+                <div class="form-group">
+                  <label for="profile-traffic-input">Avg Traffic Increase</label>
+                  <input type="text" id="profile-traffic-input">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="profile-bio-input">Bio Paragraph 1</label>
+                <textarea id="profile-bio-input" rows="4"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="profile-bio2-input">Bio Paragraph 2</label>
+                <textarea id="profile-bio2-input" rows="4"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="profile-bio3-input">Bio Paragraph 3</label>
+                <textarea id="profile-bio3-input" rows="4"></textarea>
+              </div>
+              <label><input type="checkbox" id="profile-available-input"> Available for new work</label>
+              <button type="submit" class="btn btn-primary">Save Profile</button>
+            </form>
+            <div id="profile-form-status" class="admin-status is-success" hidden></div>
+          </div>
+          <div class="admin-card">
+            <h3>Live Preview</h3>
+            <img id="profile-image-preview" class="admin-image-preview" src="assets/images/profile-placeholder.svg" alt="Profile preview" style="margin:1rem 0;">
+            <div id="profile-live-preview"></div>
+          </div>
+        </div>
+      </section>
 
-        function openAddTestimonialModal() {
-            document.getElementById('t-modal-title').textContent = 'Add Testimonial';
-            document.getElementById('t-id').value = '';
-            document.getElementById('t-name').value = '';
-            document.getElementById('t-role').value = '';
-            document.getElementById('t-content').value = '';
-            document.getElementById('testimonial-modal').classList.add('open');
-        }
+      <section class="admin-section" data-admin-panel="experience" hidden>
+        <div class="admin-hero">
+          <div>
+            <h1 class="section-title" style="margin-bottom:0.75rem;">Experience</h1>
+            <p class="section-subtitle">Each line below is one JSON object representing an experience entry. This keeps the data fully editable without hiding it in source files.</p>
+          </div>
+        </div>
+        <div class="admin-card admin-field-compact">
+          <form id="experience-form" class="admin-form-grid">
+            <div class="form-group">
+              <label for="experience-json">Experience Entries (one JSON object per line)</label>
+              <textarea id="experience-json"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Experience</button>
+          </form>
+          <div id="experience-form-status" class="admin-status is-success" hidden></div>
+        </div>
+      </section>
 
-        function openEditTestimonialModal(id) {
-            const t = getTestimonials().find(x => x.id === id);
-            if (!t) return;
-            document.getElementById('t-modal-title').textContent = 'Edit Testimonial';
-            document.getElementById('t-id').value = t.id;
-            document.getElementById('t-name').value = t.name || '';
-            document.getElementById('t-role').value = t.role || '';
-            document.getElementById('t-content').value = t.content || '';
-            document.getElementById('testimonial-modal').classList.add('open');
-        }
+      <section class="admin-section" data-admin-panel="skills" hidden>
+        <div class="admin-hero">
+          <div>
+            <h1 class="section-title" style="margin-bottom:0.75rem;">Skills</h1>
+            <p class="section-subtitle">Update the homepage tech stack and edit technical and soft skills in line-based form.</p>
+          </div>
+        </div>
+        <div class="admin-card">
+          <form id="skills-form" class="admin-form-grid">
+            <div>
+              <label class="form-group" style="margin-bottom:0.75rem;">Homepage Tech Stack</label>
+              <div id="tech-stack-selector" class="selector-group">
+                <label class="selector-chip active"><input type="checkbox" value="html5" checked><span>HTML5</span></label>
+                <label class="selector-chip active"><input type="checkbox" value="css3" checked><span>CSS3</span></label>
+                <label class="selector-chip active"><input type="checkbox" value="javascript" checked><span>JavaScript</span></label>
+                <label class="selector-chip active"><input type="checkbox" value="wordpress" checked><span>WordPress</span></label>
+                <label class="selector-chip"><input type="checkbox" value="php"><span>PHP</span></label>
+                <label class="selector-chip"><input type="checkbox" value="mysql"><span>MySQL</span></label>
+                <label class="selector-chip"><input type="checkbox" value="nodejs"><span>Node.js</span></label>
+                <label class="selector-chip"><input type="checkbox" value="react"><span>React</span></label>
+                <label class="selector-chip"><input type="checkbox" value="figma"><span>Figma</span></label>
+                <label class="selector-chip"><input type="checkbox" value="photoshop"><span>Photoshop</span></label>
+                <label class="selector-chip"><input type="checkbox" value="illustrator"><span>Illustrator</span></label>
+                <label class="selector-chip"><input type="checkbox" value="coreldraw"><span>CorelDRAW</span></label>
+              </div>
+            </div>
+            <div class="admin-form-grid cols-2">
+              <div class="form-group admin-field-compact">
+                <label for="technical-skills-lines">Technical Skills (Category|Icon|Item 1, Item 2)</label>
+                <textarea id="technical-skills-lines"></textarea>
+              </div>
+              <div class="form-group admin-field-compact">
+                <label for="soft-skills-lines">Soft Skills (Title|Icon|Description)</label>
+                <textarea id="soft-skills-lines"></textarea>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Skills</button>
+          </form>
+          <div id="skills-form-status" class="admin-status is-success" hidden></div>
+        </div>
+      </section>
 
-        function closeTModal() {
-            document.getElementById('testimonial-modal').classList.remove('open');
-        }
+      <section class="admin-section" data-admin-panel="testimonials" hidden>
+        <div class="admin-hero">
+          <div>
+            <h1 class="section-title" style="margin-bottom:0.75rem;">Testimonials</h1>
+            <p class="section-subtitle">Maintain social proof used on the homepage and across your pitch flow.</p>
+          </div>
+        </div>
+        <div class="admin-grid cols-2">
+          <div class="admin-card admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Role</th>
+                  <th>Content</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="testimonials-table-body"></tbody>
+            </table>
+          </div>
+          <div class="admin-card">
+            <h3>Testimonial Editor</h3>
+            <form id="testimonial-form" class="admin-form-grid" style="margin-top:1rem;">
+              <input type="hidden" id="testimonial-id">
+              <div class="form-group">
+                <label for="testimonial-name">Client Name</label>
+                <input type="text" id="testimonial-name">
+              </div>
+              <div class="form-group">
+                <label for="testimonial-role">Role / Company</label>
+                <input type="text" id="testimonial-role">
+              </div>
+              <div class="form-group">
+                <label for="testimonial-content">Testimonial</label>
+                <textarea id="testimonial-content" rows="5"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="testimonial-image-file">Avatar Image</label>
+                <input type="file" id="testimonial-image-file" accept="image/*">
+              </div>
+              <img id="testimonial-image-preview" class="admin-image-preview" src="assets/images/profile-placeholder.svg" alt="Testimonial preview">
+              <label><input type="checkbox" id="testimonial-published" checked> Publish on the site</label>
+              <div class="admin-actions-row">
+                <button type="submit" class="btn btn-primary">Save Testimonial</button>
+                <button type="button" id="testimonial-reset-btn" class="btn btn-outline">New Testimonial</button>
+              </div>
+            </form>
+            <div id="testimonial-form-status" class="admin-status is-success" hidden></div>
+          </div>
+        </div>
+      </section>
 
-        function saveTestimonialFromModal() {
-            const name = document.getElementById('t-name').value.trim();
-            const content = document.getElementById('t-content').value.trim();
-            if (!name || !content) {
-                showToast('Name and Content are required.', 'error');
-                return;
-            }
+      <section class="admin-section" data-admin-panel="settings" hidden>
+        <div class="admin-hero">
+          <div>
+            <h1 class="section-title" style="margin-bottom:0.75rem;">Settings</h1>
+            <p class="section-subtitle">Manage operational settings, imports/exports, and the seeded reset workflow.</p>
+          </div>
+        </div>
+        <div class="admin-card">
+          <form id="settings-form" class="admin-form-grid">
+            <div class="admin-form-grid cols-2">
+              <div class="form-group">
+                <label for="settings-contact-email">Contact Recipient Email</label>
+                <input type="email" id="settings-contact-email">
+              </div>
+              <div class="form-group">
+                <label for="settings-sender-name">Notification Sender Name</label>
+                <input type="text" id="settings-sender-name">
+              </div>
+            </div>
+            <div class="admin-form-grid cols-2">
+              <div class="form-group">
+                <label for="settings-analytics-id">Analytics Measurement ID</label>
+                <input type="text" id="settings-analytics-id" placeholder="G-XXXXXXXXXX">
+              </div>
+              <div class="form-group">
+                <label for="settings-admin-label">Inbox Label</label>
+                <input type="text" id="settings-admin-label">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Settings</button>
+          </form>
+          <div class="admin-actions-row" style="margin-top:1rem;">
+            <button type="button" id="export-state-btn" class="btn btn-outline">Export JSON</button>
+            <label class="btn btn-outline" for="import-state-input">Import JSON</label>
+            <input type="file" id="import-state-input" accept="application/json" hidden>
+            <button type="button" id="seed-defaults-btn" class="btn btn-outline">Restore Seed Defaults</button>
+          </div>
+          <div id="settings-form-status" class="admin-status is-success" hidden></div>
+        </div>
+      </section>
+    </main>
+  </div>
 
-            const testimonials = getTestimonials();
-            let id = document.getElementById('t-id').value;
-
-            if (!id) {
-                id = 't_' + Date.now();
-                testimonials.push({
-                    id,
-                    name,
-                    role: document.getElementById('t-role').value.trim(),
-                    content,
-                    image: ''
-                });
-            } else {
-                const idx = testimonials.findIndex(x => x.id === id);
-                if (idx > -1) {
-                    testimonials[idx].name = name;
-                    testimonials[idx].role = document.getElementById('t-role').value.trim();
-                    testimonials[idx].content = content;
-                }
-            }
-
-            saveTestimonials(testimonials); // saves to data.js localStorage
-            renderTestimonialsTable();
-            closeTModal();
-            showToast('Testimonial saved!', 'success');
-        }
-
-        function deleteTestimonialConfirm(id, name) {
-            if (confirm(`Delete testimonial from ${name}?`)) {
-                let list = getTestimonials();
-                list = list.filter(x => x.id !== id);
-                saveTestimonials(list);
-                renderTestimonialsTable();
-                showToast('Testimonial deleted.');
-            }
-        }
-
-        // ---- Export ----
-        function exportData() {
-            const data = getData();
-            const json = JSON.stringify(data, null, 2);
-            const blob = new Blob([json], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'portfolio-data.json';
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('Portfolio data exported!', 'success');
-        }
-
-        // ---- Reset ----
-        function resetAndConfirm() {
-            if (confirm('This will reset ALL portfolio data to defaults. Are you sure?')) {
-                resetData();
-                loadProfileForm();
-                renderProjectsTable();
-                renderDashboard();
-                showToast('Data reset to defaults.', 'success');
-            }
-        }
-
-        // ---- Toast ----
-        function showToast(msg, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> ${msg}`;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3500);
-        }
-
-        // ---- ID auto-gen from title ----
-        document.addEventListener('DOMContentLoaded', () => {
-            renderDashboard();
-
-            const titleInput = document.getElementById('m-title');
-            const idInput = document.getElementById('m-id');
-
-            if (titleInput) {
-                titleInput.addEventListener('input', () => {
-                    if (!document.getElementById('m-project-id').value) {
-                        idInput.value = titleInput.value.toLowerCase()
-                            .replace(/\s+/g, '-')
-                            .replace(/[^a-z0-9-]/g, '');
-                    }
-                });
-            }
-
-            // Close modal on overlay click
-            document.getElementById('project-modal').addEventListener('click', function (e) {
-                if (e.target === this) closeModal();
-            });
-        });
-    </script>
+  <script src="assets/js/runtime-config.js"></script>
+  <script src="assets/js/theme.js"></script>
+  <script type="module" src="assets/js/admin.js"></script>
 </body>
-
 </html>

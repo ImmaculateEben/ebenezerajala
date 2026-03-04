@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 600" role="img" aria-labelledby="title desc">
+  <title id="title">Profile Placeholder</title>
+  <desc id="desc">Abstract placeholder portrait for the portfolio profile image.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1d4ed8" />
+      <stop offset="100%" stop-color="#7c3aed" />
+    </linearGradient>
+  </defs>
+  <rect width="480" height="600" fill="url(#bg)" rx="36" />
+  <circle cx="240" cy="210" r="92" fill="rgba(255,255,255,0.22)" />
+  <path d="M120 472c18-84 72-132 120-132s102 48 120 132" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="52" stroke-linecap="round" />
+  <text x="50%" y="555" text-anchor="middle" fill="rgba(255,255,255,0.82)" font-size="28" font-family="Outfit, Arial, sans-serif">Ebenezer Ajala</text>
+</svg>
