@@ -25,8 +25,7 @@ const AVAILABLE_TECH_STACKS = [
 const DEFAULT_DATA = {
     profile: {
         name: "Ebenezer Ajala",
-        title1: "WordPress Website Developer",
-        title2: "Graphics Designer",
+        animatedTitles: ["WordPress Website Developer", "Graphics Designer", "SEO Specialist"],
         tagline: "Building high-performance websites that enhance user experience and drive business growth.",
         location: "Lagos, Nigeria",
         email: "ebenezerajala1305@gmail.com",
@@ -45,6 +44,29 @@ const DEFAULT_DATA = {
         availableForFreelance: true
     },
     techStacks: ["html5", "css3", "javascript", "wordpress", "figma", "photoshop"], // Default selected stack
+    testimonials: [
+        {
+            id: "t1",
+            name: "John Okafor",
+            role: "CEO, Prolific Safety",
+            content: "Ebenezer completely transformed our digital presence. Our new website is not only beautiful but extremely fast and easy to navigate. Highly recommended!",
+            image: ""
+        },
+        {
+            id: "t2",
+            name: "Sarah Jenkins",
+            role: "Founder, Shop Inverse",
+            content: "We needed an e-commerce solution that could scale. He delivered a flawless WooCommerce setup that has already increased our monthly conversions by 30%.",
+            image: ""
+        },
+        {
+            id: "t3",
+            name: "Ahmad Bello",
+            role: "Director, Coreview Checks",
+            content: "Professional, timely, and deeply knowledgeable. Ebenezer handled our SEO audit and redesign perfectly. Traffic is up and bounce rates are way down.",
+            image: ""
+        }
+    ],
     projects: [
         {
             id: "prolific-safety",
@@ -225,6 +247,17 @@ function getTechStacks() {
 function saveTechStacks(stacks) {
     const data = getData();
     data.techStacks = stacks;
+    saveData(data);
+}
+
+// ---- TESTIMONIALS ----
+function getTestimonials() {
+    return getData().testimonials || DEFAULT_DATA.testimonials;
+}
+
+function saveTestimonials(testimonials) {
+    const data = getData();
+    data.testimonials = testimonials;
     saveData(data);
 }
 

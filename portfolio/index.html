@@ -231,6 +231,17 @@
             transform: translateY(-6px) rotateX(2deg) rotateY(-2deg);
         }
     </style>
+    <!-- Google Analytics (Placeholder) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
+
+    <!-- GitHub Calendar -->
+    <link rel="stylesheet" href="https://unpkg.com/github-calendar@latest/dist/github-calendar-responsive.css" />
 </head>
 
 <body>
@@ -271,12 +282,12 @@
         <div class="hero-content">
             <p class="hero-tag fade-in-up">Available for Freelance Projects</p>
             <h1 class="fade-in-up delay-1">Hi, I'm<br><span class="highlight">Ebenezer Ajala</span></h1>
-            <h2 class="fade-in-up delay-2">WordPress Developer &amp; Graphics Designer</h2>
+            <h2 class="fade-in-up delay-2 animated-titles-container" id="hero-animated-title">WordPress Developer</h2>
             <p class="fade-in-up delay-3">Building high-performance websites that enhance user experience and drive
                 business growth. Based in Lagos, Nigeria.</p>
             <div class="hero-buttons fade-in-up delay-3">
                 <a href="projects.html" class="btn btn-primary">View My Work <i class="fa-solid fa-arrow-right"></i></a>
-                <a href="assets/Ebenezer_O._Ajala_Resume.docx" class="btn btn-outline" download>Download Resume <i
+                <a href="assets/docs/resume.docx" class="btn btn-outline" download>Download Resume <i
                         class="fa-solid fa-download"></i></a>
             </div>
             <div class="social-links fade-in-up delay-4">
@@ -332,12 +343,13 @@
                 <div class="about-image reveal delay-1">
                     <div class="profile-card">
                         <div class="profile-image-wrap">
-                            <img src="assets/images/profile.jpg" alt="Ebenezer Ajala"
+                            <img class="profile-img-dynamic" src="assets/images/profile.jpg" alt="Ebenezer Ajala"
                                 onerror="this.parentElement.innerHTML='<div class=\'image-placeholder\'><i class=\'fa-solid fa-user\'></i></div>'">
                         </div>
                         <div class="profile-info">
                             <h3>Ebenezer Ajala</h3>
-                            <p class="accent-text">WordPress Developer &amp; Designer</p>
+                            <p class="accent-text animated-titles-container" id="about-animated-title">WordPress
+                                Developer</p>
                             <ul class="profile-details">
                                 <li><i class="fa-solid fa-location-dot"></i> Lagos, Nigeria</li>
                             </ul>
@@ -398,6 +410,18 @@
                 <div id="home-tech-stack-grid"
                     style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem;">
                     <!-- Injected by main.js -->
+                </div>
+            </div>
+
+            <!-- GitHub Contributions -->
+            <div class="github-contributions-container reveal" style="margin-top: 5rem; text-align: center;">
+                <h3 style="margin-bottom: 2rem; font-size: 1.5rem; color: var(--text-secondary);">GitHub Contributions
+                </h3>
+                <div class="card-glass" style="margin: 0 auto; padding: 1.5rem; max-width: 900px; overflow-x: auto;">
+                    <div class="calendar">
+                        <!-- Loading stuff -->
+                        Loading the data just for you.
+                    </div>
                 </div>
             </div>
         </div>
@@ -476,9 +500,10 @@
                     <a href="projects.html">Projects</a>
                     <a href="contact.html">Contact</a>
                 </div>
-            </div>
-        </div>
     </footer>
+
+    <!-- GitHub Calendar Library -->
+    <script src="https://unpkg.com/github-calendar@latest/dist/github-calendar.min.js"></script>
 
     <script src="assets/js/data.js"></script>
     <script src="assets/js/theme.js"></script>

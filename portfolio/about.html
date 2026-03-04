@@ -14,6 +14,14 @@
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Analytics (Placeholder) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
 </head>
 
 <body>
@@ -39,7 +47,7 @@
     <section class="page-header">
         <div class="container">
             <h1 class="fade-in-up">About <span class="highlight">Me</span></h1>
-            <p class="fade-in-up delay-1">WordPress Developer. Graphics Designer. Problem Solver.</p>
+            <p class="fade-in-up delay-1 animated-titles-container">WordPress Developer</p>
         </div>
         <div class="blob blob-1"></div>
     </section>
@@ -61,8 +69,7 @@
                         media.</p>
                     <p>Currently serving as a Website Developer and IT Support Officer at the Institute for Industrial
                         Technology (IIT) under the NYSC program.</p>
-                    <a href="assets/Ebenezer_O._Ajala_Resume.docx" class="btn btn-primary" download
-                        style="margin-top:0.5rem;">
+                    <a href="assets/docs/resume.docx" class="btn btn-primary" download style="margin-top:0.5rem;">
                         Download My Resume <i class="fa-solid fa-download"></i>
                     </a>
                 </div>
@@ -70,12 +77,12 @@
                 <div class="about-image reveal delay-1">
                     <div class="profile-card">
                         <div class="profile-image-wrap">
-                            <img src="assets/images/profile.jpg" alt="Ebenezer Ajala"
+                            <img class="profile-img-dynamic" src="assets/images/profile.jpg" alt="Ebenezer Ajala"
                                 onerror="this.parentElement.innerHTML='<div class=image-placeholder><i class=fa-solid fa-user></i></div>'">
                         </div>
                         <div class="profile-info">
                             <h3>Ebenezer Ajala</h3>
-                            <p class="accent-text">WordPress Developer &amp; Designer</p>
+                            <p class="accent-text animated-titles-container">WordPress Developer</p>
                             <ul class="profile-details">
                                 <li><i class="fa-solid fa-location-dot"></i> Lagos, Nigeria</li>
                                 <li><i class="fa-solid fa-envelope"></i> ebenezerajala1305@gmail.com</li>

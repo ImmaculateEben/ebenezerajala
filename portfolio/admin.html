@@ -765,6 +765,14 @@
             border-color: var(--border-hover);
         }
 
+        #admin-hamburger {
+            display: none;
+        }
+
+        .admin-sidebar-overlay {
+            display: none;
+        }
+
         /* Responsive sidebar */
         @media (max-width: 900px) {
             body {
@@ -777,7 +785,39 @@
             }
 
             .admin-sidebar {
-                display: none;
+                position: fixed;
+                top: 0;
+                left: -280px;
+                bottom: 0;
+                width: 260px;
+                z-index: 9999;
+                transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+                box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+            }
+
+            .admin-sidebar.open {
+                left: 0;
+            }
+
+            .admin-sidebar-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.6);
+                z-index: 9998;
+                backdrop-filter: blur(4px);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.3s;
+                display: block;
+            }
+
+            .admin-sidebar-overlay.open {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            #admin-hamburger {
+                display: flex;
             }
 
             .admin-main {
@@ -790,6 +830,14 @@
 
             .admin-content::before {
                 display: none;
+            }
+
+            .admin-topbar {
+                padding: 1rem;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -994,6 +1042,14 @@
             transform: scale(1);
         }
     </style>
+    <!-- Google Analytics (Placeholder) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
 </head>
 
 <body id="admin-dashboard">
@@ -1017,6 +1073,7 @@
     </div>
 
     <div class="admin-layout">
+        <div class="admin-sidebar-overlay" id="admin-overlay" onclick="toggleAdminSidebar()"></div>
         <!-- Sidebar -->
         <aside class="admin-sidebar">
             <div class="sidebar-header">
@@ -1043,6 +1100,9 @@
                 <button class="sidebar-item" data-tab="experience" onclick="switchTab('experience', this)">
                     <i class="fa-solid fa-briefcase-clock"></i> Experience
                 </button>
+                <button class="sidebar-item" data-tab="testimonials" onclick="switchTab('testimonials', this)">
+                    <i class="fa-solid fa-comments"></i> Testimonials
+                </button>
 
                 <div class="sidebar-section">Settings</div>
                 <button class="sidebar-item" onclick="resetAndConfirm()">
@@ -1060,9 +1120,14 @@
         <!-- Main -->
         <div class="admin-main">
             <div class="admin-topbar">
-                <div class="topbar-title">
-                    <h2 id="topbar-heading">Dashboard</h2>
-                    <p id="topbar-sub">Welcome back, Ebenezer</p>
+                <div class="topbar-title" style="display:flex; align-items:center; gap:1rem;">
+                    <button id="admin-hamburger" class="icon-btn" onclick="toggleAdminSidebar()">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div>
+                        <h2 id="topbar-heading">Dashboard</h2>
+                        <p id="topbar-sub">Welcome back, Ebenezer</p>
+                    </div>
                 </div>
                 <div class="topbar-actions">
                     <button class="btn btn-outline" onclick="exportData()">
@@ -1097,6 +1162,10 @@
                         </button>
                         <button class="quick-action-btn" onclick="exportData()">
                             <i class="fa-solid fa-download"></i> Export Data
+                        </button>
+                        <button class="quick-action-btn"
+                            onclick="switchTab('testimonials', document.querySelector('[data-tab=testimonials]'))">
+                            <i class="fa-solid fa-comments"></i> Manage Testimonials
                         </button>
                     </div>
 
@@ -1136,13 +1205,21 @@
                                 <label>Full Name</label>
                                 <input type="text" id="p-name">
                             </div>
-                            <div class="form-group">
-                                <label>Primary Title</label>
-                                <input type="text" id="p-title1">
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label>Animated Titles (comma-separated)</label>
+                                <input type="text" id="p-animated-titles"
+                                    placeholder="e.g. WordPress Developer, Graphics Designer, UX Expert">
                             </div>
-                            <div class="form-group">
-                                <label>Secondary Title (/ role)</label>
-                                <input type="text" id="p-title2">
+                            <div class="form-group"
+                                style="grid-column: 1 / -1; display:flex; flex-direction:column; gap:0.5rem;">
+                                <label>Profile Image (Upload new or leave blank to keep current)</label>
+                                <div style="display:flex; align-items:center; gap:1rem;">
+                                    <img id="p-image-preview" src=""
+                                        style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); display: none;">
+                                    <input type="file" id="p-image-file" accept="image/*"
+                                        onchange="handleProfileImageUpload(event)">
+                                    <input type="hidden" id="p-image-base64">
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label>Email</label>
@@ -1259,6 +1336,30 @@
                     </div>
                 </div>
 
+                <!-- ===== TESTIMONIALS TAB ===== -->
+                <div class="tab-panel" id="tab-testimonials">
+                    <div class="admin-section-header">
+                        <h3>Client Testimonials</h3>
+                        <button class="btn btn-primary" onclick="openAddTestimonialModal()"><i
+                                class="fa-solid fa-plus"></i> Add Testimonial</button>
+                    </div>
+                    <div class="admin-card">
+                        <table class="projects-admin-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:25%">Client Name</th>
+                                    <th style="width:25%">Role/Company</th>
+                                    <th style="width:40%">Content</th>
+                                    <th style="width:10%; text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="testimonials-table-body">
+                                <!-- Testimonials rows injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div><!-- end admin-content -->
         </div><!-- end admin-main -->
     </div><!-- end admin-layout -->
@@ -1339,6 +1440,41 @@
         </div>
     </div>
 
+    <!-- Add / Edit Testimonial Modal -->
+    <div class="modal-overlay" id="testimonial-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="t-modal-title">Add Testimonial</h3>
+                <button class="icon-btn" onclick="closeTModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="t-id">
+                <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:1.2rem;">
+                    <div class="form-group">
+                        <label>Client Name *</label>
+                        <input type="text" id="t-name" required placeholder="e.g. John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label>Role / Company</label>
+                        <input type="text" id="t-role" placeholder="e.g. CEO of X Corp">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Testimonial Content *</label>
+                    <textarea id="t-content" required rows="4"
+                        style="width:100%; border:1px solid var(--border); border-radius:var(--radius-sm); padding:0.8rem; background:var(--bg-alt); color:var(--text-primary); font-family:var(--font-main);"
+                        placeholder="What did the client say about your work?"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeTModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveTestimonialFromModal()">
+                    <i class="fa-solid fa-floppy-disk"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast container -->
     <div id="toast-container"></div>
 
@@ -1402,9 +1538,18 @@
             document.getElementById('login-overlay').style.display = 'none';
         }
 
+        function toggleAdminSidebar() {
+            document.querySelector('.admin-sidebar').classList.toggle('open');
+            document.getElementById('admin-overlay').classList.toggle('open');
+        }
+
         function switchTab(tabId, btn) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
+            if (window.innerWidth <= 900) {
+                document.querySelector('.admin-sidebar').classList.remove('open');
+                document.getElementById('admin-overlay').classList.remove('open');
+            }
             document.getElementById('tab-' + tabId).classList.add('active');
             if (btn) btn.classList.add('active');
 
@@ -1540,8 +1685,14 @@
         function loadProfileForm() {
             const p = getProfile();
             document.getElementById('p-name').value = p.name || '';
-            document.getElementById('p-title1').value = p.title1 || '';
-            document.getElementById('p-title2').value = p.title2 || '';
+            document.getElementById('p-animated-titles').value = (p.animatedTitles || []).join(', ');
+
+            if (p.profileImage) {
+                document.getElementById('p-image-preview').src = p.profileImage;
+                document.getElementById('p-image-preview').style.display = 'block';
+                document.getElementById('p-image-base64').value = p.profileImage;
+            }
+
             document.getElementById('p-email').value = p.email || '';
             document.getElementById('p-phone1').value = p.phone1 || '';
             document.getElementById('p-phone2').value = p.phone2 || '';
@@ -1558,13 +1709,30 @@
             document.getElementById('p-available').checked = !!p.availableForFreelance;
         }
 
+        function handleProfileImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const base64Str = e.target.result;
+                    document.getElementById('p-image-base64').value = base64Str;
+                    const preview = document.getElementById('p-image-preview');
+                    preview.src = base64Str;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
         function saveProfile() {
             const data = getData();
+            const newImage = document.getElementById('p-image-base64').value;
+
             data.profile = {
                 ...data.profile,
                 name: document.getElementById('p-name').value,
-                title1: document.getElementById('p-title1').value,
-                title2: document.getElementById('p-title2').value,
+                animatedTitles: document.getElementById('p-animated-titles').value.split(',').map(s => s.trim()).filter(Boolean),
+                profileImage: newImage || data.profile.profileImage || '',
                 email: document.getElementById('p-email').value,
                 phone1: document.getElementById('p-phone1').value,
                 phone2: document.getElementById('p-phone2').value,
@@ -1693,6 +1861,103 @@
         </div>
         <p style="color:var(--text-secondary); font-size:0.88rem;">${e.summary}</p>
       </div>`).join('');
+        }
+
+        }
+
+        // ---- Testimonials CRUD ----
+        function renderTestimonialsTable() {
+            const tbody = document.getElementById('testimonials-table-body');
+            if (!tbody) return;
+            const testimonials = getTestimonials(); // from data.js
+
+            if (testimonials.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:2rem; color:var(--text-muted);">No testimonials added yet.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = testimonials.map(t => `
+            <tr>
+                <td style="font-weight:600; color:var(--text-primary);">${t.name}</td>
+                <td style="color:var(--text-secondary);">${t.role || '-'}</td>
+                <td style="color:var(--text-secondary); font-size:0.88rem;">${(t.content || '').substring(0, 80)}...</td>
+                <td style="text-align:right;">
+                    <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+                        <button class="icon-btn" onclick="openEditTestimonialModal('${t.id}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="icon-btn danger" onclick="deleteTestimonialConfirm('${t.id}', '${t.name.replace(/'/g, "\\'")}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>
+            `).join('');
+        }
+
+        function openAddTestimonialModal() {
+            document.getElementById('t-modal-title').textContent = 'Add Testimonial';
+            document.getElementById('t-id').value = '';
+            document.getElementById('t-name').value = '';
+            document.getElementById('t-role').value = '';
+            document.getElementById('t-content').value = '';
+            document.getElementById('testimonial-modal').classList.add('open');
+        }
+
+        function openEditTestimonialModal(id) {
+            const t = getTestimonials().find(x => x.id === id);
+            if (!t) return;
+            document.getElementById('t-modal-title').textContent = 'Edit Testimonial';
+            document.getElementById('t-id').value = t.id;
+            document.getElementById('t-name').value = t.name || '';
+            document.getElementById('t-role').value = t.role || '';
+            document.getElementById('t-content').value = t.content || '';
+            document.getElementById('testimonial-modal').classList.add('open');
+        }
+
+        function closeTModal() {
+            document.getElementById('testimonial-modal').classList.remove('open');
+        }
+
+        function saveTestimonialFromModal() {
+            const name = document.getElementById('t-name').value.trim();
+            const content = document.getElementById('t-content').value.trim();
+            if (!name || !content) {
+                showToast('Name and Content are required.', 'error');
+                return;
+            }
+
+            const testimonials = getTestimonials();
+            let id = document.getElementById('t-id').value;
+
+            if (!id) {
+                id = 't_' + Date.now();
+                testimonials.push({
+                    id,
+                    name,
+                    role: document.getElementById('t-role').value.trim(),
+                    content,
+                    image: ''
+                });
+            } else {
+                const idx = testimonials.findIndex(x => x.id === id);
+                if (idx > -1) {
+                    testimonials[idx].name = name;
+                    testimonials[idx].role = document.getElementById('t-role').value.trim();
+                    testimonials[idx].content = content;
+                }
+            }
+
+            saveTestimonials(testimonials); // saves to data.js localStorage
+            renderTestimonialsTable();
+            closeTModal();
+            showToast('Testimonial saved!', 'success');
+        }
+
+        function deleteTestimonialConfirm(id, name) {
+            if (confirm(`Delete testimonial from ${name}?`)) {
+                let list = getTestimonials();
+                list = list.filter(x => x.id !== id);
+                saveTestimonials(list);
+                renderTestimonialsTable();
+                showToast('Testimonial deleted.');
+            }
         }
 
         // ---- Export ----

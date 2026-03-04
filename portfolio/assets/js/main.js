@@ -66,6 +66,16 @@ document.addEventListener('DOMContentLoaded', () => {
     renderHomeTechStack();
   }
 
+  // Render testimonials if on home page
+  if (document.getElementById('home-testimonials-grid')) {
+    renderHomeTestimonials();
+  }
+
+  // Init GitHub Calendar
+  if (document.querySelector('.github-calendar') && typeof GitHubCalendar === 'function') {
+    GitHubCalendar(".github-calendar", "ImmaculateEben", { responsive: true, tooltips: true });
+  }
+
   // 5. Render single project if on project page
   if (document.getElementById('project-detail')) {
     renderProjectDetail();
@@ -75,6 +85,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('admin-dashboard')) {
     initAdmin();
   }
+
+  // 7. Inject Profile data (image and animated titles)
+  renderProfileData();
 });
 
 /* ---- Projects Rendering ---- */
@@ -183,6 +196,108 @@ function renderHomeTechStack() {
     }, { threshold: 0.1 });
     container.querySelectorAll('.reveal').forEach(el => observer.observe(el));
   }, 100);
+}
+
+// ------------------------------------
+// FRONTEND TESTIMONIALS RENDERING
+// ------------------------------------
+function renderHomeTestimonials() {
+  const container = document.getElementById('home-testimonials-grid');
+  if (!container) return;
+
+  const testimonials = (typeof getTestimonials === 'function') ? getTestimonials() : [];
+  if (!testimonials || testimonials.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-muted); text-align:center; width:100%;">No testimonials added yet.</p>';
+    return;
+  }
+
+  let html = '';
+  testimonials.forEach((t, i) => {
+    html += `
+      <div class="card-glass reveal" style="padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem; animation-delay: ${i * 0.1}s">
+        <div>
+          <i class="fa-solid fa-quote-left" style="color: var(--accent); font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+          <p style="color: var(--text-primary); font-size: 1rem; line-height: 1.7; font-style: italic;">"${t.content}"</p>
+        </div>
+        <div style="border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 1rem;">
+          <h4 style="color: var(--accent); margin-bottom: 0.25rem;">${t.name}</h4>
+          <span style="color: var(--text-secondary); font-size: 0.85rem;">${t.role}</span>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+
+  // Re-observe new reveal elements
+  setTimeout(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
+    }, { threshold: 0.1 });
+    container.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  }, 100);
+}
+
+// ------------------------------------
+// PROFILE DATA (Image & Animated Titles)
+// ------------------------------------
+function renderProfileData() {
+  const profile = (typeof getProfile === 'function') ? getProfile() : null;
+  if (!profile) return;
+
+  // 1. Inject Profile Image
+  if (profile.profileImage) {
+    document.querySelectorAll('.profile-img-dynamic').forEach(img => {
+      img.src = profile.profileImage;
+    });
+  }
+
+  // 2. Initialize Text Rotator
+  const titles = profile.animatedTitles;
+  if (titles && titles.length > 0) {
+    const containers = document.querySelectorAll('.animated-titles-container');
+
+    containers.forEach(container => {
+      let index = 0;
+      let charIndex = 0;
+      let isDeleting = false;
+      let currentString = '';
+
+      const typeSpeed = 100;
+      const deleteSpeed = 50;
+      const pauseEnd = 2000;
+      const pauseStart = 500;
+
+      function type() {
+        const fullString = titles[index % titles.length] || '';
+
+        if (isDeleting) {
+          currentString = fullString.substring(0, charIndex - 1);
+          charIndex--;
+        } else {
+          currentString = fullString.substring(0, charIndex + 1);
+          charIndex++;
+        }
+
+        container.innerHTML = `<span class="typing-text">${currentString}</span><span class="typing-cursor">|</span>`;
+
+        let typeDelay = isDeleting ? deleteSpeed : typeSpeed;
+
+        if (!isDeleting && currentString === fullString) {
+          typeDelay = pauseEnd;
+          isDeleting = true;
+        } else if (isDeleting && currentString === '') {
+          isDeleting = false;
+          index++;
+          typeDelay = pauseStart;
+        }
+
+        setTimeout(type, typeDelay);
+      }
+
+      type(); // Start looping for this container
+    });
+  }
 }
 
 /* ---- Single Project Detail ---- */
