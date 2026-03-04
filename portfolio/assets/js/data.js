@@ -78,6 +78,7 @@ const DEFAULT_DATA = {
             url: "https://www.prolificsafety.com.ng",
             github: "",
             image: "",
+            gallery: [],
             featured: true,
             gradient: "linear-gradient(135deg, #1a1a2e, #16213e)"
         },
@@ -90,6 +91,7 @@ const DEFAULT_DATA = {
             url: "https://www.lamata-ng.com",
             github: "",
             image: "",
+            gallery: [],
             featured: true,
             gradient: "linear-gradient(135deg, #0f2027, #203a43)"
         },
@@ -102,6 +104,7 @@ const DEFAULT_DATA = {
             url: "https://www.coreviewchecks.com",
             github: "",
             image: "",
+            gallery: [],
             featured: false,
             gradient: "linear-gradient(135deg, #1a1a2e, #2d1b69)"
         },
@@ -114,6 +117,7 @@ const DEFAULT_DATA = {
             url: "https://www.forneyroofers.com",
             github: "",
             image: "",
+            gallery: [],
             featured: false,
             gradient: "linear-gradient(135deg, #2c1810, #4a3020)"
         },
@@ -126,6 +130,7 @@ const DEFAULT_DATA = {
             url: "https://www.shopinverse.com",
             github: "",
             image: "",
+            gallery: [],
             featured: true,
             gradient: "linear-gradient(135deg, #0a0a0c, #1a2a1a)"
         },
@@ -138,6 +143,7 @@ const DEFAULT_DATA = {
             url: "https://www.sedekeglobal.com.ng",
             github: "",
             image: "",
+            gallery: [],
             featured: false,
             gradient: "linear-gradient(135deg, #1a0a2e, #2d1b4e)"
         },
@@ -150,6 +156,7 @@ const DEFAULT_DATA = {
             url: "https://www.techruly.com",
             github: "",
             image: "",
+            gallery: [],
             featured: false,
             gradient: "linear-gradient(135deg, #001a33, #002244)"
         }

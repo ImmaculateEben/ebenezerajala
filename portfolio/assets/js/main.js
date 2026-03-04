@@ -422,10 +422,44 @@ function renderProjectDetail() {
     <section class="section">
       <div class="container">
         <div class="project-detail-grid">
-          <div class="project-long-desc reveal ck-content custom-html-content">
-            ${project.image ? `<img src="${project.image}" alt="${project.title}" class="project-featured-img" style="width:100%; max-height:400px; object-fit:cover; border-radius:14px; margin-bottom:2rem; box-shadow:0 8px 30px rgba(0,0,0,0.3);">` : ''}
-            <h2 class="section-title">Project Overview</h2>
-            ${(project.longDesc || project.shortDesc).includes('<') ? (project.longDesc || project.shortDesc) : (project.longDesc || project.shortDesc).split('\n').map(p => `<p>${p}</p>`).join('')}
+          <div class="project-main-content">
+              <div class="project-long-desc reveal ck-content custom-html-content">
+                ${project.image ? `<img src="${project.image}" alt="${project.title}" class="project-featured-img" style="width:100%; max-height:400px; object-fit:cover; border-radius:14px; margin-bottom:2rem; box-shadow:0 8px 30px rgba(0,0,0,0.3);">` : ''}
+                <h2 class="section-title">Project Overview</h2>
+                ${(project.longDesc || project.shortDesc).includes('<') ? (project.longDesc || project.shortDesc) : (project.longDesc || project.shortDesc).split('\n').map(p => `<p>${p}</p>`).join('')}
+              </div>
+
+              ${project.gallery && project.gallery.length > 0 ? `
+              <div class="project-gallery reveal">
+                <h3 class="section-title" style="margin-top:3rem;">Project Gallery</h3>
+                <div class="project-gallery-grid">
+                    ${project.gallery.map(imgSrc => `
+                        <div class="gallery-item" onclick="openLightbox('${imgSrc}')">
+                            <img src="${imgSrc}" alt="${project.title} gallery image">
+                        </div>
+                    `).join('')}
+                </div>
+              </div>
+              
+              <!-- Lightbox Overlay -->
+              <div id="project-lightbox" class="lightbox" onclick="closeLightbox()">
+                  <span class="lightbox-close">&times;</span>
+                  <img class="lightbox-content" id="lightbox-img">
+              </div>
+              
+              <script>
+                function openLightbox(src) {
+                    const lightbox = document.getElementById('project-lightbox');
+                    const lightboxImg = document.getElementById('lightbox-img');
+                    lightboxImg.src = src;
+                    lightbox.classList.add('active');
+                }
+                function closeLightbox() {
+                    const lightbox = document.getElementById('project-lightbox');
+                    lightbox.classList.remove('active');
+                }
+              </script>
+              ` : ''}
           </div>
 
           <div class="project-detail-sidebar reveal delay-1">
