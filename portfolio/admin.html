@@ -246,6 +246,19 @@
             flex-shrink: 0;
         }
 
+        .topbar-title {
+            min-width: 0;
+        }
+
+        .topbar-title>div {
+            min-width: 0;
+        }
+
+        .topbar-title h2,
+        .topbar-title p {
+            word-break: break-word;
+        }
+
         .admin-content {
             flex: 1;
             overflow-y: auto;
@@ -765,6 +778,22 @@
             border-color: var(--border-hover);
         }
 
+        .admin-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+        }
+
+        .admin-flex-inline {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
         #admin-hamburger {
             display: none;
         }
@@ -834,10 +863,61 @@
 
             .admin-topbar {
                 padding: 1rem;
+                align-items: flex-start;
+                flex-wrap: wrap;
             }
 
             .quick-actions {
                 grid-template-columns: 1fr;
+            }
+
+            .topbar-actions {
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+
+            .topbar-actions .btn {
+                flex: 1 1 calc(50% - 0.4rem);
+                justify-content: center;
+                padding: 0.85rem 1rem;
+            }
+
+            .admin-content {
+                padding: 1.25rem;
+            }
+
+            .admin-card {
+                padding: 1rem;
+            }
+
+            .projects-admin-table {
+                min-width: 680px;
+            }
+
+            .admin-grid-2 {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .admin-flex-inline {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            #toast-container {
+                left: 1rem;
+                right: 1rem;
+                bottom: 1rem;
+            }
+
+            .toast {
+                max-width: none;
+            }
+
+            .table-actions {
+                flex-wrap: wrap;
             }
         }
 
@@ -896,8 +976,84 @@
         }
 
         @media (max-width: 600px) {
+            .admin-content {
+                padding: 1rem;
+            }
+
+            .topbar-actions .btn {
+                flex: 1 1 100%;
+                width: 100%;
+            }
+
+            .admin-section-header .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .modal-overlay {
+                padding: 0.75rem;
+            }
+
+            .modal-header,
+            .modal-body,
+            .modal-footer {
+                padding: 1rem;
+            }
+
+            .modal-footer {
+                flex-wrap: wrap;
+            }
+
+            .modal-footer .btn {
+                flex: 1 1 100%;
+                justify-content: center;
+            }
+
             .login-box {
                 padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .admin-sidebar {
+                width: min(86vw, 260px);
+                left: -100%;
+            }
+
+            .admin-topbar {
+                padding: 0.85rem;
+            }
+
+            .topbar-title h2 {
+                font-size: 1rem;
+            }
+
+            .topbar-title p {
+                font-size: 0.75rem;
+            }
+
+            .dash-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .dash-stat-card {
+                padding: 1.1rem;
+            }
+
+            .quick-action-btn {
+                padding: 1rem;
+            }
+
+            .admin-card {
+                padding: 0.9rem;
+            }
+
+            .modal {
+                max-height: 94vh;
+            }
+
+            .modal-header h3 {
+                font-size: 1rem;
             }
         }
 
@@ -1126,7 +1282,7 @@
         <!-- Main -->
         <div class="admin-main">
             <div class="admin-topbar">
-                <div class="topbar-title" style="display:flex; align-items:center; gap:1rem;">
+                <div class="topbar-title admin-flex-inline">
                     <button id="admin-hamburger" class="icon-btn" onclick="toggleAdminSidebar()">
                         <i class="fa-solid fa-bars"></i>
                     </button>
@@ -1178,7 +1334,7 @@
                     <div class="admin-section-header">
                         <h3>Recent Projects</h3>
                     </div>
-                    <div class="admin-card" style="padding:0; overflow:hidden;">
+                    <div class="admin-card table-responsive" style="padding:0; overflow:auto;">
                         <table class="projects-admin-table" id="dash-recent-projects"></table>
                     </div>
                 </div>
@@ -1192,7 +1348,7 @@
                             <i class="fa-solid fa-plus"></i> Add Project
                         </button>
                     </div>
-                    <div class="admin-card" style="padding:0; overflow:hidden;">
+                    <div class="admin-card table-responsive" style="padding:0; overflow:auto;">
                         <table class="projects-admin-table" id="admin-projects-table"></table>
                     </div>
                 </div>
@@ -1206,7 +1362,7 @@
                         </button>
                     </div>
                     <form class="admin-card" id="profile-form" onsubmit="return false;">
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.2rem;">
+                        <div class="admin-grid-2">
                             <div class="form-group">
                                 <label>Full Name</label>
                                 <input type="text" id="p-name">
@@ -1219,7 +1375,7 @@
                             <div class="form-group"
                                 style="grid-column: 1 / -1; display:flex; flex-direction:column; gap:0.5rem;">
                                 <label>Profile Image (Upload new or leave blank to keep current)</label>
-                                <div style="display:flex; align-items:center; gap:1rem;">
+                                <div class="admin-flex-inline">
                                     <img id="p-image-preview" src=""
                                         style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); display: none;">
                                     <input type="file" id="p-image-file" accept="image/*"
@@ -1349,7 +1505,7 @@
                         <button class="btn btn-primary" onclick="openAddTestimonialModal()"><i
                                 class="fa-solid fa-plus"></i> Add Testimonial</button>
                     </div>
-                    <div class="admin-card">
+                    <div class="admin-card table-responsive">
                         <table class="projects-admin-table">
                             <thead>
                                 <tr>
@@ -1379,7 +1535,7 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="m-project-id">
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.2rem;">
+                <div class="admin-grid-2">
                     <div class="form-group">
                         <label>Project Title *</label>
                         <input type="text" id="m-title" placeholder="e.g. Prolific Safety Nigeria" required>
@@ -1411,7 +1567,7 @@
                             onclick="removeFeaturedImage(event)"><i class="fa-solid fa-trash"></i> Remove Image</button>
                     </div>
                 </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.2rem;">
+                <div class="admin-grid-2">
                     <div class="form-group">
                         <label>Live Site URL</label>
                         <input type="url" id="m-url" placeholder="https://example.com">
@@ -1455,7 +1611,7 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="t-id">
-                <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:1.2rem;">
+                <div class="form-row admin-grid-2">
                     <div class="form-group">
                         <label>Client Name *</label>
                         <input type="text" id="t-name" required placeholder="e.g. John Doe">
