@@ -334,7 +334,6 @@ function initTitleRotators(titles) {
 }
 
 const GITHUB_USERNAME_PATTERN = /^[A-Za-z0-9-]{1,39}$/;
-const GITHUB_UNAVAILABLE_MESSAGE = "GitHub activity is temporarily unavailable.";
 
 function isValidGitHubUsername(value) {
   const username = String(value || "").trim();
@@ -379,10 +378,15 @@ function hasGitHubContributionCells(scope) {
   return Boolean(scope?.querySelector?.(".ContributionCalendar-day[data-level]"));
 }
 
-function setGitHubUnavailable(calendar) {
-  if (calendar) {
-    calendar.textContent = GITHUB_UNAVAILABLE_MESSAGE;
-  }
+function setGitHubUnavailable(calendar, username) {
+  if (!calendar) return;
+  const profileUrl = username ? `https://github.com/${encodeURIComponent(username)}` : "https://github.com";
+  calendar.innerHTML = `
+    <div class="gh-unavailable">
+      <i class="fa-brands fa-github"></i>
+      <p>Contribution data is temporarily unavailable.</p>
+      <a class="btn btn-outline btn-sm" href="${profileUrl}" target="_blank" rel="noopener noreferrer">View on GitHub <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+    </div>`;
 }
 
 async function renderGitHubCalendarFallback(calendar, username) {
@@ -413,6 +417,25 @@ async function renderGitHubCalendarFallback(calendar, username) {
 
   calendar.innerHTML = yearly.innerHTML;
   return hasGitHubContributionCells(calendar);
+}
+
+async function renderGitHubChartSvg(calendar, username) {
+  // ghchart.rshah.org serves a plain SVG of the contribution grid — no API key required
+  const src = `https://ghchart.rshah.org/${encodeURIComponent(username)}`;
+  return new Promise((resolve) => {
+    const img = document.createElement("img");
+    img.alt = `${username} GitHub contribution chart`;
+    img.style.cssText = "width:100%;height:auto;display:block;border-radius:8px;";
+    img.onload = () => {
+      calendar.innerHTML = "";
+      calendar.appendChild(img);
+      resolve(true);
+    };
+    img.onerror = () => resolve(false);
+    // Timeout: if image takes > 6 s treat as failed
+    setTimeout(() => resolve(false), 6000);
+    img.src = src;
+  });
 }
 
 async function waitForGitHubCalendar(timeoutMs = 4500) {
@@ -484,7 +507,15 @@ async function initGitHubContributions(siteContent) {
   }
 
   if (!rendered) {
-    setGitHubUnavailable(calendar);
+    try {
+      rendered = await renderGitHubChartSvg(calendar, username);
+    } catch (error) {
+      rendered = false;
+    }
+  }
+
+  if (!rendered) {
+    setGitHubUnavailable(calendar, username);
   }
 }
 

@@ -2413,6 +2413,27 @@ footer {
     border-color: var(--border-hover);
 }
 
+/* GitHub unavailable fallback */
+.gh-unavailable {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 2.5rem 1rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.gh-unavailable i {
+    font-size: 2rem;
+    opacity: 0.4;
+}
+
+.gh-unavailable p {
+    font-size: 0.9rem;
+    margin: 0;
+}
+
 .github-contributions-container .calendar,
 .github-contributions-container .github-calendar {
     --color-calendar-graph-day-bg: var(--gh-calendar-level-0);
