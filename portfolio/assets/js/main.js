@@ -389,15 +389,19 @@ function setGitHubUnavailable(calendar, username) {
     </div>`;
 }
 
-async function renderGitHubCalendarFallback(calendar, username) {
-  const endpoint = `https://api.bloggify.net/gh-calendar/?username=${encodeURIComponent(username)}`;
-  const response = await fetch(endpoint, { method: "GET" });
+function githubContribProxy(username) {
+  const ghUrl = `https://github.com/users/${encodeURIComponent(username)}/contributions`;
+  return fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(ghUrl)}`, { method: "GET" })
+    .then((r) => r.text());
+}
 
-  if (!response.ok) {
-    throw new Error(`Fallback GitHub calendar request failed with status ${response.status}`);
+async function renderGitHubCalendarFallback(calendar, username) {
+  const body = await githubContribProxy(username);
+
+  if (!body) {
+    throw new Error("Empty response from allorigins proxy");
   }
 
-  const body = await response.text();
   const parser = new DOMParser();
   const doc = parser.parseFromString(body, "text/html");
   const yearly = doc.querySelector(".js-yearly-contributions");
@@ -417,25 +421,6 @@ async function renderGitHubCalendarFallback(calendar, username) {
 
   calendar.innerHTML = yearly.innerHTML;
   return hasGitHubContributionCells(calendar);
-}
-
-async function renderGitHubChartSvg(calendar, username) {
-  // ghchart.rshah.org serves a plain SVG of the contribution grid — no API key required
-  const src = `https://ghchart.rshah.org/${encodeURIComponent(username)}`;
-  return new Promise((resolve) => {
-    const img = document.createElement("img");
-    img.alt = `${username} GitHub contribution chart`;
-    img.style.cssText = "width:100%;height:auto;display:block;border-radius:8px;";
-    img.onload = () => {
-      calendar.innerHTML = "";
-      calendar.appendChild(img);
-      resolve(true);
-    };
-    img.onerror = () => resolve(false);
-    // Timeout: if image takes > 6 s treat as failed
-    setTimeout(() => resolve(false), 6000);
-    img.src = src;
-  });
 }
 
 async function waitForGitHubCalendar(timeoutMs = 4500) {
@@ -489,7 +474,8 @@ async function initGitHubContributions(siteContent) {
       const maybePromise = window.GitHubCalendar(calendar, username, {
         global_stats: false,
         responsive: false,
-        tooltips: false
+        tooltips: false,
+        proxy: githubContribProxy
       });
       await Promise.resolve(maybePromise);
       rendered = hasGitHubContributionCells(calendar);
@@ -501,14 +487,6 @@ async function initGitHubContributions(siteContent) {
   if (!rendered) {
     try {
       rendered = await renderGitHubCalendarFallback(calendar, username);
-    } catch (error) {
-      rendered = false;
-    }
-  }
-
-  if (!rendered) {
-    try {
-      rendered = await renderGitHubChartSvg(calendar, username);
     } catch (error) {
       rendered = false;
     }
@@ -762,6 +740,7 @@ function renderProjectsPage(projects) {
   const renderCards = () => {
     container.innerHTML = "";
     const filtered = activeTag === "All" ? projects : projects.filter((p) => p.tags.includes(activeTag));
+    container.classList.toggle("single-result", filtered.length === 1);
     if (emptyMsg) emptyMsg.hidden = filtered.length > 0;
     filtered.forEach((project, index) => {
       container.appendChild(buildProjectCard(project, index, { includeExternal: true }));

@@ -75,6 +75,10 @@ function setupAuth() {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     errBox.hidden = true;
+    const submitBtn = $("#admin-login-submit");
+    const origLabel = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Signing in…';
+    submitBtn.disabled = true;
     const email = $("#admin-email").value.trim();
     const pw = $("#admin-password").value;
     try {
@@ -82,8 +86,39 @@ function setupAuth() {
     } catch (err) {
       errBox.textContent = err.message || "Sign-in failed.";
       errBox.hidden = false;
+    } finally {
+      submitBtn.innerHTML = origLabel;
+      submitBtn.disabled = false;
     }
   });
+
+  // Password visibility toggle
+  const pwToggle = $("#admin-pw-toggle");
+  if (pwToggle) {
+    pwToggle.addEventListener("click", () => {
+      const pwInput = $("#admin-password");
+      const icon = pwToggle.querySelector("i");
+      if (pwInput.type === "password") {
+        pwInput.type = "text";
+        icon.className = "fa-solid fa-eye-slash";
+      } else {
+        pwInput.type = "password";
+        icon.className = "fa-solid fa-eye";
+      }
+    });
+  }
+
+  // Local mode bypass
+  const localModeBtn = $("#admin-local-mode-btn");
+  if (localModeBtn) {
+    localModeBtn.addEventListener("click", () => {
+      overlay.hidden = true;
+      shell.hidden = false;
+      currentUser = { email: "local@demo" };
+      showRuntimeBanner();
+      loadAll();
+    });
+  }
 
   closeBtn.addEventListener("click", () => {
     window.location.href = "index.html";

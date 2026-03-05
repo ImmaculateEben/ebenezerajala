@@ -22,14 +22,31 @@
   <div id="admin-login-overlay" class="admin-login-overlay">
     <div class="card-glass admin-login-card">
       <button type="button" id="admin-login-close" class="admin-login-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
-      <h1 class="section-title" style="margin-bottom:1.25rem;">Admin Access</h1>
+      <div class="admin-login-icon"><i class="fa-solid fa-shield-halved"></i></div>
+      <h1 class="section-title" style="margin-bottom:.5rem;">Admin Access</h1>
       <p class="section-subtitle" style="margin-bottom:1.5rem;">Sign in to manage your portfolio.</p>
       <form id="admin-login-form" class="admin-form-grid">
-        <div class="form-group"><label for="admin-email">Email</label><input type="email" id="admin-email" required placeholder="admin@example.com"></div>
-        <div class="form-group"><label for="admin-password">Password</label><input type="password" id="admin-password" required placeholder="At least 6 characters"></div>
-        <button type="submit" id="admin-login-submit" class="btn btn-primary">Sign in</button>
+        <div class="form-group">
+          <label for="admin-email">Email</label>
+          <div class="input-icon-wrap">
+            <i class="fa-solid fa-envelope input-icon"></i>
+            <input type="email" id="admin-email" required placeholder="admin@example.com">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="admin-password">Password</label>
+          <div class="input-icon-wrap">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input type="password" id="admin-password" required placeholder="Your password">
+            <button type="button" id="admin-pw-toggle" class="input-icon-end" aria-label="Toggle password visibility"><i class="fa-solid fa-eye"></i></button>
+          </div>
+        </div>
+        <button type="submit" id="admin-login-submit" class="btn btn-primary" style="justify-content:center;"><i class="fa-solid fa-right-to-bracket"></i> Sign In</button>
       </form>
       <div id="admin-login-error" class="admin-status is-error" hidden></div>
+      <div class="admin-login-divider"><span>or</span></div>
+      <button type="button" id="admin-local-mode-btn" class="btn btn-outline" style="width:100%;justify-content:center;"><i class="fa-solid fa-hard-drive"></i> Continue in Local Mode</button>
+      <p style="font-size:.72rem;color:var(--text-muted);text-align:center;margin-top:.6rem;">Local mode saves data in your browser only.</p>
     </div>
   </div>
 

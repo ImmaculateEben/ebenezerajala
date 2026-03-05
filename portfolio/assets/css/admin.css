@@ -4,13 +4,21 @@
    ================================================================ */
 
 /* --- Reset & Base ------------------------------------------------ */
-.admin-body{--sb-w:260px;--top-h:56px;--rad:10px;--gap:1.25rem;overflow-x:hidden}
+.admin-body{--sb-w:260px;--top-h:56px;--rad:10px;--gap:1.25rem;--border-color:var(--border);--bg-primary:var(--bg-main);overflow-x:hidden}
 
 /* --- Login Overlay ----------------------------------------------- */
 .admin-login-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(6px)}
-.admin-login-card{width:min(420px,92vw);padding:2.5rem 2rem;position:relative}
+.admin-login-card{width:min(440px,94vw);padding:2.5rem 2rem;position:relative}
 .admin-login-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.25rem;cursor:pointer;color:var(--text-muted);transition:color .2s}
 .admin-login-close:hover{color:var(--text-primary)}
+.admin-login-icon{width:60px;height:60px;border-radius:50%;background:var(--accent-bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--accent);margin:0 auto 1.1rem}
+.input-icon-wrap{position:relative;display:flex;align-items:center}
+.input-icon-wrap input{padding-left:2.4rem!important;padding-right:2.6rem!important;width:100%}
+.input-icon{position:absolute;left:.75rem;color:var(--text-muted);font-size:.85rem;pointer-events:none;z-index:1}
+.input-icon-end{position:absolute;right:.5rem;background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:.85rem;padding:.3rem;border-radius:4px;transition:color .2s}
+.input-icon-end:hover{color:var(--text-primary)}
+.admin-login-divider{display:flex;align-items:center;gap:.75rem;margin:.9rem 0 .6rem;color:var(--text-muted);font-size:.75rem}
+.admin-login-divider::before,.admin-login-divider::after{content:'';flex:1;height:1px;background:var(--border)}
 
 /* --- Dashboard Shell --------------------------------------------- */
 .admin-shell{display:grid;grid-template-columns:var(--sb-w) 1fr;grid-template-rows:auto 1fr;min-height:100vh}
