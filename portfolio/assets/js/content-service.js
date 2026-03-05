@@ -14,7 +14,7 @@ import {
   sanitizeUrl
 } from "./security.js";
 
-const LOCAL_STATE_KEY = "ea_portfolio_state_v3";
+const LOCAL_STATE_KEY = "ea_portfolio_state_v4";
 
 let localStateCache = null;
 
@@ -214,7 +214,7 @@ async function withRemote(action, fallback) {
   try {
     return await action();
   } catch (error) {
-    console.warn("Remote operation failed, using local preview data instead.", error);
+    console.warn("Remote operation failed, using cached local data instead.", error);
     return fallback();
   }
 }
@@ -286,7 +286,7 @@ export async function saveSiteContent(content) {
   try {
     await upsertPayloadRow("site_content", "main", normalized);
   } catch (error) {
-    console.warn("Saving site content remotely failed; local preview state was kept.", error);
+    console.warn("Saving site content remotely failed; cached local state was kept.", error);
   }
 
   return normalized;
@@ -346,7 +346,7 @@ export async function saveProject(project) {
   try {
     await upsertPayloadRow("projects", normalized.id, normalized);
   } catch (error) {
-    console.warn("Saving the project remotely failed; local preview state was kept.", error);
+    console.warn("Saving the project remotely failed; cached local state was kept.", error);
   }
 
   return normalized;
@@ -365,7 +365,7 @@ export async function deleteProject(projectId) {
   try {
     await deletePayloadRow("projects", safeId);
   } catch (error) {
-    console.warn("Deleting the project remotely failed; local preview state was kept.", error);
+    console.warn("Deleting the project remotely failed; cached local state was kept.", error);
   }
 }
 
@@ -404,7 +404,7 @@ export async function saveTestimonial(item) {
   try {
     await upsertPayloadRow("testimonials", normalized.id, normalized);
   } catch (error) {
-    console.warn("Saving the testimonial remotely failed; local preview state was kept.", error);
+    console.warn("Saving the testimonial remotely failed; cached local state was kept.", error);
   }
 
   return normalized;
@@ -423,7 +423,7 @@ export async function deleteTestimonial(testimonialId) {
   try {
     await deletePayloadRow("testimonials", safeId);
   } catch (error) {
-    console.warn("Deleting the testimonial remotely failed; local preview state was kept.", error);
+    console.warn("Deleting the testimonial remotely failed; cached local state was kept.", error);
   }
 }
 
@@ -474,7 +474,7 @@ export async function updateMessageStatus(id, status) {
       throw new Error(error.message || "Unable to update the message.");
     }
   } catch (error) {
-    console.warn("Updating the message remotely failed; local preview state was kept.", error);
+    console.warn("Updating the message remotely failed; cached local state was kept.", error);
   }
 }
 
@@ -558,7 +558,7 @@ export async function submitContactMessage(input) {
     const state = readLocalState();
     state.messages.unshift(payload);
     writeLocalState(state);
-    return { mode: "local-preview", deliveredTo: payload.deliveredTo };
+    return { mode: "fallback", deliveredTo: payload.deliveredTo };
   }
 
   const client = getClient();

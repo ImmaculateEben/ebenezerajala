@@ -1258,22 +1258,22 @@ img {
 }
 
 .project-card-full {
-    display: grid;
-    grid-template-columns: 80px 1fr;
-    gap: 2rem;
-    align-items: start;
-    padding: 2rem 2.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: stretch;
+    padding: 0;
     transition: var(--transition);
     position: relative;
     overflow: hidden;
+    min-height: 100%;
 }
 
 .project-card-full .project-featured-img {
-    grid-column: 1 / -1;
-    width: calc(100% + 4.4rem);
-    height: 240px;
+    width: 100%;
+    height: clamp(190px, 30vw, 240px);
     object-fit: cover;
-    margin: -2rem -2.2rem 1.5rem -2.2rem;
+    margin: 0;
     border-bottom: 1px solid var(--border);
     transition: transform 0.5s ease;
 }
@@ -1283,9 +1283,9 @@ img {
 }
 
 .project-card-full:hover {
-    transform: translateX(6px);
+    transform: translateY(-4px);
     border-color: var(--accent);
-    box-shadow: -4px 0 0 0 var(--accent), var(--shadow-hover);
+    box-shadow: var(--shadow-hover);
 }
 
 .project-number {
@@ -1303,6 +1303,8 @@ img {
     display: flex;
     flex-direction: column;
     flex: 1;
+    padding: 1.35rem;
+    gap: 0.7rem;
 }
 
 .project-info h3 {
@@ -1319,13 +1321,14 @@ img {
     color: var(--text-secondary);
     font-size: 0.96rem;
     line-height: 1.7;
-    margin-bottom: 1.2rem;
+    margin-bottom: 0;
 }
 
 .project-actions {
     display: flex;
     gap: 0.8rem;
     flex-wrap: wrap;
+    margin-top: auto;
 }
 
 /* Vertical Grid Card Style */
@@ -1701,9 +1704,15 @@ footer {
    PROJECTS GRID
    ========================================= */
 #projects-container {
-    display: flex;
-    flex-direction: column;
-    gap: 2.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+#home-projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
 }
 
 /* =========================================
@@ -1848,6 +1857,7 @@ footer {
 .section-head-row {
     gap: 1rem;
     flex-wrap: wrap;
+    margin-bottom: 1.75rem;
 }
 
 .github-card {
@@ -2200,7 +2210,7 @@ footer {
     }
 
     .project-card-full {
-        padding: 1.5rem;
+        min-height: 100%;
     }
 
     .project-number {
@@ -2483,7 +2493,9 @@ footer {
 }
 
 .project-card-link {
-    display: contents;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     color: inherit;
 }
 

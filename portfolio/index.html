@@ -21,6 +21,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-calendar@latest/dist/github-calendar-responsive.css">
 </head>
 <body>
   <nav id="navbar">
@@ -33,7 +34,6 @@
         <a href="experience.html" class="nav-link">Experience</a>
         <a href="projects.html" class="nav-link">Projects</a>
         <a href="contact.html" class="nav-link">Contact</a>
-        <a href="admin.html" class="nav-link admin-link">Admin</a>
       </div>
       <div class="hamburger" id="hamburger">
         <div class="line1"></div>
@@ -128,6 +128,15 @@
     <div class="container">
       <h2 class="section-title reveal" style="text-align:center;">Core <span class="highlight">Tech Stack</span></h2>
       <div id="home-tech-stack-grid" style="display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;"></div>
+
+      <div id="github-contributions" class="github-contributions-container reveal" style="margin-top:4rem;text-align:center;">
+        <h3 style="margin-bottom:1rem;font-size:1.4rem;color:var(--text-secondary);">GitHub Contributions</h3>
+        <p class="section-subtitle" style="margin:0 auto 1.5rem;">A live snapshot of recent coding activity.</p>
+        <div class="card-glass github-card" style="margin:0 auto;max-width:920px;overflow-x:auto;">
+          <div class="github-calendar" data-github-username="ImmaculateEben">Loading GitHub activity...</div>
+        </div>
+        <a class="btn btn-outline btn-sm" data-github-profile-link href="https://github.com/ImmaculateEben" target="_blank" rel="noopener noreferrer" style="margin-top:1rem;">View GitHub Profile</a>
+      </div>
     </div>
   </section>
 
@@ -169,6 +178,7 @@
 
   <script src="assets/js/runtime-config.js"></script>
   <script src="assets/js/theme.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/github-calendar@latest/dist/github-calendar.min.js"></script>
   <script type="module" src="assets/js/main.js"></script>
 </body>
 </html>

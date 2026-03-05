@@ -16,6 +16,11 @@ Fill these in `portfolio/assets/js/runtime-config.js`:
 - `adminEmail` (optional frontend-only restriction)
 - `storageBucket` (defaults to `portfolio-assets`)
 
+If you generate this file from environment variables, use:
+
+- `NEXT_PUBLIC_SUPABASE_URL` (or `SUPABASE_URL`)
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` (or `SUPABASE_ANON_KEY`)
+
 ## Database setup
 
 1. Open your Supabase project.

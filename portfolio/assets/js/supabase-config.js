@@ -19,6 +19,13 @@ const mergedSupabaseConfig = {
   ...(runtimeConfig.supabase || {})
 };
 
+function resolveSupabaseConfig(config) {
+  return {
+    url: String(config.url || "").trim(),
+    anonKey: String(config.anonKey || "").trim()
+  };
+}
+
 function hasSupabaseConfig(config) {
   return ["url", "anonKey"].every((key) => String(config[key] || "").trim());
 }
@@ -27,9 +34,11 @@ let client = null;
 let ready = false;
 let initializationError = "";
 
-if (hasSupabaseConfig(mergedSupabaseConfig)) {
+const resolvedSupabaseConfig = resolveSupabaseConfig(mergedSupabaseConfig);
+
+if (hasSupabaseConfig(resolvedSupabaseConfig)) {
   try {
-    client = createClient(mergedSupabaseConfig.url, mergedSupabaseConfig.anonKey, {
+    client = createClient(resolvedSupabaseConfig.url, resolvedSupabaseConfig.anonKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
@@ -41,11 +50,12 @@ if (hasSupabaseConfig(mergedSupabaseConfig)) {
     initializationError = error instanceof Error ? error.message : "Supabase failed to initialize.";
   }
 } else {
-  initializationError = "Supabase runtime config is missing.";
+  initializationError =
+    "Supabase runtime config is missing. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY (or SUPABASE_URL and SUPABASE_ANON_KEY).";
 }
 
 export function getRuntimeMode() {
-  return ready ? "supabase" : "local-preview";
+  return ready ? "supabase" : "unavailable";
 }
 
 export function isSupabaseReady() {

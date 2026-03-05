@@ -28,7 +28,6 @@ import {
 import { applyExternalLinkSafety, attachImageFallbacks, escapeHtml, sanitizePlainText } from "./security.js";
 
 const state = { siteContent: null, projects: [], testimonials: [], messages: [] };
-let localPreviewSession = false;
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -61,9 +60,7 @@ function renderRuntime() {
     banner.textContent = "Supabase mode is active. Admin changes are persistent.";
     banner.classList.remove("warning");
   } else {
-    banner.textContent = `Local preview mode is active. Changes are saved in this browser only. Configure Supabase for shared, persistent admin access. ${
-      getSupabaseInitializationError() || ""
-    }`.trim();
+    banner.textContent = `Supabase is unavailable. Configure runtime-config.js to enable admin access. ${getSupabaseInitializationError() || ""}`.trim();
     banner.classList.add("warning");
   }
 }
@@ -523,19 +520,7 @@ function bindImagePreviews() {
 function bindAuth() {
   const overlay = $("#admin-login-overlay");
   const shell = $("#admin-shell");
-  const localPreviewBtn = $("#admin-local-preview-btn");
   onAdminAuthChanged(async (user) => {
-    if (localPreviewSession) {
-      overlay.hidden = true;
-      shell.hidden = false;
-      hideStatus("admin-login-error");
-      renderRuntime();
-      await refresh();
-      applyExternalLinkSafety();
-      attachImageFallbacks(shell);
-      return;
-    }
-
     const email = sanitizePlainText(user?.email || "");
     const requiredEmail = sanitizePlainText(getRuntimeConfig().adminEmail || "");
     if (user && requiredEmail && email.toLowerCase() !== requiredEmail.toLowerCase()) {
@@ -559,7 +544,7 @@ function bindAuth() {
     if (!isSupabaseReady()) {
       setStatus(
         "admin-login-error",
-        "Supabase sign-in is unavailable right now. Use \"Continue in Local Preview\" below, or configure runtime-config.js.",
+        "Supabase sign-in is unavailable right now. Configure runtime-config.js and try again.",
         "error"
       );
       return;
@@ -577,21 +562,7 @@ function bindAuth() {
     }
   });
 
-  if (localPreviewBtn) {
-    localPreviewBtn.addEventListener("click", async () => {
-      localPreviewSession = true;
-      overlay.hidden = true;
-      shell.hidden = false;
-      hideStatus("admin-login-error");
-      renderRuntime();
-      await refresh();
-      applyExternalLinkSafety();
-      attachImageFallbacks(shell);
-    });
-  }
-
   $("#admin-logout-btn").addEventListener("click", async () => {
-    localPreviewSession = false;
     await signOutAdmin();
     overlay.hidden = false;
     shell.hidden = true;
@@ -614,7 +585,7 @@ function init() {
     $("#admin-login-submit").disabled = true;
     setStatus(
       "admin-login-error",
-      escapeHtml(getSupabaseInitializationError() || "Supabase is not configured. Continue in Local Preview or complete runtime-config.js."),
+      escapeHtml(getSupabaseInitializationError() || "Supabase is not configured. Complete runtime-config.js to enable admin sign-in."),
       "error"
     );
   }

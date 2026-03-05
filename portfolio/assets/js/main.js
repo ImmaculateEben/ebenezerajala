@@ -18,6 +18,8 @@ function $(selector) {
   return document.querySelector(selector);
 }
 
+const PROJECT_IMAGE_FALLBACK = "assets/images/project-placeholder.svg";
+
 function setMetaDescription(content) {
   let meta = document.querySelector('meta[name="description"]');
   if (!meta) {
@@ -124,13 +126,11 @@ function buildProjectCard(project, index, options = {}) {
   link.href = `project.html?id=${encodeURIComponent(project.id)}`;
   card.appendChild(link);
 
-  if (project.image) {
-    const image = document.createElement("img");
-    image.className = "project-featured-img";
-    image.src = project.image;
-    image.alt = project.title;
-    link.appendChild(image);
-  }
+  const image = document.createElement("img");
+  image.className = "project-featured-img";
+  image.src = project.image || PROJECT_IMAGE_FALLBACK;
+  image.alt = `${project.title} preview`;
+  link.appendChild(image);
 
   const number = document.createElement("div");
   number.className = "project-number";
@@ -289,6 +289,42 @@ function initTitleRotators(titles) {
   });
 }
 
+function initGitHubContributions(siteContent) {
+  const container = document.getElementById("github-contributions");
+  if (!container) {
+    return;
+  }
+
+  const username = String(siteContent?.profile?.githubUsername || "").trim();
+  const calendar = container.querySelector(".github-calendar");
+  const profileLink = container.querySelector("[data-github-profile-link]");
+
+  if (!calendar || !username) {
+    container.hidden = true;
+    return;
+  }
+
+  if (profileLink) {
+    profileLink.href = `https://github.com/${encodeURIComponent(username)}`;
+  }
+
+  calendar.setAttribute("data-github-username", username);
+
+  if (typeof window.GitHubCalendar !== "function") {
+    calendar.textContent = "GitHub activity is temporarily unavailable.";
+    return;
+  }
+
+  try {
+    window.GitHubCalendar(calendar, username, {
+      responsive: true,
+      tooltips: true
+    });
+  } catch (error) {
+    calendar.textContent = "GitHub activity is temporarily unavailable.";
+  }
+}
+
 async function renderHomePage(siteContent, projects, testimonials) {
   const featuredGrid = document.getElementById("home-projects-grid");
   if (featuredGrid) {
@@ -304,7 +340,10 @@ async function renderHomePage(siteContent, projects, testimonials) {
   if (techGrid) {
     techGrid.innerHTML = "";
     const definitions = getAvailableTechStacks();
-    siteContent.techStacks.forEach((stackId) => {
+    const selectedStacks = Array.isArray(siteContent.techStacks) && siteContent.techStacks.length
+      ? siteContent.techStacks
+      : definitions.slice(0, 6).map((entry) => entry.id);
+    selectedStacks.forEach((stackId) => {
       const item = definitions.find((entry) => entry.id === stackId);
       if (!item) {
         return;
@@ -340,6 +379,8 @@ async function renderHomePage(siteContent, projects, testimonials) {
         testimonialsGrid.appendChild(card);
       });
   }
+
+  initGitHubContributions(siteContent);
 }
 
 function renderEducation(siteContent) {
@@ -527,7 +568,7 @@ async function renderProjectDetailPage() {
   const copy = document.getElementById("project-rich-copy");
   const image = project.image
     ? `<img src="${escapeHtml(project.image)}" alt="${escapeHtml(project.title)}" class="project-featured-img">`
-    : "";
+    : `<img src="${PROJECT_IMAGE_FALLBACK}" alt="${escapeHtml(project.title)}" class="project-featured-img">`;
   safeSetHtml(copy, `${image}<h2 class="section-title">Project Overview</h2>${project.longDesc || `<p>${escapeHtml(project.shortDesc)}</p>`}`);
 
   const linkList = document.getElementById("project-link-list");

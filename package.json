@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "generate-config": "node -e \"const cfg = { supabase: { url: process.env.SUPABASE_URL || '', anonKey: process.env.SUPABASE_ANON_KEY || '' }, adminEmail: process.env.ADMIN_EMAIL || '', storageBucket: process.env.STORAGE_BUCKET || 'portfolio-assets' }; console.log('window.EA_RUNTIME_CONFIG = ' + JSON.stringify(cfg, null, 2) + ';');\" > portfolio/assets/js/runtime-config.js"
+    "generate-config": "node -e \"const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || ''; const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || ''; const cfg = { supabase: { url: supabaseUrl, anonKey: supabaseAnonKey }, adminEmail: process.env.ADMIN_EMAIL || '', storageBucket: process.env.STORAGE_BUCKET || 'portfolio-assets' }; console.log('window.EA_RUNTIME_CONFIG = ' + JSON.stringify(cfg, null, 2) + ';');\" > portfolio/assets/js/runtime-config.js"
   },
   "repository": {
     "type": "git",
