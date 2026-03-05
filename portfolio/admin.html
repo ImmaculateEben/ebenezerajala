@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard | Ebenezer Ajala</title>
   <meta name="description" content="Admin dashboard for managing portfolio content, messages, settings, and media.">
-  <link rel="canonical" href="/admin.html">
+  <link rel="canonical" href="/admin">
   <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
   <link rel="manifest" href="site.webmanifest">
   <script>
@@ -63,7 +63,7 @@
     <!-- Mobile top bar -->
     <header class="admin-topbar">
       <button type="button" id="admin-menu-toggle" class="admin-menu-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
-      <a href="index.html" class="logo">EA<span>.</span></a>
+      <a href="/" class="logo">EA<span>.</span></a>
       <span class="admin-topbar-title" id="topbar-title">Dashboard</span>
     </header>
 
@@ -71,7 +71,7 @@
 
     <!-- Sidebar -->
     <aside id="admin-sidebar" class="admin-sidebar">
-      <div class="admin-brand"><a href="index.html" class="logo">EA<span>.</span></a><p class="muted-copy">Portfolio CMS</p></div>
+      <div class="admin-brand"><a href="/" class="logo">EA<span>.</span></a><p class="muted-copy">Portfolio CMS</p></div>
       <nav class="admin-nav">
         <button class="admin-nav-btn active" data-section="overview"><i class="fa-solid fa-gauge-high"></i><span>Overview</span></button>
         <button class="admin-nav-btn" data-section="messages"><i class="fa-solid fa-envelope"></i><span>Messages</span><span class="admin-nav-badge" id="nav-badge-messages"></span></button>
@@ -102,8 +102,8 @@
           <div class="admin-card kpi"><div class="kpi-icon" style="--c:#a855f7"><i class="fa-solid fa-star"></i></div><div class="kpi-body"><span>Featured</span><strong id="kpi-featured">0</strong></div></div>
           <div class="admin-card kpi"><div class="kpi-icon" style="--c:#f59e0b"><i class="fa-solid fa-envelope-open-text"></i></div><div class="kpi-body"><span>Unread</span><strong id="kpi-unread">0</strong></div></div>
           <div class="admin-card kpi"><div class="kpi-icon" style="--c:#22c55e"><i class="fa-solid fa-comments"></i></div><div class="kpi-body"><span>Testimonials</span><strong id="kpi-testimonials">0</strong></div></div>
-          <div class="admin-card kpi"><div class="kpi-icon" style="--c:#06b6d4"><i class="fa-solid fa-at"></i></div><div class="kpi-body"><span>Email</span><strong id="kpi-email" class="kpi-small">—</strong></div></div>
-          <div class="admin-card kpi"><div class="kpi-icon" style="--c:#10b981"><i class="fa-solid fa-circle-check"></i></div><div class="kpi-body"><span>Status</span><strong id="kpi-availability">—</strong></div></div>
+          <div class="admin-card kpi"><div class="kpi-icon" style="--c:#06b6d4"><i class="fa-solid fa-at"></i></div><div class="kpi-body"><span>Email</span><strong id="kpi-email" class="kpi-small">â€”</strong></div></div>
+          <div class="admin-card kpi"><div class="kpi-icon" style="--c:#10b981"><i class="fa-solid fa-circle-check"></i></div><div class="kpi-body"><span>Status</span><strong id="kpi-availability">â€”</strong></div></div>
         </div>
         <div class="admin-card">
           <h3><i class="fa-solid fa-bolt"></i> Quick Actions</h3>
@@ -128,7 +128,7 @@
 
       <!-- ===== HERO ===== -->
       <section class="admin-section" data-panel="hero" hidden>
-        <div class="panel-header"><h1><i class="fa-solid fa-bolt"></i> Hero Section</h1><p>Edit the main banner — name, tagline, stats, social links.</p></div>
+        <div class="panel-header"><h1><i class="fa-solid fa-bolt"></i> Hero Section</h1><p>Edit the main banner â€” name, tagline, stats, social links.</p></div>
         <div class="panel-split">
           <div class="admin-card">
             <form id="hero-form" class="admin-form-grid">
@@ -142,8 +142,8 @@
                 <div class="form-group"><label for="hero-clients">Clients</label><input type="text" id="hero-clients"></div>
               </div>
               <div class="form-row-2">
-                <div class="form-group"><label for="hero-speed">Avg Speed ↑</label><input type="text" id="hero-speed"></div>
-                <div class="form-group"><label for="hero-traffic">Avg Traffic ↑</label><input type="text" id="hero-traffic"></div>
+                <div class="form-group"><label for="hero-speed">Avg Speed â†‘</label><input type="text" id="hero-speed"></div>
+                <div class="form-group"><label for="hero-traffic">Avg Traffic â†‘</label><input type="text" id="hero-traffic"></div>
               </div>
               <label class="check-label"><input type="checkbox" id="hero-available"> Available for new work</label>
               <div class="form-row-2">
@@ -240,10 +240,10 @@
           <form id="skills-form" class="admin-form-grid">
             <div>
               <label class="form-group-label">Homepage Tech Stack</label>
-              <input id="tech-search" type="search" placeholder="Filter by name or category…">
+              <input id="tech-search" type="search" placeholder="Filter by name or categoryâ€¦">
               <div id="tech-selector" class="tech-selector-wrap"></div>
             </div>
-            <div class="form-group expand"><label for="tech-skills-text">Technical Skills <small>(one per line: Category|fa-icon-class|Item1,Item2,…)</small></label><textarea id="tech-skills-text" class="mono-ta"></textarea></div>
+            <div class="form-group expand"><label for="tech-skills-text">Technical Skills <small>(one per line: Category|fa-icon-class|Item1,Item2,â€¦)</small></label><textarea id="tech-skills-text" class="mono-ta"></textarea></div>
             <button type="submit" class="btn btn-primary">Save Tech Stack &amp; Technical Skills</button>
           </form>
           <div id="skills-status" class="admin-status is-success" hidden></div>
@@ -293,7 +293,7 @@
                 <div class="form-group"><label for="exp-company">Company</label><input type="text" id="exp-company" required></div>
               </div>
               <div class="form-row-2">
-                <div class="form-group"><label for="exp-date">Period</label><input type="text" id="exp-date" placeholder="Jan 2024 – Present"></div>
+                <div class="form-group"><label for="exp-date">Period</label><input type="text" id="exp-date" placeholder="Jan 2024 â€“ Present"></div>
                 <div class="form-group"><label for="exp-type">Type</label><input type="text" id="exp-type" placeholder="Full-time"></div>
               </div>
               <div class="form-row-2">
@@ -327,7 +327,7 @@
               <div class="form-group"><label for="edu-degree">Degree / Certificate</label><input type="text" id="edu-degree" required></div>
               <div class="form-group"><label for="edu-school">School / Institution</label><input type="text" id="edu-school" required></div>
               <div class="form-row-2">
-                <div class="form-group"><label for="edu-period">Period</label><input type="text" id="edu-period" placeholder="2020 – 2024"></div>
+                <div class="form-group"><label for="edu-period">Period</label><input type="text" id="edu-period" placeholder="2020 â€“ 2024"></div>
                 <div class="form-group"><label for="edu-icon">Icon</label><input type="text" id="edu-icon" placeholder="fa-solid fa-graduation-cap"></div>
               </div>
               <div class="admin-actions-row">
@@ -392,7 +392,7 @@
               <div class="form-group"><label for="pg-feedback-sub">Feedback Subtitle</label><input type="text" id="pg-feedback-sub"></div>
             </div>
             <h3>Footer</h3>
-            <div class="form-group"><label for="pg-footer">Footer Copyright</label><input type="text" id="pg-footer" placeholder="© 2026 Ebenezer Ajala. All rights reserved."></div>
+            <div class="form-group"><label for="pg-footer">Footer Copyright</label><input type="text" id="pg-footer" placeholder="Â© 2026 Ebenezer Ajala. All rights reserved."></div>
             <button type="submit" class="btn btn-primary">Save Page Text</button>
           </form>
           <div id="pages-status" class="admin-status is-success" hidden></div>
@@ -451,7 +451,7 @@
         <div class="panel-header"><h1><i class="fa-solid fa-wand-magic-sparkles"></i> AI Writing Assistant</h1><p>Generate professional portfolio copy with AI.</p></div>
         <div class="admin-card">
           <form id="ai-form" class="admin-form-grid">
-            <div class="form-group"><label for="ai-prompt">What do you need written?</label><textarea id="ai-prompt" rows="4" placeholder="e.g. Write a professional bio for a web developer with 4+ years experience…"></textarea></div>
+            <div class="form-group"><label for="ai-prompt">What do you need written?</label><textarea id="ai-prompt" rows="4" placeholder="e.g. Write a professional bio for a web developer with 4+ years experienceâ€¦"></textarea></div>
             <div class="form-row-2">
               <div class="form-group"><label for="ai-tone">Tone</label><select id="ai-tone"><option value="professional" selected>Professional</option><option value="friendly">Friendly</option><option value="confident">Confident</option><option value="creative">Creative</option><option value="formal">Formal</option></select></div>
               <div class="form-group"><label for="ai-length">Length</label><select id="ai-length"><option value="short">Short (1-2 sentences)</option><option value="medium" selected>Medium (paragraph)</option><option value="long">Long (multi-paragraph)</option></select></div>
@@ -478,3 +478,4 @@
   <script type="module" src="assets/js/admin.js"></script>
 </body>
 </html>
+

@@ -116,7 +116,7 @@ function setupAuth() {
   }
 
   closeBtn.addEventListener("click", () => {
-    window.location.href = "index.html";
+    window.location.href = "/";
   });
 
   onAdminAuthChanged((user) => {

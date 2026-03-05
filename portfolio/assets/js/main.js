@@ -197,7 +197,7 @@ function buildProjectCard(project, index, options = {}) {
 
   const detailLink = document.createElement("a");
   detailLink.className = "btn btn-primary";
-  detailLink.href = `project.html?id=${encodeURIComponent(project.id)}`;
+  detailLink.href = `/project?id=${encodeURIComponent(project.id)}`;
   detailLink.innerHTML = 'View Details <i class="fa-solid fa-arrow-right"></i>';
   footer.appendChild(detailLink);
 
@@ -935,7 +935,7 @@ async function renderProjectDetailPage() {
           <i class="fa-solid fa-circle-exclamation" style="font-size:2.5rem;color:var(--accent);margin-bottom:1rem"></i>
           <h1>Project not found</h1>
           <p style="color:var(--text-secondary);margin-bottom:1.5rem">The requested project could not be loaded.</p>
-          <a class="btn btn-primary" href="projects.html"><i class="fa-solid fa-arrow-left"></i> Back to Projects</a>
+          <a class="btn btn-primary" href="/projects"><i class="fa-solid fa-arrow-left"></i> Back to Projects</a>
         </div>
       </section>
     `;
@@ -953,7 +953,7 @@ async function renderProjectDetailPage() {
       <div class="blob blob-2"></div>
       <div class="project-detail-hero-inner fade-in-up">
         <div class="project-detail-breadcrumb">
-          <a href="projects.html" class="project-back"><i class="fa-solid fa-arrow-left"></i> All Projects</a>
+          <a href="/projects" class="project-back"><i class="fa-solid fa-arrow-left"></i> All Projects</a>
           ${project.featured ? '<span class="project-featured-badge"><i class="fa-solid fa-star"></i> Featured</span>' : ""}
         </div>
         <h1>${escapeHtml(project.title)}</h1>
@@ -1027,10 +1027,10 @@ async function renderProjectDetailPage() {
     const next = idx < allProjects.length - 1 ? allProjects[idx + 1] : null;
     let navHTML = "";
     if (prev) {
-      navHTML += `<a class="project-nav-link" href="project.html?id=${encodeURIComponent(prev.id)}"><i class="fa-solid fa-arrow-left"></i> ${escapeHtml(prev.title)}</a>`;
+      navHTML += `<a class="project-nav-link" href="/project?id=${encodeURIComponent(prev.id)}"><i class="fa-solid fa-arrow-left"></i> ${escapeHtml(prev.title)}</a>`;
     }
     if (next) {
-      navHTML += `<a class="project-nav-link is-next" href="project.html?id=${encodeURIComponent(next.id)}">${escapeHtml(next.title)} <i class="fa-solid fa-arrow-right"></i></a>`;
+      navHTML += `<a class="project-nav-link is-next" href="/project?id=${encodeURIComponent(next.id)}">${escapeHtml(next.title)} <i class="fa-solid fa-arrow-right"></i></a>`;
     }
     navStrip.innerHTML = navHTML;
     navSection.hidden = false;

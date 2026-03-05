@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Not Found | Ebenezer Ajala</title>
+  <meta name="description" content="The page you're looking for doesn't exist or has been moved.">
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
+  <link rel="manifest" href="/site.webmanifest">
+  <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem("ea_theme");
+        if (theme === "light" || theme === "gold" || theme === "dark") {
+          document.documentElement.setAttribute("data-theme", theme);
+        }
+      } catch (error) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .error-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      background: var(--gradient-hero);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .error-content {
+      text-align: center;
+      max-width: 560px;
+      z-index: 2;
+      position: relative;
+    }
+
+    .error-code {
+      font-size: clamp(6rem, 20vw, 12rem);
+      font-weight: 800;
+      line-height: 1;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      margin-bottom: 0.5rem;
+      letter-spacing: -4px;
+      user-select: none;
+    }
+
+    .error-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--accent-bg);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: var(--accent);
+      margin: 0 auto 1.5rem;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .error-content h1 {
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      margin-bottom: 0.75rem;
+    }
+
+    .error-content p {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+
+    .error-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .error-path {
+      margin-top: 2rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      word-break: break-all;
+      background: var(--accent-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 1rem;
+      display: inline-block;
+    }
+
+    .error-path code {
+      color: var(--accent);
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <nav id="navbar" class="scrolled">
+    <div class="nav-container">
+      <a href="/" class="logo">EA<span>.</span></a>
+      <div class="nav-links" id="navLinks">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/about" class="nav-link">About</a>
+        <a href="/skills" class="nav-link">Skills</a>
+        <a href="/experience" class="nav-link">Experience</a>
+        <a href="/projects" class="nav-link">Projects</a>
+        <a href="/contact" class="nav-link">Contact</a>
+      </div>
+      <div class="hamburger" id="hamburger">
+        <div class="line1"></div>
+        <div class="line2"></div>
+        <div class="line3"></div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="error-page">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <div class="error-content">
+      <div class="error-icon"><i class="fa-solid fa-compass"></i></div>
+      <div class="error-code">404</div>
+      <h1>Page Not Found</h1>
+      <p>The page you're looking for doesn't exist, has been moved, or the URL might be incorrect.</p>
+      <div class="error-actions">
+        <a href="/" class="btn btn-primary"><i class="fa-solid fa-house"></i> Back to Home</a>
+        <a href="/projects" class="btn btn-outline"><i class="fa-solid fa-folder-open"></i> View Projects</a>
+      </div>
+      <div class="error-path">Requested: <code id="error-path"></code></div>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('error-path').textContent = window.location.pathname;
+
+    // Hamburger toggle
+    var hamburger = document.getElementById('hamburger');
+    var navLinks = document.getElementById('navLinks');
+    if (hamburger && navLinks) {
+      hamburger.addEventListener('click', function () {
+        hamburger.classList.toggle('toggle');
+        navLinks.classList.toggle('nav-active');
+      });
+    }
+  </script>
+  <script src="/assets/js/theme.js"></script>
+</body>
+</html>
