@@ -40,23 +40,35 @@
   </div>
 
   <div id="admin-shell" class="admin-shell" hidden>
-    <aside class="admin-sidebar">
+    <!-- Mobile top bar -->
+    <header class="admin-topbar">
+      <button type="button" id="admin-menu-toggle" class="admin-menu-toggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <a href="index.html" class="logo">EA<span>.</span></a>
+      <span class="admin-topbar-title">Dashboard</span>
+    </header>
+
+    <!-- Sidebar backdrop (mobile) -->
+    <div id="admin-sidebar-backdrop" class="admin-sidebar-backdrop"></div>
+
+    <aside id="admin-sidebar" class="admin-sidebar">
       <div class="admin-brand">
         <a href="index.html" class="logo">EA<span>.</span></a>
         <p class="muted-copy" style="margin-top:0.5rem;">Portfolio Management</p>
       </div>
       <nav class="admin-nav">
-        <button class="admin-nav-btn active" data-section="overview">Overview</button>
-        <button class="admin-nav-btn" data-section="messages">Messages</button>
-        <button class="admin-nav-btn" data-section="projects">Projects</button>
-        <button class="admin-nav-btn" data-section="profile">Profile</button>
-        <button class="admin-nav-btn" data-section="experience">Experience</button>
-        <button class="admin-nav-btn" data-section="skills">Skills</button>
-        <button class="admin-nav-btn" data-section="testimonials">Testimonials</button>
-        <button class="admin-nav-btn" data-section="settings">Settings</button>
+        <button class="admin-nav-btn active" data-section="overview"><i class="fa-solid fa-gauge-high"></i><span>Overview</span></button>
+        <button class="admin-nav-btn" data-section="messages"><i class="fa-solid fa-envelope"></i><span>Messages</span><span class="admin-nav-badge" id="nav-badge-messages"></span></button>
+        <button class="admin-nav-btn" data-section="projects"><i class="fa-solid fa-diagram-project"></i><span>Projects</span></button>
+        <button class="admin-nav-btn" data-section="profile"><i class="fa-solid fa-user-pen"></i><span>Profile</span></button>
+        <button class="admin-nav-btn" data-section="experience"><i class="fa-solid fa-briefcase"></i><span>Experience</span></button>
+        <button class="admin-nav-btn" data-section="skills"><i class="fa-solid fa-layer-group"></i><span>Skills</span></button>
+        <button class="admin-nav-btn" data-section="testimonials"><i class="fa-solid fa-quote-left"></i><span>Testimonials</span></button>
+        <button class="admin-nav-btn" data-section="settings"><i class="fa-solid fa-gear"></i><span>Settings</span></button>
       </nav>
       <div class="admin-sidebar-footer">
-        <button type="button" id="admin-logout-btn" class="btn btn-outline">Log Out</button>
+        <button type="button" id="admin-logout-btn" class="btn btn-outline"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button>
       </div>
     </aside>
 
@@ -71,20 +83,38 @@
           </div>
         </div>
         <div class="admin-grid cols-3">
-          <div class="admin-card admin-kpi"><span>Total Projects</span><strong id="overview-project-count">0</strong></div>
-          <div class="admin-card admin-kpi"><span>Featured Projects</span><strong id="overview-featured-count">0</strong></div>
-          <div class="admin-card admin-kpi"><span>Unread Messages</span><strong id="overview-unread-count">0</strong></div>
-          <div class="admin-card admin-kpi"><span>Testimonials</span><strong id="overview-testimonial-count">0</strong></div>
-          <div class="admin-card admin-kpi"><span>Contact Inbox</span><strong id="overview-contact-email">-</strong></div>
-          <div class="admin-card admin-kpi"><span>Availability</span><strong id="overview-availability">-</strong></div>
+          <div class="admin-card admin-kpi">
+            <div class="admin-kpi-icon" style="--kpi-clr:#3b82f6"><i class="fa-solid fa-folder-open"></i></div>
+            <div class="admin-kpi-body"><span>Total Projects</span><strong id="overview-project-count">0</strong></div>
+          </div>
+          <div class="admin-card admin-kpi">
+            <div class="admin-kpi-icon" style="--kpi-clr:#a855f7"><i class="fa-solid fa-star"></i></div>
+            <div class="admin-kpi-body"><span>Featured</span><strong id="overview-featured-count">0</strong></div>
+          </div>
+          <div class="admin-card admin-kpi">
+            <div class="admin-kpi-icon" style="--kpi-clr:#f59e0b"><i class="fa-solid fa-envelope-open-text"></i></div>
+            <div class="admin-kpi-body"><span>Unread Messages</span><strong id="overview-unread-count">0</strong></div>
+          </div>
+          <div class="admin-card admin-kpi">
+            <div class="admin-kpi-icon" style="--kpi-clr:#22c55e"><i class="fa-solid fa-comments"></i></div>
+            <div class="admin-kpi-body"><span>Testimonials</span><strong id="overview-testimonial-count">0</strong></div>
+          </div>
+          <div class="admin-card admin-kpi">
+            <div class="admin-kpi-icon" style="--kpi-clr:#06b6d4"><i class="fa-solid fa-at"></i></div>
+            <div class="admin-kpi-body"><span>Contact Inbox</span><strong id="overview-contact-email" class="admin-kpi-email">-</strong></div>
+          </div>
+          <div class="admin-card admin-kpi">
+            <div class="admin-kpi-icon" style="--kpi-clr:#10b981"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="admin-kpi-body"><span>Availability</span><strong id="overview-availability">-</strong></div>
+          </div>
         </div>
         <div class="admin-card">
-          <h3>Quick Actions</h3>
+          <h3><i class="fa-solid fa-bolt" style="color:var(--accent);margin-right:0.4rem;"></i>Quick Actions</h3>
           <div class="admin-actions-row" style="margin-top:1rem;">
-            <button type="button" class="btn btn-primary" data-jump-section="projects">Add or Edit Projects</button>
-            <button type="button" class="btn btn-outline" data-jump-section="messages">Open Inbox</button>
-            <button type="button" class="btn btn-outline" data-jump-section="profile">Update Profile</button>
-            <button type="button" class="btn btn-outline" data-jump-section="settings">Change Contact Email</button>
+            <button type="button" class="btn btn-primary" data-jump-section="projects"><i class="fa-solid fa-plus"></i> Add / Edit Projects</button>
+            <button type="button" class="btn btn-outline" data-jump-section="messages"><i class="fa-solid fa-inbox"></i> Open Inbox</button>
+            <button type="button" class="btn btn-outline" data-jump-section="profile"><i class="fa-solid fa-user-pen"></i> Update Profile</button>
+            <button type="button" class="btn btn-outline" data-jump-section="settings"><i class="fa-solid fa-envelope-circle-check"></i> Contact Email</button>
           </div>
         </div>
       </section>
@@ -92,11 +122,11 @@
       <section class="admin-section" data-admin-panel="messages" hidden>
         <div class="admin-hero">
           <div>
-            <h1 class="section-title" style="margin-bottom:0.75rem;">Messages</h1>
-            <p class="section-subtitle">Every contact submission lands here and can be reviewed, marked as read, or archived.</p>
+            <h1 class="section-title" style="margin-bottom:0.75rem;"><i class="fa-solid fa-envelope" style="color:var(--accent);margin-right:0.5rem;font-size:0.85em;"></i>Messages</h1>
+            <p class="section-subtitle">Every contact submission lands here. Review, mark as read, or archive.</p>
           </div>
         </div>
-        <div class="admin-grid cols-2">
+        <div class="admin-grid cols-2 admin-grid-stack-md">
           <div class="admin-card admin-table-wrap">
             <table class="admin-table">
               <thead>
@@ -121,11 +151,11 @@
       <section class="admin-section" data-admin-panel="projects" hidden>
         <div class="admin-hero">
           <div>
-            <h1 class="section-title" style="margin-bottom:0.75rem;">Projects</h1>
+            <h1 class="section-title" style="margin-bottom:0.75rem;"><i class="fa-solid fa-diagram-project" style="color:var(--accent);margin-right:0.5rem;font-size:0.85em;"></i>Projects</h1>
             <p class="section-subtitle">Manage project content, URLs, featured status, and hero styling from one form.</p>
           </div>
         </div>
-        <div class="admin-grid cols-2">
+        <div class="admin-grid cols-2 admin-grid-stack-md">
           <div class="admin-card admin-table-wrap">
             <table class="admin-table">
               <thead>
@@ -194,11 +224,11 @@
       <section class="admin-section" data-admin-panel="profile" hidden>
         <div class="admin-hero">
           <div>
-            <h1 class="section-title" style="margin-bottom:0.75rem;">Profile</h1>
+            <h1 class="section-title" style="margin-bottom:0.75rem;"><i class="fa-solid fa-user-pen" style="color:var(--accent);margin-right:0.5rem;font-size:0.85em;"></i>Profile</h1>
             <p class="section-subtitle">Update hero content, stats, social links, and the public profile copy.</p>
           </div>
         </div>
-        <div class="admin-grid cols-2">
+        <div class="admin-grid cols-2 admin-grid-stack-md">
           <div class="admin-card">
             <form id="profile-form" class="admin-form-grid">
               <div class="admin-form-grid cols-2">
@@ -303,7 +333,7 @@
       <section class="admin-section" data-admin-panel="experience" hidden>
         <div class="admin-hero">
           <div>
-            <h1 class="section-title" style="margin-bottom:0.75rem;">Experience</h1>
+            <h1 class="section-title" style="margin-bottom:0.75rem;"><i class="fa-solid fa-briefcase" style="color:var(--accent);margin-right:0.5rem;font-size:0.85em;"></i>Experience</h1>
             <p class="section-subtitle">Add one experience entry per line and keep the timeline up to date.</p>
           </div>
         </div>
@@ -322,7 +352,7 @@
       <section class="admin-section" data-admin-panel="skills" hidden>
         <div class="admin-hero">
           <div>
-            <h1 class="section-title" style="margin-bottom:0.75rem;">Skills</h1>
+            <h1 class="section-title" style="margin-bottom:0.75rem;"><i class="fa-solid fa-layer-group" style="color:var(--accent);margin-right:0.5rem;font-size:0.85em;"></i>Skills</h1>
             <p class="section-subtitle">Update the skills shown on your website.</p>
           </div>
         </div>
@@ -352,11 +382,11 @@
       <section class="admin-section" data-admin-panel="testimonials" hidden>
         <div class="admin-hero">
           <div>
-            <h1 class="section-title" style="margin-bottom:0.75rem;">Testimonials</h1>
+            <h1 class="section-title" style="margin-bottom:0.75rem;"><i class="fa-solid fa-quote-left" style="color:var(--accent);margin-right:0.5rem;font-size:0.85em;"></i>Testimonials</h1>
             <p class="section-subtitle">Maintain social proof used on the homepage and across your pitch flow.</p>
           </div>
         </div>
-        <div class="admin-grid cols-2">
+        <div class="admin-grid cols-2 admin-grid-stack-md">
           <div class="admin-card admin-table-wrap">
             <table class="admin-table">
               <thead>
@@ -405,7 +435,7 @@
       <section class="admin-section" data-admin-panel="settings" hidden>
         <div class="admin-hero">
           <div>
-            <h1 class="section-title" style="margin-bottom:0.75rem;">Settings</h1>
+            <h1 class="section-title" style="margin-bottom:0.75rem;"><i class="fa-solid fa-gear" style="color:var(--accent);margin-right:0.5rem;font-size:0.85em;"></i>Settings</h1>
             <p class="section-subtitle">Manage operational settings, imports/exports, and the seeded reset workflow.</p>
           </div>
         </div>

@@ -52,6 +52,37 @@ function switchSection(section) {
   document.querySelectorAll("[data-admin-panel]").forEach((panel) => {
     panel.hidden = panel.dataset.adminPanel !== section;
   });
+  closeMobileMenu();
+
+  // Update topbar title
+  const topbarTitle = document.querySelector(".admin-topbar-title");
+  if (topbarTitle) topbarTitle.textContent = section.charAt(0).toUpperCase() + section.slice(1);
+}
+
+/* ---- Mobile sidebar toggle ---- */
+function openMobileMenu() {
+  const sidebar = document.getElementById("admin-sidebar");
+  const backdrop = document.getElementById("admin-sidebar-backdrop");
+  const toggle = document.getElementById("admin-menu-toggle");
+  if (sidebar) sidebar.classList.add("is-open");
+  if (backdrop) backdrop.classList.add("is-visible");
+  if (toggle) toggle.classList.add("is-open");
+}
+
+function closeMobileMenu() {
+  const sidebar = document.getElementById("admin-sidebar");
+  const backdrop = document.getElementById("admin-sidebar-backdrop");
+  const toggle = document.getElementById("admin-menu-toggle");
+  if (sidebar) sidebar.classList.remove("is-open");
+  if (backdrop) backdrop.classList.remove("is-visible");
+  if (toggle) toggle.classList.remove("is-open");
+}
+
+function updateUnreadBadge() {
+  const badge = document.getElementById("nav-badge-messages");
+  if (!badge) return;
+  const count = state.messages.filter((m) => m.status === "new").length;
+  badge.textContent = count > 0 ? String(count) : "";
 }
 
 function renderRuntime() {
@@ -85,6 +116,7 @@ async function refresh() {
   renderSkills();
   renderTestimonials();
   renderSettings();
+  updateUnreadBadge();
 }
 
 function renderOverview() {
@@ -337,6 +369,24 @@ function bindStaticUI() {
   document.querySelectorAll("[data-jump-section]").forEach((button) => {
     button.addEventListener("click", () => switchSection(button.dataset.jumpSection));
   });
+
+  // Mobile hamburger
+  const menuToggle = document.getElementById("admin-menu-toggle");
+  const backdrop = document.getElementById("admin-sidebar-backdrop");
+  if (menuToggle) {
+    menuToggle.addEventListener("click", () => {
+      const sidebar = document.getElementById("admin-sidebar");
+      if (sidebar?.classList.contains("is-open")) {
+        closeMobileMenu();
+      } else {
+        openMobileMenu();
+      }
+    });
+  }
+  if (backdrop) {
+    backdrop.addEventListener("click", closeMobileMenu);
+  }
+
   switchSection("overview");
 }
 
@@ -351,6 +401,7 @@ function bindMessages() {
       state.messages = await loadMessages();
       renderOverview();
       renderMessages();
+      updateUnreadBadge();
       showMessage(button.dataset.read || button.dataset.archive);
     }
   });
