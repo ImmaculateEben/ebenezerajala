@@ -62,13 +62,17 @@ function setupAuth() {
   const errBox = $("#admin-login-error");
   const closeBtn = $("#admin-login-close");
 
+  const setAuthVisibility = (isSignedIn) => {
+    overlay.hidden = Boolean(isSignedIn);
+    shell.hidden = !isSignedIn;
+    overlay.setAttribute("aria-hidden", isSignedIn ? "true" : "false");
+  };
+
   if (!isSupabaseReady()) {
-    // Offline / demo mode: skip login
-    overlay.hidden = true;
-    shell.hidden = false;
-    currentUser = { email: "demo@local" };
-    showRuntimeBanner();
-    loadAll();
+    errBox.textContent = "Admin sign-in is unavailable until Supabase is configured.";
+    errBox.hidden = false;
+    const submitBtn = $("#admin-login-submit");
+    if (submitBtn) submitBtn.disabled = true;
     return;
   }
 
@@ -82,7 +86,10 @@ function setupAuth() {
     const email = $("#admin-email").value.trim();
     const pw = $("#admin-password").value;
     try {
-      await signInAdmin(email, pw);
+      const authData = await signInAdmin(email, pw);
+      if (authData?.user || authData?.session?.user) {
+        setAuthVisibility(true);
+      }
     } catch (err) {
       errBox.textContent = err.message || "Sign-in failed.";
       errBox.hidden = false;
@@ -108,18 +115,6 @@ function setupAuth() {
     });
   }
 
-  // Local mode bypass
-  const localModeBtn = $("#admin-local-mode-btn");
-  if (localModeBtn) {
-    localModeBtn.addEventListener("click", () => {
-      overlay.hidden = true;
-      shell.hidden = false;
-      currentUser = { email: "local@demo" };
-      showRuntimeBanner();
-      loadAll();
-    });
-  }
-
   closeBtn.addEventListener("click", () => {
     window.location.href = "index.html";
   });
@@ -127,13 +122,11 @@ function setupAuth() {
   onAdminAuthChanged((user) => {
     currentUser = user;
     if (user) {
-      overlay.hidden = true;
-      shell.hidden = false;
+      setAuthVisibility(true);
       showRuntimeBanner();
       loadAll();
     } else {
-      overlay.hidden = false;
-      shell.hidden = true;
+      setAuthVisibility(false);
     }
   });
 

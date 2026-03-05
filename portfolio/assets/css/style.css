@@ -3472,6 +3472,12 @@ footer {
 /* =========================================
    TEXT ROTATOR / ANIMATED TITLES
    ========================================= */
+[data-animated-title] {
+    display: inline-block;
+    min-height: 1.2em;
+    white-space: nowrap;
+}
+
 .typing-cursor {
     animation: blinkCursor 0.75s step-end infinite;
     color: var(--accent);

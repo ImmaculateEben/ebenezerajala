@@ -318,23 +318,78 @@ function renderProfileBlocks(siteContent) {
 }
 
 function initTitleRotators(titles) {
-  const containers = document.querySelectorAll("[data-animated-title]");
-  if (!containers.length || !titles.length) {
+  const containers = Array.from(document.querySelectorAll("[data-animated-title]"));
+  const values = Array.isArray(titles)
+    ? titles.map((item) => String(item || "").trim()).filter(Boolean)
+    : [];
+
+  containers.forEach((container) => {
+    const timer = titleRotatorTimers.get(container);
+    if (timer) {
+      window.clearTimeout(timer);
+      titleRotatorTimers.delete(container);
+    }
+  });
+
+  if (!containers.length || !values.length) {
     return;
   }
 
+  if (prefersReducedMotion()) {
+    containers.forEach((container) => {
+      container.textContent = values[0];
+    });
+    return;
+  }
+
+  const longestLength = Math.max(...values.map((item) => item.length));
+
   containers.forEach((container) => {
-    let index = 0;
+    let titleIndex = 0;
+    let charIndex = 0;
+    let deleting = false;
+
+    container.style.minWidth = `${Math.max(10, longestLength)}ch`;
 
     const tick = () => {
-      container.textContent = titles[index % titles.length];
-      index += 1;
+      const current = values[titleIndex % values.length];
+      if (!current) {
+        return;
+      }
+
+      if (deleting) {
+        charIndex = Math.max(0, charIndex - 1);
+      } else {
+        charIndex = Math.min(current.length, charIndex + 1);
+      }
+
+      container.textContent = current.slice(0, charIndex);
+
+      const cursor = document.createElement("span");
+      cursor.className = "typing-cursor";
+      cursor.setAttribute("aria-hidden", "true");
+      cursor.textContent = "|";
+      container.appendChild(cursor);
+
+      let delay = deleting ? 38 : 75;
+      if (!deleting && charIndex >= current.length) {
+        deleting = true;
+        delay = 1050;
+      } else if (deleting && charIndex <= 0) {
+        deleting = false;
+        titleIndex += 1;
+        delay = 260;
+      }
+
+      const timerId = window.setTimeout(tick, delay);
+      titleRotatorTimers.set(container, timerId);
     };
 
     tick();
-    window.setInterval(tick, 2600);
   });
 }
+
+const titleRotatorTimers = new WeakMap();
 
 const GITHUB_USERNAME_PATTERN = /^[A-Za-z0-9-]{1,39}$/;
 
