@@ -21,7 +21,6 @@ export async function hydrateContactDetails() {
   const phoneSecondary = document.getElementById("contact-phone-secondary");
   const linkedInLink = document.getElementById("contact-linkedin-link");
   const locationLabel = document.getElementById("contact-location-label");
-  const recipientHint = document.getElementById("contact-recipient-hint");
 
   if (emailLink) {
     emailLink.href = `mailto:${profile.email}`;
@@ -45,10 +44,6 @@ export async function hydrateContactDetails() {
 
   if (locationLabel) {
     locationLabel.textContent = profile.location;
-  }
-
-  if (recipientHint) {
-    recipientHint.textContent = siteContent.settings.contactRecipientEmail || profile.email;
   }
 
   applyExternalLinkSafety();

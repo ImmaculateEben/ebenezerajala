@@ -13,6 +13,16 @@
   <link rel="canonical" href="/skills.html">
   <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
   <link rel="manifest" href="site.webmanifest">
+  <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem("ea_theme");
+        if (theme === "light" || theme === "gold" || theme === "dark") {
+          document.documentElement.setAttribute("data-theme", theme);
+        }
+      } catch (error) {}
+    })();
+  </script>
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -57,6 +67,14 @@
   </section>
 
   <section class="section alt-bg">
+    <div class="container">
+      <h2 class="section-title reveal">Tech Stack</h2>
+      <p class="section-sub reveal">Tools and technologies I use to build and deliver client projects.</p>
+      <div class="tech-stack-grid" id="skills-tech-stack-grid"></div>
+    </div>
+  </section>
+
+  <section class="section">
     <div class="container">
       <h2 class="section-title reveal">Soft Skills</h2>
       <div class="soft-skills-grid" id="skill-soft-grid"></div>

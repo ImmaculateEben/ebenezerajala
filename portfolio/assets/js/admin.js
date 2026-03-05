@@ -172,6 +172,7 @@ async function loadAll() {
   populateHeroForm();
   populateProfileForm();
   renderProjectsTable();
+  renderFilterCategories();
   populateSkillsForm();
   renderExpTable();
   renderEduTable();
@@ -274,11 +275,11 @@ function renderMessages() {
       const cls = m.status === "new" ? "row-unread" : "";
       const badge = m.status === "new" ? "badge-unread" : m.status === "archived" ? "badge-archived" : "badge-read";
       return `<tr class="${cls}" data-id="${escapeHtml(m.id)}">
-        <td>${escapeHtml(m.name)}</td>
-        <td>${escapeHtml(m.email)}</td>
-        <td>${escapeHtml(m.subject || "(no subject)")}</td>
-        <td>${formatDate(m.createdAt)}</td>
-        <td><span class="badge-sm ${badge}">${escapeHtml(m.status)}</span></td>
+        <td data-label="Name">${escapeHtml(m.name)}</td>
+        <td data-label="Email">${escapeHtml(m.email)}</td>
+        <td data-label="Subject">${escapeHtml(m.subject || "(no subject)")}</td>
+        <td data-label="Date">${formatDate(m.createdAt)}</td>
+        <td data-label="Status"><span class="badge-sm ${badge}">${escapeHtml(m.status)}</span></td>
         <td class="row-actions">
           <button title="View" class="msg-view"><i class="fa-solid fa-eye"></i></button>
           ${m.status === "new" ? `<button title="Mark read" class="msg-read"><i class="fa-solid fa-check"></i></button>` : ""}
@@ -427,9 +428,9 @@ function renderProjectsTable() {
     .map((p) => {
       const typeBadge = p.featured ? `<span class="badge-sm badge-featured">Featured</span>` : `<span class="badge-sm badge-draft">Standard</span>`;
       return `<tr data-id="${escapeHtml(p.id)}">
-        <td>${escapeHtml(p.title)}</td>
-        <td>${(p.tags || []).map((t) => escapeHtml(t)).join(", ")}</td>
-        <td>${typeBadge}</td>
+        <td data-label="Project">${escapeHtml(p.title)}</td>
+        <td data-label="Tags">${(p.tags || []).map((t) => escapeHtml(t)).join(", ")}</td>
+        <td data-label="Type">${typeBadge}</td>
         <td class="row-actions">
           <button title="Edit" class="proj-edit"><i class="fa-solid fa-pen"></i></button>
           <button title="Delete" class="proj-del danger"><i class="fa-solid fa-trash"></i></button>
@@ -516,12 +517,62 @@ function resetProjectForm() {
   $("#proj-form-title").textContent = "New Project";
 }
 
+function renderFilterCategories() {
+  const list = $("#proj-cat-list");
+  if (!list) return;
+
+  const cats = Array.isArray(siteContent?.projectCategories) ? siteContent.projectCategories : [];
+
+  list.innerHTML = cats.length
+    ? cats.map((cat, i) => `
+        <span class="tag-chip">
+          ${escapeHtml(cat)}
+          <button type="button" class="tag-chip-remove" data-index="${i}" title="Remove">&times;</button>
+        </span>`).join("")
+    : `<p class="muted-copy" style="margin:0;font-size:.85rem">No categories yet. Add one below.</p>`;
+
+  list.querySelectorAll(".tag-chip-remove").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const idx = Number(btn.dataset.index);
+      if (!siteContent.projectCategories) siteContent.projectCategories = [];
+      siteContent.projectCategories.splice(idx, 1);
+      await saveSiteContent(siteContent);
+      renderFilterCategories();
+      flash("proj-cat-status", "Category removed.");
+    });
+  });
+
+  const addBtn = $("#proj-cat-add-btn");
+  const input  = $("#proj-cat-input");
+
+  // Remove any old listener by cloning
+  if (addBtn) {
+    const fresh = addBtn.cloneNode(true);
+    addBtn.replaceWith(fresh);
+    fresh.addEventListener("click", async () => {
+      const val = input?.value.trim();
+      if (!val) return;
+      if (!siteContent.projectCategories) siteContent.projectCategories = [];
+      if (siteContent.projectCategories.map((c) => c.toLowerCase()).includes(val.toLowerCase())) {
+        flash("proj-cat-status", "That category already exists.", true);
+        return;
+      }
+      siteContent.projectCategories.push(val);
+      await saveSiteContent(siteContent);
+      if (input) input.value = "";
+      renderFilterCategories();
+      flash("proj-cat-status", "Category added!");
+    });
+  }
+}
+
 /* ================================================================
    SKILLS & TECH
    ================================================================ */
 function populateSkillsForm() {
   renderTechSelector();
   populateSkillsTextareas();
+  renderSoftSkillsManager();
 
   // search filter
   $("#tech-search")?.addEventListener("input", (e) => {
@@ -534,18 +585,10 @@ function populateSkillsForm() {
 
   $("#skills-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-
-    // tech stacks
     siteContent.techStacks = $$(".tech-chip.selected").map((c) => c.dataset.id);
-
-    // technical skills
     siteContent.skills.technical = parseTechnicalSkills(getVal("tech-skills-text"));
-
-    // soft skills
-    siteContent.skills.soft = parseSoftSkills(getVal("soft-skills-text"));
-
     await saveSiteContent(siteContent);
-    flash("skills-status", "Skills saved!");
+    flash("skills-status", "Saved!");
   });
 }
 
@@ -574,11 +617,80 @@ function populateSkillsTextareas() {
     .map((s) => `${s.category}|${s.icon}|${(s.items || []).join(",")}`)
     .join("\n");
   setVal("tech-skills-text", tech);
+}
 
-  const soft = (siteContent?.skills?.soft || [])
-    .map((s) => `${s.title}|${s.icon}|${s.desc}`)
-    .join("\n");
-  setVal("soft-skills-text", soft);
+function renderSoftSkillsManager() {
+  const tbody = $("#soft-skill-tbody");
+  if (!tbody) return;
+
+  const skills = siteContent?.skills?.soft || [];
+
+  tbody.innerHTML = skills.length
+    ? skills.map((s, i) => `
+        <tr data-idx="${i}">
+          <td data-label="Title">${escapeHtml(s.title)}</td>
+          <td data-label="Icon"><i class="${escapeHtml(s.icon)}"></i> <small>${escapeHtml(s.icon)}</small></td>
+          <td data-label="Description" style="max-width:320px;white-space:normal">${escapeHtml(s.desc)}</td>
+          <td class="row-actions">
+            <button title="Edit" class="soft-skill-edit"><i class="fa-solid fa-pen"></i></button>
+            <button title="Delete" class="soft-skill-del danger"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        </tr>`).join("")
+    : `<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No soft skills yet. Add one below.</td></tr>`;
+
+  tbody.querySelectorAll("tr[data-idx]").forEach((row) => {
+    const idx = +row.dataset.idx;
+    row.querySelector(".soft-skill-edit")?.addEventListener("click", () => {
+      const s = skills[idx];
+      setVal("soft-skill-idx", idx);
+      setVal("soft-skill-title", s.title);
+      setVal("soft-skill-icon", s.icon);
+      setVal("soft-skill-desc", s.desc);
+      $("#soft-skill-form-title").textContent = "Edit Soft Skill";
+      $("#soft-skill-title")?.focus();
+    });
+    row.querySelector(".soft-skill-del")?.addEventListener("click", async () => {
+      if (!confirm(`Delete "${skills[idx].title}"?`)) return;
+      siteContent.skills.soft.splice(idx, 1);
+      await saveSiteContent(siteContent);
+      renderSoftSkillsManager();
+      flash("soft-skill-status", "Skill deleted.");
+    });
+  });
+
+  // Form submit
+  const form = $("#soft-skill-form");
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const idx = +getVal("soft-skill-idx");
+    const entry = {
+      id: idx >= 0 ? (siteContent.skills.soft[idx]?.id || `soft-${Date.now()}`) : `soft-${Date.now()}`,
+      title: getVal("soft-skill-title"),
+      icon: getVal("soft-skill-icon") || "fa-solid fa-star",
+      desc: getVal("soft-skill-desc")
+    };
+    if (!siteContent.skills.soft) siteContent.skills.soft = [];
+    if (idx >= 0) {
+      siteContent.skills.soft[idx] = entry;
+    } else {
+      siteContent.skills.soft.push(entry);
+    }
+    await saveSiteContent(siteContent);
+    resetSoftSkillForm();
+    renderSoftSkillsManager();
+    flash("soft-skill-status", "Skill saved!");
+  };
+
+  // Reset button
+  $("#soft-skill-reset")?.addEventListener("click", resetSoftSkillForm);
+}
+
+function resetSoftSkillForm() {
+  setVal("soft-skill-idx", "-1");
+  setVal("soft-skill-title", "");
+  setVal("soft-skill-icon", "");
+  setVal("soft-skill-desc", "");
+  $("#soft-skill-form-title").textContent = "Add Soft Skill";
 }
 
 function parseTechnicalSkills(text) {
@@ -620,9 +732,9 @@ function renderExpTable() {
   const exps = siteContent?.experience || [];
   tbody.innerHTML = exps
     .map((x, i) => `<tr data-idx="${i}">
-      <td>${escapeHtml(x.role)}</td>
-      <td>${escapeHtml(x.company)}</td>
-      <td>${escapeHtml(x.date)}</td>
+      <td data-label="Role">${escapeHtml(x.role)}</td>
+      <td data-label="Company">${escapeHtml(x.company)}</td>
+      <td data-label="Period">${escapeHtml(x.date)}</td>
       <td class="row-actions">
         <button title="Edit" class="exp-edit"><i class="fa-solid fa-pen"></i></button>
         <button title="Delete" class="exp-del danger"><i class="fa-solid fa-trash"></i></button>
@@ -702,9 +814,9 @@ function renderEduTable() {
   const edus = siteContent?.education || [];
   tbody.innerHTML = edus
     .map((x, i) => `<tr data-idx="${i}">
-      <td>${escapeHtml(x.degree)}</td>
-      <td>${escapeHtml(x.school)}</td>
-      <td>${escapeHtml(x.period)}</td>
+      <td data-label="Degree">${escapeHtml(x.degree)}</td>
+      <td data-label="School">${escapeHtml(x.school)}</td>
+      <td data-label="Period">${escapeHtml(x.period)}</td>
       <td class="row-actions">
         <button title="Edit" class="edu-edit"><i class="fa-solid fa-pen"></i></button>
         <button title="Delete" class="edu-del danger"><i class="fa-solid fa-trash"></i></button>
@@ -774,9 +886,9 @@ function renderTestimonialsTable() {
     .map((t) => {
       const badge = t.published ? `<span class="badge-sm badge-published">Published</span>` : `<span class="badge-sm badge-draft">Draft</span>`;
       return `<tr data-id="${escapeHtml(t.id)}">
-        <td>${escapeHtml(t.name)}</td>
-        <td>${escapeHtml(t.role)}</td>
-        <td>${badge}</td>
+        <td data-label="Client">${escapeHtml(t.name)}</td>
+        <td data-label="Role">${escapeHtml(t.role)}</td>
+        <td data-label="Status">${badge}</td>
         <td class="row-actions">
           <button title="Edit" class="test-edit"><i class="fa-solid fa-pen"></i></button>
           <button title="Delete" class="test-del danger"><i class="fa-solid fa-trash"></i></button>

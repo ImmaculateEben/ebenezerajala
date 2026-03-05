@@ -88,7 +88,10 @@ function normalizeSiteContent(siteContent) {
     settings: {
       ...base.settings,
       ...(source.settings || {})
-    }
+    },
+    projectCategories: normalizeArray(source.projectCategories || base.projectCategories)
+      .map((s) => sanitizePlainText(s))
+      .filter(Boolean)
   };
 }
 
@@ -252,6 +255,23 @@ export function getAvailableTechStacks() {
 
 export function getContentRuntimeMode() {
   return getRuntimeMode();
+}
+
+/**
+ * Synchronous helpers — read instantly from the in-memory / localStorage cache.
+ * These never hit the network, so they return in < 1 ms and can be used for the
+ * first render pass before the Supabase fetches complete.
+ */
+export function loadSiteContentSync() {
+  return readLocalState().siteContent;
+}
+
+export function loadProjectsSync() {
+  return sortProjects(readLocalState().projects);
+}
+
+export function loadTestimonialsSync() {
+  return readLocalState().testimonials;
 }
 
 export async function loadSiteContent() {

@@ -101,6 +101,36 @@ export const DEFAULT_SITE_CONTENT = {
         title: "Project Management",
         icon: "fa-solid fa-list-check",
         desc: "Comfortable balancing multiple deadlines while keeping execution and expectations aligned."
+      },
+      {
+        id: "attention-to-detail",
+        title: "Attention to Detail",
+        icon: "fa-solid fa-magnifying-glass",
+        desc: "Careful eye for consistency in layout, typography, spacing, and code quality across every deliverable."
+      },
+      {
+        id: "adaptability",
+        title: "Adaptability",
+        icon: "fa-solid fa-arrows-spin",
+        desc: "Quick to adjust to shifting project requirements, new tools, and evolving client priorities without losing momentum."
+      },
+      {
+        id: "client-focus",
+        title: "Client-Focused Mindset",
+        icon: "fa-solid fa-handshake",
+        desc: "Committed to understanding client goals first and translating them into websites that serve real business outcomes."
+      },
+      {
+        id: "creativity",
+        title: "Creativity",
+        icon: "fa-solid fa-lightbulb",
+        desc: "Bringing original thinking to design decisions, layout choices, and content structure to make projects stand out."
+      },
+      {
+        id: "self-learning",
+        title: "Continuous Learning",
+        icon: "fa-solid fa-book-open",
+        desc: "Consistently updating skills through practice, research, and hands-on experimentation with new tools and techniques."
       }
     ]
   },
@@ -170,7 +200,8 @@ export const DEFAULT_SITE_CONTENT = {
     notificationSenderName: "Ebenezer Ajala Portfolio",
     analyticsMeasurementId: "",
     adminContactLabel: "Primary inbox"
-  }
+  },
+  projectCategories: ["WordPress", "UI/UX Design", "Graphic Design", "HTML/CSS", "Web App", "SEO"]
 };
 
 export const DEFAULT_PROJECTS = [

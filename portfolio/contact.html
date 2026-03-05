@@ -13,6 +13,16 @@
   <link rel="canonical" href="/contact.html">
   <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
   <link rel="manifest" href="site.webmanifest">
+  <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem("ea_theme");
+        if (theme === "light" || theme === "gold" || theme === "dark") {
+          document.documentElement.setAttribute("data-theme", theme);
+        }
+      } catch (error) {}
+    })();
+  </script>
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,14 +62,14 @@
   <section class="section">
     <div class="container">
       <div class="contact-page-grid">
-        <div class="reveal">
-          <h2 class="section-title" style="margin-bottom:2rem;">Let's Build Something Together</h2>
-          <p style="color:var(--text-secondary);font-size:1rem;line-height:1.8;margin-bottom:2rem;">
+        <div class="contact-panel card-glass reveal">
+          <h2 class="section-title contact-section-title">Let's Build Something Together</h2>
+          <p class="contact-lead">
             Use the form to share your project details, collaboration ideas, or opportunities.
-            Your message goes directly to <strong id="contact-recipient-hint">ebenezerajala1305@gmail.com</strong>,
-            and I’ll respond as soon as possible.
+            I will respond as soon as possible.
           </p>
 
+          <div class="contact-detail-list">
           <div class="contact-detail-item">
             <div class="contact-detail-icon"><i class="fa-solid fa-envelope"></i></div>
             <div>
@@ -73,7 +83,7 @@
             <div>
               <h4>Phone</h4>
               <a id="contact-phone-primary" href="tel:+2348152178472">+234 815 217 8472</a><br>
-              <a id="contact-phone-secondary" href="tel:+2349120037255" style="margin-top:0.25rem;display:inline-block;">+234 912 003 7255</a>
+              <a id="contact-phone-secondary" class="contact-phone-secondary" href="tel:+2349120037255">+234 912 003 7255</a>
             </div>
           </div>
 
@@ -91,6 +101,7 @@
               <h4>Location</h4>
               <span id="contact-location-label">Lagos, Nigeria</span>
             </div>
+          </div>
           </div>
         </div>
 

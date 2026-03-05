@@ -13,6 +13,16 @@
   <link rel="canonical" href="/about.html">
   <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
   <link rel="manifest" href="site.webmanifest">
+  <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem("ea_theme");
+        if (theme === "light" || theme === "gold" || theme === "dark") {
+          document.documentElement.setAttribute("data-theme", theme);
+        }
+      } catch (error) {}
+    })();
+  </script>
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

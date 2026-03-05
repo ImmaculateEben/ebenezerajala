@@ -8,6 +8,16 @@
   <link rel="canonical" href="/admin.html">
   <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
   <link rel="manifest" href="site.webmanifest">
+  <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem("ea_theme");
+        if (theme === "light" || theme === "gold" || theme === "dark") {
+          document.documentElement.setAttribute("data-theme", theme);
+        }
+      } catch (error) {}
+    })();
+  </script>
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/css/admin.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -210,11 +220,25 @@
             <div id="proj-status" class="admin-status is-success" hidden></div>
           </div>
         </div>
+
+        <!-- Filter Categories -->
+        <div class="admin-card" style="margin-top:1.5rem">
+          <h3><i class="fa-solid fa-filter"></i> Project Filter Categories</h3>
+          <p class="muted-copy" style="margin:.25rem 0 1rem">These are the category buttons visitors see on the Projects page. Add labels that match your project tags so the filter works correctly.</p>
+          <div id="proj-cat-list" class="tag-chip-list"></div>
+          <div class="form-row-2" style="max-width:480px;margin-top:1rem">
+            <div class="form-group"><label for="proj-cat-input">Add Category</label><input type="text" id="proj-cat-input" placeholder="e.g. WordPress"></div>
+            <div style="display:flex;align-items:flex-end"><button type="button" id="proj-cat-add-btn" class="btn btn-primary">Add</button></div>
+          </div>
+          <div id="proj-cat-status" class="admin-status is-success" hidden></div>
+        </div>
       </section>
 
       <!-- ===== SKILLS ===== -->
       <section class="admin-section" data-panel="skills" hidden>
         <div class="panel-header"><h1><i class="fa-solid fa-layer-group"></i> Skills &amp; Tech</h1><p>Tech stack icons, technical skills, and soft skills.</p></div>
+
+        <!-- Tech Stack + Technical Skills -->
         <div class="admin-card">
           <form id="skills-form" class="admin-form-grid">
             <div>
@@ -222,13 +246,36 @@
               <input id="tech-search" type="search" placeholder="Filter by name or category…">
               <div id="tech-selector" class="tech-selector-wrap"></div>
             </div>
-            <div class="form-row-2">
-              <div class="form-group expand"><label for="tech-skills-text">Technical Skills <small>(Category|Icon|Items)</small></label><textarea id="tech-skills-text" class="mono-ta"></textarea></div>
-              <div class="form-group expand"><label for="soft-skills-text">Personal Skills <small>(Title|Icon|Desc)</small></label><textarea id="soft-skills-text" class="mono-ta"></textarea></div>
-            </div>
-            <button type="submit" class="btn btn-primary">Save Skills</button>
+            <div class="form-group expand"><label for="tech-skills-text">Technical Skills <small>(one per line: Category|fa-icon-class|Item1,Item2,…)</small></label><textarea id="tech-skills-text" class="mono-ta"></textarea></div>
+            <button type="submit" class="btn btn-primary">Save Tech Stack &amp; Technical Skills</button>
           </form>
           <div id="skills-status" class="admin-status is-success" hidden></div>
+        </div>
+
+        <!-- Soft / Personal Skills (visual manager) -->
+        <div class="admin-card" style="margin-top:1.5rem">
+          <h3><i class="fa-solid fa-person-rays"></i> Personal / Soft Skills</h3>
+          <p class="muted-copy" style="margin:.25rem 0 1rem">Add, edit, or remove personal skills shown on the Skills page.</p>
+          <div class="admin-card table-wrap" style="margin-bottom:1.25rem">
+            <table class="admin-table">
+              <thead><tr><th>Title</th><th>Icon</th><th>Description</th><th>Actions</th></tr></thead>
+              <tbody id="soft-skill-tbody"></tbody>
+            </table>
+          </div>
+          <h4 id="soft-skill-form-title" style="margin-bottom:.85rem">Add Soft Skill</h4>
+          <form id="soft-skill-form" class="admin-form-grid">
+            <input type="hidden" id="soft-skill-idx" value="-1">
+            <div class="form-row-2">
+              <div class="form-group"><label for="soft-skill-title">Title</label><input type="text" id="soft-skill-title" placeholder="e.g. Creativity" required></div>
+              <div class="form-group"><label for="soft-skill-icon">Icon class <small>(<a href="https://fontawesome.com/icons" target="_blank" rel="noopener">FA 6</a>)</small></label><input type="text" id="soft-skill-icon" placeholder="fa-solid fa-lightbulb"></div>
+            </div>
+            <div class="form-group"><label for="soft-skill-desc">Description</label><textarea id="soft-skill-desc" rows="2" placeholder="One or two sentences describing this skill."></textarea></div>
+            <div class="admin-actions-row">
+              <button type="submit" class="btn btn-primary">Save Skill</button>
+              <button type="button" id="soft-skill-reset" class="btn btn-outline">New</button>
+            </div>
+          </form>
+          <div id="soft-skill-status" class="admin-status is-success" hidden></div>
         </div>
       </section>
 

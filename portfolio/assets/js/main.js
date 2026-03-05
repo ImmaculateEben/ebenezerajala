@@ -2,8 +2,11 @@ import {
   getAvailableTechStacks,
   loadProject,
   loadProjects,
+  loadProjectsSync,
   loadSiteContent,
-  loadTestimonials
+  loadSiteContentSync,
+  loadTestimonials,
+  loadTestimonialsSync
 } from "./content-service.js";
 import { hydrateContactDetails, initContactForm } from "./contact.js";
 import {
@@ -390,16 +393,20 @@ function setGitHubUnavailable(calendar, username) {
 }
 
 function githubContribProxy(username) {
-  const ghUrl = `https://github.com/users/${encodeURIComponent(username)}/contributions`;
-  return fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(ghUrl)}`, { method: "GET" })
-    .then((r) => r.text());
+  const endpoint = `https://api.bloggify.net/gh-calendar/?username=${encodeURIComponent(username)}`;
+  return fetch(endpoint, { method: "GET" }).then((response) => {
+    if (!response.ok) {
+      throw new Error(`GitHub calendar proxy failed with status ${response.status}`);
+    }
+    return response.text();
+  });
 }
 
 async function renderGitHubCalendarFallback(calendar, username) {
   const body = await githubContribProxy(username);
 
   if (!body) {
-    throw new Error("Empty response from allorigins proxy");
+    throw new Error("Empty response from GitHub calendar proxy");
   }
 
   const parser = new DOMParser();
@@ -674,6 +681,25 @@ function renderSkills(siteContent) {
     });
   }
 
+  // Tech stack on the skills page
+  const skillsTechGrid = document.getElementById("skills-tech-stack-grid");
+  if (skillsTechGrid) {
+    skillsTechGrid.innerHTML = "";
+    const definitions = getAvailableTechStacks();
+    const selectedStacks = Array.isArray(siteContent.techStacks) && siteContent.techStacks.length
+      ? siteContent.techStacks
+      : definitions.slice(0, 8).map((entry) => entry.id);
+    const resolved = selectedStacks.map((id) => resolveTechStack(definitions, id)).filter(Boolean);
+    const itemsToRender = resolved.length ? resolved : definitions.slice(0, 8);
+    itemsToRender.forEach((item) => {
+      const tile = document.createElement("div");
+      tile.className = "tech-stack-item reveal";
+      const iconClass = item.fallbackIcon || item.icon || "fa-solid fa-code";
+      tile.innerHTML = `<div class="tech-stack-icon-wrapper"><i class="${iconClass}" aria-hidden="true"></i></div><span>${escapeHtml(item.name)}</span>`;
+      skillsTechGrid.appendChild(tile);
+    });
+  }
+
   const softGrid = document.getElementById("skill-soft-grid");
   if (softGrid) {
     softGrid.innerHTML = "";
@@ -721,7 +747,7 @@ function renderExperience(siteContent) {
   }
 }
 
-function renderProjectsPage(projects) {
+function renderProjectsPage(projects, siteContent) {
   const container = document.getElementById("projects-container");
   const filterBar = document.getElementById("project-filter-list");
   const emptyMsg = document.getElementById("projects-empty");
@@ -729,17 +755,18 @@ function renderProjectsPage(projects) {
     return;
   }
 
-  // Stats
-  const allTags = [...new Set(projects.flatMap((p) => p.tags))];
-  setText("proj-stat-total", projects.length);
-  setText("proj-stat-featured", projects.filter((p) => p.featured).length);
-  setText("proj-stat-tags", allTags.length);
+  // Use admin-managed filter categories, or fall back to unique project tags
+  const categories = Array.isArray(siteContent?.projectCategories) && siteContent.projectCategories.length
+    ? siteContent.projectCategories
+    : [...new Set(projects.flatMap((p) => p.tags))];
 
   let activeTag = "All";
 
   const renderCards = () => {
     container.innerHTML = "";
-    const filtered = activeTag === "All" ? projects : projects.filter((p) => p.tags.includes(activeTag));
+    const filtered = activeTag === "All"
+      ? projects
+      : projects.filter((p) => p.tags.some((t) => t.toLowerCase() === activeTag.toLowerCase()));
     container.classList.toggle("single-result", filtered.length === 1);
     if (emptyMsg) emptyMsg.hidden = filtered.length > 0;
     filtered.forEach((project, index) => {
@@ -752,7 +779,7 @@ function renderProjectsPage(projects) {
 
   // Filters
   if (filterBar) {
-    const options = ["All", ...allTags];
+    const options = ["All", ...categories];
     filterBar.innerHTML = "";
     options.forEach((tag) => {
       const button = document.createElement("button");
@@ -809,15 +836,32 @@ async function renderProjectDetailPage() {
   document.title = `${project.title} | Ebenezer Ajala`;
   setMetaDescription(project.shortDesc);
 
+  const imageSrc = project.image || PROJECT_IMAGE_FALLBACK;
+
   container.innerHTML = `
     <div class="project-detail-hero" style="background:${escapeHtml(project.gradient)};">
       <div class="blob blob-1"></div>
       <div class="blob blob-2"></div>
       <div class="project-detail-hero-inner fade-in-up">
-        <a href="projects.html" class="project-back"><i class="fa-solid fa-arrow-left"></i> All Projects</a>
+        <div class="project-detail-breadcrumb">
+          <a href="projects.html" class="project-back"><i class="fa-solid fa-arrow-left"></i> All Projects</a>
+          ${project.featured ? '<span class="project-featured-badge"><i class="fa-solid fa-star"></i> Featured</span>' : ""}
+        </div>
         <h1>${escapeHtml(project.title)}</h1>
         <p class="project-hero-desc">${escapeHtml(project.shortDesc)}</p>
         <div class="project-tags">${project.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
+        ${project.url || project.github ? `
+        <div class="project-hero-actions">
+          ${project.url ? `<a class="btn btn-white" href="${escapeHtml(project.url)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe"></i> Live Site</a>` : ""}
+          ${project.github ? `<a class="btn btn-ghost" href="${escapeHtml(project.github)}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-github"></i> Source Code</a>` : ""}
+        </div>` : ""}
+      </div>
+    </div>
+    <div class="project-screenshot-wrap">
+      <div class="container">
+        <figure class="project-screenshot-frame fade-in-up">
+          <img src="${escapeHtml(imageSrc)}" alt="${escapeHtml(project.title)} screenshot" class="project-screenshot-img" id="project-hero-img">
+        </figure>
       </div>
     </div>
     <section class="section">
@@ -826,12 +870,12 @@ async function renderProjectDetailPage() {
           <div class="project-detail-main project-long-desc reveal ck-content custom-html-content" id="project-rich-copy"></div>
           <aside class="project-detail-sidebar reveal delay-1">
             <div class="sidebar-card card-glass">
-              <h4>Project Links</h4>
+              <h4><i class="fa-solid fa-link"></i> Project Links</h4>
               <div class="sidebar-links" id="project-link-list"></div>
             </div>
             <div class="sidebar-card card-glass">
-              <h4>Technology Stack</h4>
-              <div class="project-tags">${project.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
+              <h4><i class="fa-solid fa-layer-group"></i> Tech Stack</h4>
+              <div class="project-tags" style="margin-bottom:0">${project.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
             </div>
           </aside>
         </div>
@@ -839,13 +883,11 @@ async function renderProjectDetailPage() {
     </section>
   `;
 
-  // Rich content
+  // Rich content (image now lives in the screenshot section above)
   const copy = document.getElementById("project-rich-copy");
-  const imageSrc = project.image || PROJECT_IMAGE_FALLBACK;
   safeSetHtml(
     copy,
-    `<img src="${escapeHtml(imageSrc)}" alt="${escapeHtml(project.title)}" class="project-featured-img">
-     <h2 class="section-title">Project Overview</h2>
+    `<h2 class="section-title">Project Overview</h2>
      ${project.longDesc || `<p>${escapeHtml(project.shortDesc)}</p>`}`
   );
 
@@ -854,13 +896,13 @@ async function renderProjectDetailPage() {
   if (project.url) {
     linkList.insertAdjacentHTML(
       "beforeend",
-      `<a class="sidebar-link" href="${escapeHtml(project.url)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe"></i> Visit Live Site</a>`
+      `<a class="sidebar-link primary" href="${escapeHtml(project.url)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe"></i> Visit Live Site</a>`
     );
   }
   if (project.github) {
     linkList.insertAdjacentHTML(
       "beforeend",
-      `<a class="sidebar-link" href="${escapeHtml(project.github)}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-github"></i> View Source</a>`
+      `<a class="sidebar-link" href="${escapeHtml(project.github)}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-github"></i> View Source Code</a>`
     );
   }
   if (!linkList.children.length) {
@@ -956,22 +998,26 @@ async function initPage() {
   initNav();
   setCanonical();
 
-  const [siteContent, projects, testimonials] = await Promise.all([
-    loadSiteContent(),
-    loadProjects(),
-    loadTestimonials()
-  ]);
+  // ── Phase 1: instant render from localStorage cache (synchronous, < 1 ms) ──
+  // This makes every section visible immediately without waiting for the network.
+  const cachedContent     = loadSiteContentSync();
+  const cachedProjects    = loadProjectsSync();
+  const cachedTestimonials = loadTestimonialsSync();
 
-  injectAnalytics(siteContent.settings.analyticsMeasurementId);
-  renderProfileBlocks(siteContent);
-  renderPageText(siteContent);
-  renderHomeAndAboutEducation(siteContent);
-  renderSkills(siteContent);
-  renderExperience(siteContent);
-  renderProjectsPage(projects);
+  function renderAll(siteContent, projects, testimonials) {
+    injectAnalytics(siteContent.settings.analyticsMeasurementId);
+    renderProfileBlocks(siteContent);
+    renderPageText(siteContent);
+    renderHomeAndAboutEducation(siteContent);
+    renderSkills(siteContent);
+    renderExperience(siteContent);
+    renderProjectsPage(projects, siteContent);
+  }
+
+  renderAll(cachedContent, cachedProjects, cachedTestimonials);
 
   if (document.getElementById("home-projects-grid")) {
-    await renderHomePage(siteContent, projects, testimonials);
+    await renderHomePage(cachedContent, cachedProjects, cachedTestimonials);
   }
 
   if (document.getElementById("contactForm")) {
@@ -981,6 +1027,26 @@ async function initPage() {
 
   await renderProjectDetailPage();
 
+  // Run reveal + safety on the first-painted DOM so sections animate in
+  initRevealObserver();
+  applyExternalLinkSafety();
+  attachImageFallbacks();
+
+  // ── Phase 2: silent background refresh from Supabase ──
+  // Only runs if Supabase is configured; silently re-renders with fresh data.
+  const [siteContent, projects, testimonials] = await Promise.all([
+    loadSiteContent(),
+    loadProjects(),
+    loadTestimonials()
+  ]);
+
+  renderAll(siteContent, projects, testimonials);
+
+  if (document.getElementById("home-projects-grid")) {
+    await renderHomePage(siteContent, projects, testimonials);
+  }
+
+  // Re-run observers so any newly rendered elements also animate
   initRevealObserver();
   applyExternalLinkSafety();
   attachImageFallbacks();

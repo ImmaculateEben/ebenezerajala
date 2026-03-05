@@ -1645,29 +1645,61 @@ img {
 
 /* ---- List view card ---- */
 .projects-grid.view-list .project-card {
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: clamp(160px, 22%, 260px) 1fr;
+    grid-template-rows: 1fr auto;
 }
 
 .projects-grid.view-list .project-card-img {
-    width: clamp(180px, 28%, 320px);
-    aspect-ratio: auto;
-    flex-shrink: 0;
+    grid-column: 1;
+    grid-row: 1 / 3;
+    width: 100%;
+    aspect-ratio: unset;
+    align-self: stretch;
+    min-height: 160px;
+}
+
+.projects-grid.view-list .project-card-ribbon {
+    top: .65rem;
+    right: auto;
+    left: .65rem;
 }
 
 .projects-grid.view-list .project-card-body {
-    padding: 1.25rem 1.5rem;
+    grid-column: 2;
+    grid-row: 1;
+    flex: unset;
+    padding: 1.25rem 1.5rem .75rem;
+}
+
+.projects-grid.view-list .project-card-body .project-desc {
+    -webkit-line-clamp: 4;
 }
 
 .projects-grid.view-list .project-card-footer {
-    border-top: none;
-    border-left: 1px solid var(--border);
-    flex-direction: column;
-    justify-content: center;
-    padding: 1rem;
+    grid-column: 2;
+    grid-row: 2;
+    border-top: 1px solid var(--border);
+    border-left: none;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: .75rem 1.5rem;
 }
 
 .projects-grid.view-list .project-card-num {
     display: none;
+}
+
+@media (max-width: 640px) {
+    .projects-grid.view-list .project-card {
+        display: flex;
+        flex-direction: column;
+    }
+    .projects-grid.view-list .project-card-img {
+        width: 100%;
+        min-height: unset;
+        aspect-ratio: 16 / 9;
+    }
 }
 
 /* ---- Empty state ---- */
@@ -1718,48 +1750,78 @@ img {
 /* ---- Project Detail Hero ---- */
 .project-detail-hero {
     position: relative;
-    min-height: clamp(360px, 55vh, 520px);
+    min-height: clamp(380px, 55vh, 540px);
     display: flex;
-    align-items: flex-end;
-    padding: calc(var(--nav-height) + 3rem) clamp(1.2rem, 4vw, 3rem) 3rem;
+    align-items: center;
+    padding: calc(var(--nav-height) + 3rem) clamp(1.2rem, 4vw, 3rem) 6rem;
     overflow: hidden;
 }
 
 .project-detail-hero-inner {
     position: relative;
     z-index: 2;
-    max-width: 780px;
+    max-width: 860px;
+    width: 100%;
 }
 
 .project-detail-hero .blob { z-index: 1; }
+
+.project-detail-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.4rem;
+    flex-wrap: wrap;
+}
 
 .project-back {
     display: inline-flex;
     align-items: center;
     gap: .5rem;
-    color: rgba(255,255,255,.7);
-    font-size: .88rem;
-    margin-bottom: 1.5rem;
+    color: rgba(255,255,255,.65);
+    font-size: .875rem;
     transition: color .2s;
+    background: rgba(255,255,255,.08);
+    padding: .3rem .9rem;
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(255,255,255,.15);
 }
 
 .project-back:hover {
     color: #fff;
+    background: rgba(255,255,255,.15);
 }
 
-.project-back i { font-size: .78rem; }
+.project-back i { font-size: .76rem; }
+
+.project-featured-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    background: rgba(255, 215, 0, .15);
+    border: 1px solid rgba(255, 215, 0, .35);
+    color: #ffd700;
+    padding: .28rem .85rem;
+    border-radius: var(--radius-full);
+    font-size: .74rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
 
 .project-detail-hero h1 {
-    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-size: clamp(2rem, 5vw, 3.4rem);
     color: #fff;
     margin-bottom: .75rem;
+    line-height: 1.15;
 }
 
 .project-detail-hero .project-hero-desc {
-    color: rgba(255,255,255,.8);
-    font-size: clamp(.92rem, 1.5vw, 1.1rem);
-    line-height: 1.65;
+    color: rgba(255,255,255,.78);
+    font-size: clamp(.95rem, 1.5vw, 1.1rem);
+    line-height: 1.7;
     margin-bottom: 1.25rem;
+    max-width: 660px;
 }
 
 .project-detail-hero .project-tags {
@@ -1767,10 +1829,71 @@ img {
 }
 
 .project-detail-hero .project-tags span {
-    background: rgba(255,255,255,.12);
-    border-color: rgba(255,255,255,.2);
+    background: rgba(255,255,255,.1);
+    border-color: rgba(255,255,255,.18);
     color: #fff;
 }
+
+.project-hero-actions {
+    display: flex;
+    gap: .85rem;
+    flex-wrap: wrap;
+    margin-top: 1.75rem;
+}
+
+.btn-white {
+    background: #fff;
+    color: #111122;
+    border: 2px solid transparent;
+    font-weight: 600;
+}
+
+.btn-white:hover {
+    background: rgba(255,255,255,.88);
+    color: #111122;
+    transform: translateY(-2px);
+}
+
+.btn-ghost {
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.28);
+    color: #fff;
+    font-weight: 500;
+}
+
+.btn-ghost:hover {
+    background: rgba(255,255,255,.22);
+    border-color: rgba(255,255,255,.5);
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+/* ---- Project Screenshot Showcase ---- */
+.project-screenshot-wrap {
+    position: relative;
+    z-index: 5;
+    margin-top: -3.5rem;
+    padding-bottom: 0;
+}
+
+.project-screenshot-frame {
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 32px 80px rgba(0, 0, 0, .45), 0 0 0 1px var(--border);
+    background: var(--bg-card);
+    margin: 0;
+    line-height: 0;
+}
+
+.project-screenshot-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 540px;
+    object-fit: cover;
+    object-position: top center;
+}
+
 
 /* ---- Project Detail Content ---- */
 .project-detail-grid {
@@ -1826,8 +1949,15 @@ img {
 }
 
 .sidebar-card h4 {
-    font-size: .78rem;
+    font-size: .76rem;
     text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
     letter-spacing: .07em;
     color: var(--text-muted);
     margin-bottom: 1rem;
@@ -1862,6 +1992,20 @@ img {
     color: #fff;
     border-color: var(--accent);
     transform: translateX(4px);
+}
+
+.sidebar-link.primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    font-weight: 600;
+}
+
+.sidebar-link.primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    transform: translateX(4px);
+    box-shadow: 0 4px 16px var(--accent-glow);
 }
 
 /* ---- Project Nav Strip (prev / next) ---- */
@@ -1933,9 +2077,7 @@ img {
         font-size: 1.3rem;
     }
 
-    .projects-grid {
-        grid-template-columns: 1fr;
-    }
+    /* projects-grid collapses to 1-col at <=600px via the small-phone block */
 
     .projects-view-toggle {
         display: none;
@@ -1959,8 +2101,12 @@ img {
     }
 
     .project-detail-hero {
-        min-height: 320px;
-        padding-bottom: 2rem;
+        min-height: 360px;
+        padding-bottom: 5rem;
+    }
+
+    .project-screenshot-img {
+        max-height: 400px;
     }
 
     .project-nav-link {
@@ -2078,13 +2224,44 @@ select:focus-visible {
 .contact-page-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 3.5rem;
+    gap: 2rem;
+    align-items: start;
 }
 
 @media (min-width: 900px) {
     .contact-page-grid {
-        grid-template-columns: 0.75fr 1.25fr;
+        grid-template-columns: minmax(320px, 0.95fr) minmax(0, 1.05fr);
+        gap: 2rem;
     }
+}
+
+@media (min-width: 1200px) {
+    .contact-page-grid {
+        gap: 2.4rem;
+    }
+}
+
+.contact-panel {
+    padding: clamp(1.4rem, 2.4vw, 2rem);
+    display: flex;
+    flex-direction: column;
+}
+
+.contact-section-title {
+    margin-bottom: 1rem !important;
+}
+
+.contact-lead {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+    max-width: 52ch;
+}
+
+.contact-detail-list {
+    display: grid;
+    gap: 0.95rem;
 }
 
 /* Contact details */
@@ -2092,7 +2269,18 @@ select:focus-visible {
     display: flex;
     gap: 1.2rem;
     align-items: center;
-    margin-bottom: 1.8rem;
+    margin-bottom: 0;
+    padding: 0.95rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--accent-bg);
+    transition: var(--transition);
+}
+
+.contact-detail-item:hover {
+    border-color: var(--accent);
+    background: var(--accent-bg-hover);
+    transform: translateY(-2px);
 }
 
 .contact-detail-icon {
@@ -2134,9 +2322,26 @@ select:focus-visible {
     color: var(--accent);
 }
 
+.contact-phone-secondary {
+    margin-top: 0.25rem;
+    display: inline-block;
+}
+
 /* Contact form */
+.contact-form {
+    align-self: start;
+}
+
 .contact-form-wrapper {
     position: relative;
+    padding: clamp(1.4rem, 2.4vw, 2rem);
+}
+
+@media (min-width: 1100px) {
+    .contact-form-wrapper {
+        position: sticky;
+        top: calc(var(--nav-height) + 1.1rem);
+    }
 }
 
 .contact-form h3 {
@@ -2303,9 +2508,22 @@ footer {
    ========================================= */
 #projects-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.75rem;
+    align-items: stretch;
 }
+
+#projects-container.view-list {
+    grid-template-columns: 1fr;
+}
+
+@media (max-width: 1100px) {
+    #projects-container {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* #projects-container 1-col collapse handled by the ≤600px small-phone block */
 
 #home-projects-grid {
     display: grid;
@@ -2492,24 +2710,39 @@ footer {
     shape-rendering: geometricPrecision;
 }
 
-.github-contributions-container .ContributionCalendar-day[data-level="0"] {
+.github-contributions-container .ContributionCalendar-day[data-level="0"],
+.github-contributions-container rect.ContributionCalendar-day[data-level="0"],
+.github-contributions-container rect[data-date][data-level="0"] {
     background-color: var(--color-calendar-graph-day-bg) !important;
+    fill: var(--color-calendar-graph-day-bg) !important;
 }
 
-.github-contributions-container .ContributionCalendar-day[data-level="1"] {
+.github-contributions-container .ContributionCalendar-day[data-level="1"],
+.github-contributions-container rect.ContributionCalendar-day[data-level="1"],
+.github-contributions-container rect[data-date][data-level="1"] {
     background-color: var(--color-calendar-graph-day-L1-bg) !important;
+    fill: var(--color-calendar-graph-day-L1-bg) !important;
 }
 
-.github-contributions-container .ContributionCalendar-day[data-level="2"] {
+.github-contributions-container .ContributionCalendar-day[data-level="2"],
+.github-contributions-container rect.ContributionCalendar-day[data-level="2"],
+.github-contributions-container rect[data-date][data-level="2"] {
     background-color: var(--color-calendar-graph-day-L2-bg) !important;
+    fill: var(--color-calendar-graph-day-L2-bg) !important;
 }
 
-.github-contributions-container .ContributionCalendar-day[data-level="3"] {
+.github-contributions-container .ContributionCalendar-day[data-level="3"],
+.github-contributions-container rect.ContributionCalendar-day[data-level="3"],
+.github-contributions-container rect[data-date][data-level="3"] {
     background-color: var(--color-calendar-graph-day-L3-bg) !important;
+    fill: var(--color-calendar-graph-day-L3-bg) !important;
 }
 
-.github-contributions-container .ContributionCalendar-day[data-level="4"] {
+.github-contributions-container .ContributionCalendar-day[data-level="4"],
+.github-contributions-container rect.ContributionCalendar-day[data-level="4"],
+.github-contributions-container rect[data-date][data-level="4"] {
     background-color: var(--color-calendar-graph-day-L4-bg) !important;
+    fill: var(--color-calendar-graph-day-L4-bg) !important;
 }
 
 /* =========================================
@@ -2741,11 +2974,15 @@ footer {
 
     /* ---- Grid Overlap Fixes for Tablet ---- */
     .about-grid,
-    .contact-page-grid,
+    .contact-page-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* 2-column layout for skills/edu on tablets (≤900px) */
     .skills-container,
     .soft-skills-grid,
     .edu-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .projects-featured {
@@ -2846,8 +3083,8 @@ footer {
     }
 
     .hero-buttons {
-        flex-direction: column;
-        align-items: center;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
     .hero-stats {
@@ -2964,6 +3201,12 @@ footer {
         width: auto;
     }
 
+    /* Prevent hero & CTA buttons stretching to full-width on tablets (601–768px) */
+    .hero-buttons .btn,
+    .page-cta .btn {
+        width: auto;
+    }
+
     .github-contributions-container .calendar,
     .github-contributions-container .github-calendar {
         min-width: 620px;
@@ -2975,24 +3218,58 @@ footer {
         gap: 1.5rem;
     }
 
+    /* Keep 2-col on narrow tablets/large phones (601–768px) */
     .skills-container {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
     }
 
     .soft-skills-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
     }
 
     .edu-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
     }
 
     .contact-page-grid {
         grid-template-columns: 1fr;
         gap: 2.5rem;
+    }
+}
+
+/* =========================================
+   SMALL PHONE (MAX 600px)
+   ========================================= */
+@media (max-width: 600px) {
+    /* Single column on small phones */
+    .skills-container,
+    .soft-skills-grid,
+    .edu-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Collapse project grids to 1 col on small phones */
+    .projects-grid,
+    #projects-container,
+    #projects-container.view-list {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+
+    /* Stack hero buttons vertically on small phones */
+    .hero-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    /* Full-width buttons on small phones (re-asserts phone behaviour) */
+    .hero-buttons .btn,
+    .page-cta .btn {
+        width: 100%;
+        justify-content: center;
     }
 }
 
@@ -3090,6 +3367,15 @@ footer {
 .tech-stack-container {
     max-width: 1000px;
     margin: 0 auto;
+}
+
+/* Reusable grid wrapper (skills page + anywhere else) */
+.tech-stack-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
 }
 
 .tech-stack-item {
