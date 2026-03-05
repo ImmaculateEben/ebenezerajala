@@ -150,7 +150,7 @@ function buildProjectCard(project, index, options = {}) {
   card.appendChild(imgWrap);
 
   const image = document.createElement("img");
-  image.src = project.image || PROJECT_IMAGE_FALLBACK;
+  image.src = project.featuredImage || project.image || PROJECT_IMAGE_FALLBACK;
   image.alt = `${project.title} preview`;
   image.loading = "lazy";
   imgWrap.appendChild(image);
@@ -256,17 +256,21 @@ function renderProfileBlocks(siteContent) {
   setText("hero-name", profile.name);
   setText("hero-tagline", profile.tagline);
   setText("hero-location", profile.location);
-  setText("about-summary", profile.bio);
-  setText("about-summary-2", profile.bio2);
+  // Render bio: split on blank lines to produce multiple <p> tags
+  const bioParagraphs = (profile.bio || "")
+    .split(/\n{2,}/)
+    .map(s => s.trim())
+    .filter(Boolean);
+  // Legacy: merge bio2 / bio3 if they were never merged yet
+  if (profile.bio2) bioParagraphs.push(profile.bio2);
+  if (profile.bio3) bioParagraphs.push(profile.bio3);
+  setText("about-summary", bioParagraphs[0] || profile.bio);
+  setText("about-summary-2", bioParagraphs[1] || "");
   setText("contact-recipient-label", siteContent.settings.adminContactLabel || "Primary inbox");
 
   const bioContainer = document.getElementById("profile-bio-container");
   if (bioContainer) {
-    bioContainer.innerHTML = [
-      `<p>${escapeHtml(profile.bio)}</p>`,
-      profile.bio2 ? `<p>${escapeHtml(profile.bio2)}</p>` : "",
-      profile.bio3 ? `<p>${escapeHtml(profile.bio3)}</p>` : ""
-    ].join("");
+    bioContainer.innerHTML = bioParagraphs.map(p => `<p>${escapeHtml(p)}</p>`).join("");
   }
 
   const aboutCta = document.getElementById("about-resume-link");
@@ -945,10 +949,10 @@ async function renderProjectDetailPage() {
   document.title = `${project.title} | Ebenezer Ajala`;
   setMetaDescription(project.shortDesc);
 
-  const imageSrc = project.image || PROJECT_IMAGE_FALLBACK;
+  const imageSrc = project.featuredImage || project.image || PROJECT_IMAGE_FALLBACK;
 
   container.innerHTML = `
-    <div class="project-detail-hero" style="background:${escapeHtml(project.gradient)};">
+    <div class="project-detail-hero">
       <div class="blob blob-1"></div>
       <div class="blob blob-2"></div>
       <div class="project-detail-hero-inner fade-in-up">
@@ -991,6 +995,27 @@ async function renderProjectDetailPage() {
       </div>
     </section>
   `;
+
+  // Gallery (if project has additional images)
+  const gallery = project.gallery || [];
+  if (gallery.length > 0) {
+    const gallerySection = document.createElement("section");
+    gallerySection.className = "section";
+    gallerySection.style.paddingTop = "0";
+    gallerySection.innerHTML = `
+      <div class="container">
+        <h3 style="margin-bottom:1rem;font-size:1.1rem"><i class="fa-solid fa-images" style="opacity:.6;margin-right:.4rem"></i>Gallery</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">
+          ${gallery.map((url) => `
+            <figure style="margin:0;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border)">
+              <img src="${escapeHtml(url)}" alt="${escapeHtml(project.title)} screenshot"
+                style="width:100%;height:220px;object-fit:cover;display:block;cursor:pointer"
+                onclick="this.closest('figure').requestFullscreen?.()">
+            </figure>`).join("")}
+        </div>
+      </div>`;
+    container.appendChild(gallerySection);
+  }
 
   // Rich content (image now lives in the screenshot section above)
   const copy = document.getElementById("project-rich-copy");

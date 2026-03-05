@@ -155,6 +155,32 @@
 .ai-output-box{margin-top:1.25rem;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--rad);padding:1.25rem}
 .ai-result{white-space:pre-wrap;line-height:1.7;font-size:.88rem;color:var(--text-primary)}
 
+/* ================================================================
+   ICON PICKER
+   ================================================================ */
+.icon-picker-overlay{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,.55);backdrop-filter:blur(4px)}
+.icon-picker-overlay[hidden]{display:none!important}
+.icon-picker-dialog{background:var(--bg-card,var(--bg-main));border:1px solid var(--border);border-radius:var(--rad);width:min(740px,96vw);max-height:82dvh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.35)}
+.icon-picker-header{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.icon-picker-header h4{font-size:.95rem;font-weight:700;white-space:nowrap;margin:0;margin-right:.25rem}
+.icon-picker-controls{display:flex;gap:.5rem;flex:1;min-width:0;flex-wrap:wrap}
+.icon-picker-controls input[type="search"]{flex:1;min-width:120px;padding:.45rem .75rem;border-radius:var(--rad);border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);font-size:.82rem;outline:none}
+.icon-picker-controls input[type="search"]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(var(--accent-rgb,.15),.15)}
+.icon-picker-controls select{padding:.45rem .5rem;border-radius:var(--rad);border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);font-size:.82rem;cursor:pointer}
+.icon-picker-count{font-size:.72rem;color:var(--text-muted);padding:.35rem 1.25rem;margin:0;border-bottom:1px solid var(--border);flex-shrink:0}
+.icon-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:2px;padding:1rem;overflow-y:auto;flex:1}
+.icon-picker-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem;padding:.6rem .35rem;border:1px solid transparent;border-radius:6px;background:none;cursor:pointer;transition:background .15s,border-color .15s;font-size:.62rem;color:var(--text-secondary);min-height:64px;word-break:break-word;text-align:center;line-height:1.2}
+.icon-picker-item i{font-size:1.3rem;color:var(--text-primary)}
+.icon-picker-item:hover{background:var(--accent-bg);border-color:var(--accent)}
+.icon-picker-item:hover i{color:var(--accent)}
+/* Icon pick row (trigger button + preview) */
+.icon-pick-row{display:flex;align-items:center;gap:.6rem;min-height:38px}
+.icon-pick-preview{width:36px;height:36px;border-radius:6px;background:var(--accent-bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--accent);flex-shrink:0}
+@media(max-width:640px){
+  .icon-picker-grid{grid-template-columns:repeat(auto-fill,minmax(60px,1fr))}
+  .icon-picker-header{gap:.5rem}
+}
+
 /* ---- Filter Category Chips ---- */
 .tag-chip-list{display:flex;flex-wrap:wrap;gap:.5rem;min-height:2rem}
 .tag-chip{display:inline-flex;align-items:center;gap:.4rem;background:var(--accent-bg,rgba(var(--accent-rgb),.12));color:var(--accent);border:1px solid var(--border-color);border-radius:999px;padding:.32rem .8rem;font-size:.82rem;font-weight:500}

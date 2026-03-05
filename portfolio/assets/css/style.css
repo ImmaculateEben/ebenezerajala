@@ -39,6 +39,7 @@
     --gh-calendar-level-2: #2a5cc4;
     --gh-calendar-level-3: #3b82f6;
     --gh-calendar-level-4: #8ec5ff;
+    --project-img-bg: linear-gradient(145deg, #0f1729 0%, #111827 40%, #1a1040 100%);
 }
 
 /* === LIGHT MODE === */
@@ -76,6 +77,7 @@
     --gh-calendar-level-2: #8fb2f8;
     --gh-calendar-level-3: #5c8cf3;
     --gh-calendar-level-4: #2f67dd;
+    --project-img-bg: linear-gradient(145deg, #e8edf8 0%, #dde5f7 45%, #e4dff5 100%);
 }
 
 /* === GOLD MODE === */
@@ -113,6 +115,7 @@
     --gh-calendar-level-2: #8e6618;
     --gh-calendar-level-3: #b8860b;
     --gh-calendar-level-4: #f0d060;
+    --project-img-bg: linear-gradient(145deg, #1a1402 0%, #221a05 45%, #2c1f06 100%);
 }
 
 /* =========================================
@@ -1533,7 +1536,17 @@ img {
     position: relative;
     overflow: hidden;
     aspect-ratio: 16 / 9;
-    background: var(--bg-secondary);
+    background: var(--project-img-bg);
+}
+
+/* Subtle accent shimmer overlay so PNG transparency blends into the theme */
+.project-card-img::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 40%, var(--accent-bg) 0%, transparent 70%);
+    z-index: 0;
+    pointer-events: none;
 }
 
 .project-card-img img {
@@ -1541,6 +1554,8 @@ img {
     height: 100%;
     object-fit: cover;
     transition: transform .5s ease;
+    position: relative;
+    z-index: 1;
 }
 
 .project-card:hover .project-card-img img {
@@ -1880,9 +1895,19 @@ img {
     border-radius: var(--radius);
     overflow: hidden;
     box-shadow: 0 32px 80px rgba(0, 0, 0, .45), 0 0 0 1px var(--border);
-    background: var(--bg-card);
+    background: var(--project-img-bg);
+    position: relative;
     margin: 0;
     line-height: 0;
+}
+
+.project-screenshot-frame::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 40%, var(--accent-bg) 0%, transparent 65%);
+    z-index: 0;
+    pointer-events: none;
 }
 
 .project-screenshot-img {
@@ -1892,6 +1917,8 @@ img {
     max-height: 540px;
     object-fit: cover;
     object-position: top center;
+    position: relative;
+    z-index: 1;
 }
 
 

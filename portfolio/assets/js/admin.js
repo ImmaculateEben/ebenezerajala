@@ -31,6 +31,469 @@ import {
 
 import { escapeHtml, sanitizePlainText } from "./security.js";
 
+/* ── Icon library (FA 6 Free) ────────────────────────────────────── */
+const FA_ICONS = [
+  /* Interface */
+  {cls:"fa-solid fa-house",name:"House",cat:"Interface"},
+  {cls:"fa-solid fa-bars",name:"Bars / Menu",cat:"Interface"},
+  {cls:"fa-solid fa-xmark",name:"Close / X",cat:"Interface"},
+  {cls:"fa-solid fa-magnifying-glass",name:"Search",cat:"Interface"},
+  {cls:"fa-solid fa-gear",name:"Settings / Gear",cat:"Interface"},
+  {cls:"fa-solid fa-sliders",name:"Sliders",cat:"Interface"},
+  {cls:"fa-solid fa-ellipsis",name:"Ellipsis",cat:"Interface"},
+  {cls:"fa-solid fa-ellipsis-vertical",name:"Ellipsis Vertical",cat:"Interface"},
+  {cls:"fa-solid fa-grip",name:"Grip",cat:"Interface"},
+  {cls:"fa-solid fa-grip-vertical",name:"Grip Vertical",cat:"Interface"},
+  {cls:"fa-solid fa-table-columns",name:"Columns",cat:"Interface"},
+  {cls:"fa-solid fa-table-cells",name:"Table Cells",cat:"Interface"},
+  {cls:"fa-solid fa-list",name:"List",cat:"Interface"},
+  {cls:"fa-solid fa-list-check",name:"List Check",cat:"Interface"},
+  {cls:"fa-solid fa-filter",name:"Filter",cat:"Interface"},
+  {cls:"fa-solid fa-sort",name:"Sort",cat:"Interface"},
+  {cls:"fa-solid fa-eye",name:"Eye / View",cat:"Interface"},
+  {cls:"fa-solid fa-eye-slash",name:"Eye Slash / Hide",cat:"Interface"},
+  {cls:"fa-solid fa-lock",name:"Lock",cat:"Interface"},
+  {cls:"fa-solid fa-lock-open",name:"Unlock",cat:"Interface"},
+  {cls:"fa-solid fa-toggle-on",name:"Toggle On",cat:"Interface"},
+  {cls:"fa-solid fa-toggle-off",name:"Toggle Off",cat:"Interface"},
+  {cls:"fa-solid fa-thumbtack",name:"Pin",cat:"Interface"},
+  {cls:"fa-solid fa-bookmark",name:"Bookmark",cat:"Interface"},
+  {cls:"fa-solid fa-tag",name:"Tag",cat:"Interface"},
+  {cls:"fa-solid fa-tags",name:"Tags",cat:"Interface"},
+  {cls:"fa-solid fa-flag",name:"Flag",cat:"Interface"},
+  {cls:"fa-solid fa-star",name:"Star",cat:"Interface"},
+  {cls:"fa-solid fa-heart",name:"Heart",cat:"Interface"},
+  {cls:"fa-solid fa-circle-plus",name:"Add (circle)",cat:"Interface"},
+  {cls:"fa-solid fa-circle-minus",name:"Remove (circle)",cat:"Interface"},
+  {cls:"fa-solid fa-circle-check",name:"Check (circle)",cat:"Interface"},
+  {cls:"fa-solid fa-circle-xmark",name:"X (circle)",cat:"Interface"},
+  {cls:"fa-solid fa-circle-info",name:"Info (circle)",cat:"Interface"},
+  {cls:"fa-solid fa-circle-question",name:"Question (circle)",cat:"Interface"},
+  {cls:"fa-solid fa-square-check",name:"Check (square)",cat:"Interface"},
+  {cls:"fa-solid fa-square-plus",name:"Add (square)",cat:"Interface"},
+  {cls:"fa-solid fa-square-minus",name:"Minus (square)",cat:"Interface"},
+  {cls:"fa-solid fa-bell",name:"Bell",cat:"Interface"},
+  {cls:"fa-solid fa-bell-slash",name:"Bell Slash",cat:"Interface"},
+  {cls:"fa-solid fa-palette",name:"Palette",cat:"Interface"},
+  {cls:"fa-solid fa-wand-magic-sparkles",name:"Magic Wand",cat:"Interface"},
+  {cls:"fa-solid fa-puzzle-piece",name:"Puzzle",cat:"Interface"},
+  {cls:"fa-solid fa-plug",name:"Plug",cat:"Interface"},
+  {cls:"fa-solid fa-power-off",name:"Power",cat:"Interface"},
+  {cls:"fa-solid fa-expand",name:"Expand",cat:"Interface"},
+  {cls:"fa-solid fa-compress",name:"Compress",cat:"Interface"},
+  {cls:"fa-solid fa-maximize",name:"Maximize",cat:"Interface"},
+  {cls:"fa-solid fa-minimize",name:"Minimize",cat:"Interface"},
+  /* Arrows */
+  {cls:"fa-solid fa-arrow-left",name:"Arrow Left",cat:"Arrows"},
+  {cls:"fa-solid fa-arrow-right",name:"Arrow Right",cat:"Arrows"},
+  {cls:"fa-solid fa-arrow-up",name:"Arrow Up",cat:"Arrows"},
+  {cls:"fa-solid fa-arrow-down",name:"Arrow Down",cat:"Arrows"},
+  {cls:"fa-solid fa-arrow-up-right-from-square",name:"External Link",cat:"Arrows"},
+  {cls:"fa-solid fa-arrows-left-right",name:"Arrows H",cat:"Arrows"},
+  {cls:"fa-solid fa-arrows-up-down",name:"Arrows V",cat:"Arrows"},
+  {cls:"fa-solid fa-rotate",name:"Rotate",cat:"Arrows"},
+  {cls:"fa-solid fa-rotate-left",name:"Undo",cat:"Arrows"},
+  {cls:"fa-solid fa-rotate-right",name:"Redo",cat:"Arrows"},
+  {cls:"fa-solid fa-chevron-left",name:"Chevron Left",cat:"Arrows"},
+  {cls:"fa-solid fa-chevron-right",name:"Chevron Right",cat:"Arrows"},
+  {cls:"fa-solid fa-chevron-up",name:"Chevron Up",cat:"Arrows"},
+  {cls:"fa-solid fa-chevron-down",name:"Chevron Down",cat:"Arrows"},
+  {cls:"fa-solid fa-angles-left",name:"Double Chevron Left",cat:"Arrows"},
+  {cls:"fa-solid fa-angles-right",name:"Double Chevron Right",cat:"Arrows"},
+  {cls:"fa-solid fa-up-right-and-down-left-from-center",name:"Expand Out",cat:"Arrows"},
+  {cls:"fa-solid fa-down-left-and-up-right-to-center",name:"Compress In",cat:"Arrows"},
+  {cls:"fa-solid fa-turn-up",name:"Turn Up",cat:"Arrows"},
+  {cls:"fa-solid fa-turn-down",name:"Turn Down",cat:"Arrows"},
+  /* Communication */
+  {cls:"fa-solid fa-envelope",name:"Email",cat:"Communication"},
+  {cls:"fa-solid fa-envelope-open",name:"Email Open",cat:"Communication"},
+  {cls:"fa-solid fa-envelope-circle-check",name:"Email Confirmed",cat:"Communication"},
+  {cls:"fa-solid fa-paper-plane",name:"Send",cat:"Communication"},
+  {cls:"fa-solid fa-inbox",name:"Inbox",cat:"Communication"},
+  {cls:"fa-solid fa-comment",name:"Comment",cat:"Communication"},
+  {cls:"fa-solid fa-comments",name:"Comments",cat:"Communication"},
+  {cls:"fa-solid fa-comment-dots",name:"Comment Dots",cat:"Communication"},
+  {cls:"fa-solid fa-message",name:"Message",cat:"Communication"},
+  {cls:"fa-solid fa-phone",name:"Phone",cat:"Communication"},
+  {cls:"fa-solid fa-phone-volume",name:"Phone Volume",cat:"Communication"},
+  {cls:"fa-solid fa-phone-flip",name:"Phone Flip",cat:"Communication"},
+  {cls:"fa-solid fa-video",name:"Video Call",cat:"Communication"},
+  {cls:"fa-solid fa-at",name:"At / Email",cat:"Communication"},
+  {cls:"fa-solid fa-hashtag",name:"Hashtag",cat:"Communication"},
+  {cls:"fa-solid fa-rss",name:"RSS Feed",cat:"Communication"},
+  {cls:"fa-solid fa-share",name:"Share",cat:"Communication"},
+  {cls:"fa-solid fa-share-nodes",name:"Share Nodes",cat:"Communication"},
+  {cls:"fa-solid fa-bullhorn",name:"Bullhorn",cat:"Communication"},
+  {cls:"fa-solid fa-broadcast-tower",name:"Broadcast",cat:"Communication"},
+  {cls:"fa-solid fa-satellite-dish",name:"Satellite Dish",cat:"Communication"},
+  {cls:"fa-solid fa-wifi",name:"WiFi",cat:"Communication"},
+  {cls:"fa-solid fa-signal",name:"Signal",cat:"Communication"},
+  {cls:"fa-solid fa-network-wired",name:"Network",cat:"Communication"},
+  /* Business & Finance */
+  {cls:"fa-solid fa-briefcase",name:"Briefcase",cat:"Business"},
+  {cls:"fa-solid fa-building",name:"Building",cat:"Business"},
+  {cls:"fa-solid fa-building-columns",name:"Institution",cat:"Business"},
+  {cls:"fa-solid fa-landmark",name:"Landmark",cat:"Business"},
+  {cls:"fa-solid fa-handshake",name:"Handshake",cat:"Business"},
+  {cls:"fa-solid fa-handshake-simple",name:"Handshake Simple",cat:"Business"},
+  {cls:"fa-solid fa-dollar-sign",name:"Dollar",cat:"Business"},
+  {cls:"fa-solid fa-euro-sign",name:"Euro",cat:"Business"},
+  {cls:"fa-solid fa-sterling-sign",name:"Pound",cat:"Business"},
+  {cls:"fa-solid fa-coins",name:"Coins",cat:"Business"},
+  {cls:"fa-solid fa-credit-card",name:"Credit Card",cat:"Business"},
+  {cls:"fa-solid fa-wallet",name:"Wallet",cat:"Business"},
+  {cls:"fa-solid fa-receipt",name:"Receipt",cat:"Business"},
+  {cls:"fa-solid fa-file-invoice",name:"Invoice",cat:"Business"},
+  {cls:"fa-solid fa-file-invoice-dollar",name:"Invoice Dollar",cat:"Business"},
+  {cls:"fa-solid fa-chart-line",name:"Chart Line",cat:"Business"},
+  {cls:"fa-solid fa-chart-bar",name:"Chart Bar",cat:"Business"},
+  {cls:"fa-solid fa-chart-pie",name:"Chart Pie",cat:"Business"},
+  {cls:"fa-solid fa-chart-column",name:"Chart Column",cat:"Business"},
+  {cls:"fa-solid fa-arrow-trend-up",name:"Trend Up",cat:"Business"},
+  {cls:"fa-solid fa-arrow-trend-down",name:"Trend Down",cat:"Business"},
+  {cls:"fa-solid fa-sack-dollar",name:"Sack Dollar",cat:"Business"},
+  {cls:"fa-solid fa-scale-balanced",name:"Scale",cat:"Business"},
+  {cls:"fa-solid fa-award",name:"Award",cat:"Business"},
+  {cls:"fa-solid fa-medal",name:"Medal",cat:"Business"},
+  {cls:"fa-solid fa-trophy",name:"Trophy",cat:"Business"},
+  {cls:"fa-solid fa-ranking-star",name:"Ranking Star",cat:"Business"},
+  /* Technology */
+  {cls:"fa-solid fa-laptop",name:"Laptop",cat:"Technology"},
+  {cls:"fa-solid fa-laptop-code",name:"Laptop Code",cat:"Technology"},
+  {cls:"fa-solid fa-computer",name:"Desktop",cat:"Technology"},
+  {cls:"fa-solid fa-mobile-screen",name:"Mobile",cat:"Technology"},
+  {cls:"fa-solid fa-tablet-screen-button",name:"Tablet",cat:"Technology"},
+  {cls:"fa-solid fa-server",name:"Server",cat:"Technology"},
+  {cls:"fa-solid fa-database",name:"Database",cat:"Technology"},
+  {cls:"fa-solid fa-code",name:"Code",cat:"Technology"},
+  {cls:"fa-solid fa-code-branch",name:"Branch",cat:"Technology"},
+  {cls:"fa-solid fa-code-commit",name:"Commit",cat:"Technology"},
+  {cls:"fa-solid fa-code-merge",name:"Merge",cat:"Technology"},
+  {cls:"fa-solid fa-code-pull-request",name:"Pull Request",cat:"Technology"},
+  {cls:"fa-solid fa-terminal",name:"Terminal",cat:"Technology"},
+  {cls:"fa-solid fa-microchip",name:"Microchip",cat:"Technology"},
+  {cls:"fa-solid fa-memory",name:"Memory",cat:"Technology"},
+  {cls:"fa-solid fa-hard-drive",name:"Hard Drive",cat:"Technology"},
+  {cls:"fa-solid fa-floppy-disk",name:"Save / Disk",cat:"Technology"},
+  {cls:"fa-solid fa-cloud",name:"Cloud",cat:"Technology"},
+  {cls:"fa-solid fa-cloud-arrow-up",name:"Upload Cloud",cat:"Technology"},
+  {cls:"fa-solid fa-cloud-arrow-down",name:"Download Cloud",cat:"Technology"},
+  {cls:"fa-solid fa-upload",name:"Upload",cat:"Technology"},
+  {cls:"fa-solid fa-download",name:"Download",cat:"Technology"},
+  {cls:"fa-solid fa-robot",name:"Robot / AI",cat:"Technology"},
+  {cls:"fa-solid fa-brain",name:"Brain / AI",cat:"Technology"},
+  {cls:"fa-solid fa-sitemap",name:"Sitemap",cat:"Technology"},
+  {cls:"fa-solid fa-diagram-project",name:"Diagram",cat:"Technology"},
+  {cls:"fa-solid fa-layer-group",name:"Layers",cat:"Technology"},
+  {cls:"fa-solid fa-cubes",name:"Cubes",cat:"Technology"},
+  {cls:"fa-solid fa-cube",name:"Cube",cat:"Technology"},
+  {cls:"fa-solid fa-boxes-stacked",name:"Boxes",cat:"Technology"},
+  {cls:"fa-solid fa-bug",name:"Bug",cat:"Technology"},
+  {cls:"fa-solid fa-bug-slash",name:"No Bug",cat:"Technology"},
+  {cls:"fa-solid fa-shield",name:"Shield",cat:"Technology"},
+  {cls:"fa-solid fa-shield-halved",name:"Shield Half",cat:"Technology"},
+  {cls:"fa-solid fa-key",name:"Key",cat:"Technology"},
+  {cls:"fa-solid fa-fingerprint",name:"Fingerprint",cat:"Technology"},
+  {cls:"fa-solid fa-qrcode",name:"QR Code",cat:"Technology"},
+  {cls:"fa-solid fa-barcode",name:"Barcode",cat:"Technology"},
+  {cls:"fa-solid fa-globe",name:"Globe / Web",cat:"Technology"},
+  {cls:"fa-solid fa-earth-americas",name:"Earth",cat:"Technology"},
+  {cls:"fa-solid fa-link",name:"Link",cat:"Technology"},
+  {cls:"fa-solid fa-link-slash",name:"Broken Link",cat:"Technology"},
+  {cls:"fa-solid fa-window-maximize",name:"Browser",cat:"Technology"},
+  {cls:"fa-solid fa-window-restore",name:"Window",cat:"Technology"},
+  {cls:"fa-solid fa-display",name:"Monitor",cat:"Technology"},
+  {cls:"fa-solid fa-print",name:"Print",cat:"Technology"},
+  {cls:"fa-solid fa-keyboard",name:"Keyboard",cat:"Technology"},
+  {cls:"fa-solid fa-computer-mouse",name:"Mouse",cat:"Technology"},
+  {cls:"fa-solid fa-headphones",name:"Headphones",cat:"Technology"},
+  {cls:"fa-solid fa-camera",name:"Camera",cat:"Technology"},
+  {cls:"fa-solid fa-camera-retro",name:"Camera Retro",cat:"Technology"},
+  {cls:"fa-solid fa-gamepad",name:"Gamepad",cat:"Technology"},
+  {cls:"fa-solid fa-tv",name:"TV",cat:"Technology"},
+  {cls:"fa-solid fa-satellite",name:"Satellite",cat:"Technology"},
+  {cls:"fa-solid fa-battery-full",name:"Battery Full",cat:"Technology"},
+  {cls:"fa-solid fa-battery-half",name:"Battery Half",cat:"Technology"},
+  {cls:"fa-solid fa-charging-station",name:"Charging",cat:"Technology"},
+  /* Media & Player */
+  {cls:"fa-solid fa-play",name:"Play",cat:"Media"},
+  {cls:"fa-solid fa-pause",name:"Pause",cat:"Media"},
+  {cls:"fa-solid fa-stop",name:"Stop",cat:"Media"},
+  {cls:"fa-solid fa-forward",name:"Forward",cat:"Media"},
+  {cls:"fa-solid fa-backward",name:"Backward",cat:"Media"},
+  {cls:"fa-solid fa-forward-fast",name:"Fast Forward",cat:"Media"},
+  {cls:"fa-solid fa-backward-fast",name:"Rewind",cat:"Media"},
+  {cls:"fa-solid fa-volume-high",name:"Volume High",cat:"Media"},
+  {cls:"fa-solid fa-volume-low",name:"Volume Low",cat:"Media"},
+  {cls:"fa-solid fa-volume-xmark",name:"Mute",cat:"Media"},
+  {cls:"fa-solid fa-music",name:"Music",cat:"Media"},
+  {cls:"fa-solid fa-microphone",name:"Microphone",cat:"Media"},
+  {cls:"fa-solid fa-microphone-slash",name:"Mic Off",cat:"Media"},
+  {cls:"fa-solid fa-film",name:"Film",cat:"Media"},
+  {cls:"fa-solid fa-clapperboard",name:"Clapperboard",cat:"Media"},
+  {cls:"fa-solid fa-photo-film",name:"Photo Film",cat:"Media"},
+  {cls:"fa-solid fa-image",name:"Image",cat:"Media"},
+  {cls:"fa-solid fa-images",name:"Images / Gallery",cat:"Media"},
+  {cls:"fa-solid fa-podcast",name:"Podcast",cat:"Media"},
+  {cls:"fa-solid fa-radio",name:"Radio",cat:"Media"},
+  /* People & Users */
+  {cls:"fa-solid fa-user",name:"User",cat:"People"},
+  {cls:"fa-solid fa-user-tie",name:"User Tie",cat:"People"},
+  {cls:"fa-solid fa-user-pen",name:"User Edit",cat:"People"},
+  {cls:"fa-solid fa-user-check",name:"User Check",cat:"People"},
+  {cls:"fa-solid fa-user-plus",name:"User Plus",cat:"People"},
+  {cls:"fa-solid fa-user-minus",name:"User Minus",cat:"People"},
+  {cls:"fa-solid fa-user-xmark",name:"User Remove",cat:"People"},
+  {cls:"fa-solid fa-user-gear",name:"User Gear",cat:"People"},
+  {cls:"fa-solid fa-user-shield",name:"User Shield",cat:"People"},
+  {cls:"fa-solid fa-user-graduate",name:"Graduate",cat:"People"},
+  {cls:"fa-solid fa-user-doctor",name:"Doctor",cat:"People"},
+  {cls:"fa-solid fa-users",name:"Users / Team",cat:"People"},
+  {cls:"fa-solid fa-users-gear",name:"Users Gear",cat:"People"},
+  {cls:"fa-solid fa-people-group",name:"Group",cat:"People"},
+  {cls:"fa-solid fa-person",name:"Person",cat:"People"},
+  {cls:"fa-solid fa-person-running",name:"Running",cat:"People"},
+  {cls:"fa-solid fa-person-walking",name:"Walking",cat:"People"},
+  {cls:"fa-solid fa-person-rays",name:"Person Rays",cat:"People"},
+  {cls:"fa-solid fa-id-card",name:"ID Card",cat:"People"},
+  {cls:"fa-solid fa-id-badge",name:"ID Badge",cat:"People"},
+  {cls:"fa-solid fa-address-book",name:"Address Book",cat:"People"},
+  {cls:"fa-solid fa-address-card",name:"Address Card",cat:"People"},
+  /* Files & Documents */
+  {cls:"fa-solid fa-file",name:"File",cat:"Files"},
+  {cls:"fa-solid fa-file-lines",name:"File Lines",cat:"Files"},
+  {cls:"fa-solid fa-file-code",name:"File Code",cat:"Files"},
+  {cls:"fa-solid fa-file-image",name:"File Image",cat:"Files"},
+  {cls:"fa-solid fa-file-video",name:"File Video",cat:"Files"},
+  {cls:"fa-solid fa-file-audio",name:"File Audio",cat:"Files"},
+  {cls:"fa-solid fa-file-pdf",name:"PDF",cat:"Files"},
+  {cls:"fa-solid fa-file-word",name:"Word Doc",cat:"Files"},
+  {cls:"fa-solid fa-file-excel",name:"Excel",cat:"Files"},
+  {cls:"fa-solid fa-file-powerpoint",name:"PowerPoint",cat:"Files"},
+  {cls:"fa-solid fa-file-zipper",name:"Zip Archive",cat:"Files"},
+  {cls:"fa-solid fa-file-arrow-up",name:"File Upload",cat:"Files"},
+  {cls:"fa-solid fa-file-arrow-down",name:"File Download",cat:"Files"},
+  {cls:"fa-solid fa-file-circle-check",name:"File Check",cat:"Files"},
+  {cls:"fa-solid fa-file-circle-plus",name:"New File",cat:"Files"},
+  {cls:"fa-solid fa-file-circle-xmark",name:"File Delete",cat:"Files"},
+  {cls:"fa-solid fa-folder",name:"Folder",cat:"Files"},
+  {cls:"fa-solid fa-folder-open",name:"Folder Open",cat:"Files"},
+  {cls:"fa-solid fa-folder-plus",name:"New Folder",cat:"Files"},
+  {cls:"fa-solid fa-folder-minus",name:"Remove Folder",cat:"Files"},
+  {cls:"fa-solid fa-folder-tree",name:"Folder Tree",cat:"Files"},
+  {cls:"fa-solid fa-copy",name:"Copy",cat:"Files"},
+  {cls:"fa-solid fa-paste",name:"Paste",cat:"Files"},
+  {cls:"fa-solid fa-scissors",name:"Cut",cat:"Files"},
+  {cls:"fa-solid fa-trash",name:"Trash / Delete",cat:"Files"},
+  {cls:"fa-solid fa-trash-can",name:"Trash Can",cat:"Files"},
+  {cls:"fa-solid fa-pen",name:"Edit Pen",cat:"Files"},
+  {cls:"fa-solid fa-pen-to-square",name:"Edit",cat:"Files"},
+  {cls:"fa-solid fa-pencil",name:"Pencil",cat:"Files"},
+  {cls:"fa-solid fa-eraser",name:"Eraser",cat:"Files"},
+  {cls:"fa-solid fa-note-sticky",name:"Sticky Note",cat:"Files"},
+  {cls:"fa-solid fa-paperclip",name:"Paperclip",cat:"Files"},
+  {cls:"fa-solid fa-print",name:"Print",cat:"Files"},
+  {cls:"fa-solid fa-book",name:"Book",cat:"Files"},
+  {cls:"fa-solid fa-book-open",name:"Book Open",cat:"Files"},
+  {cls:"fa-solid fa-book-bookmark",name:"Book Bookmark",cat:"Files"},
+  {cls:"fa-solid fa-books",name:"Books",cat:"Files"},
+  {cls:"fa-solid fa-newspaper",name:"Newspaper",cat:"Files"},
+  {cls:"fa-solid fa-scroll",name:"Scroll",cat:"Files"},
+  {cls:"fa-solid fa-rectangle-list",name:"List View",cat:"Files"},
+  {cls:"fa-solid fa-table-list",name:"Table List",cat:"Files"},
+  /* Status & Alerts */
+  {cls:"fa-solid fa-check",name:"Check",cat:"Status"},
+  {cls:"fa-solid fa-check-double",name:"Double Check",cat:"Status"},
+  {cls:"fa-solid fa-xmark",name:"X Mark",cat:"Status"},
+  {cls:"fa-solid fa-exclamation",name:"Exclamation",cat:"Status"},
+  {cls:"fa-solid fa-triangle-exclamation",name:"Warning",cat:"Status"},
+  {cls:"fa-solid fa-circle-exclamation",name:"Alert",cat:"Status"},
+  {cls:"fa-solid fa-ban",name:"Ban / Forbidden",cat:"Status"},
+  {cls:"fa-solid fa-minus",name:"Minus",cat:"Status"},
+  {cls:"fa-solid fa-plus",name:"Plus",cat:"Status"},
+  {cls:"fa-solid fa-spinner",name:"Spinner / Loading",cat:"Status"},
+  {cls:"fa-solid fa-hourglass-half",name:"Loading / Time",cat:"Status"},
+  {cls:"fa-solid fa-clock",name:"Clock",cat:"Status"},
+  {cls:"fa-solid fa-clock-rotate-left",name:"History",cat:"Status"},
+  {cls:"fa-solid fa-calendar",name:"Calendar",cat:"Status"},
+  {cls:"fa-solid fa-calendar-days",name:"Calendar Days",cat:"Status"},
+  {cls:"fa-solid fa-calendar-check",name:"Calendar Check",cat:"Status"},
+  {cls:"fa-solid fa-calendar-plus",name:"Schedule Add",cat:"Status"},
+  {cls:"fa-solid fa-location-dot",name:"Location Pin",cat:"Status"},
+  {cls:"fa-solid fa-location-crosshairs",name:"GPS Target",cat:"Status"},
+  {cls:"fa-solid fa-map",name:"Map",cat:"Status"},
+  {cls:"fa-solid fa-map-location-dot",name:"Map Pin",cat:"Status"},
+  {cls:"fa-solid fa-compass",name:"Compass",cat:"Status"},
+  {cls:"fa-solid fa-fire",name:"Fire",cat:"Status"},
+  {cls:"fa-solid fa-fire-flame-curved",name:"Fire Flame",cat:"Status"},
+  {cls:"fa-solid fa-bolt",name:"Lightning / Fast",cat:"Status"},
+  {cls:"fa-solid fa-star-of-life",name:"Star Of Life",cat:"Status"},
+  /* Design & Art */
+  {cls:"fa-solid fa-paintbrush",name:"Paintbrush",cat:"Design"},
+  {cls:"fa-solid fa-pen-nib",name:"Pen Nib",cat:"Design"},
+  {cls:"fa-solid fa-pen-ruler",name:"Pen Ruler",cat:"Design"},
+  {cls:"fa-solid fa-ruler",name:"Ruler",cat:"Design"},
+  {cls:"fa-solid fa-ruler-combined",name:"Ruler Combined",cat:"Design"},
+  {cls:"fa-solid fa-compass-drafting",name:"Drafting Compass",cat:"Design"},
+  {cls:"fa-solid fa-crop",name:"Crop",cat:"Design"},
+  {cls:"fa-solid fa-crop-simple",name:"Crop Simple",cat:"Design"},
+  {cls:"fa-solid fa-vector-square",name:"Vector",cat:"Design"},
+  {cls:"fa-solid fa-shapes",name:"Shapes",cat:"Design"},
+  {cls:"fa-solid fa-swatchbook",name:"Swatchbook",cat:"Design"},
+  {cls:"fa-solid fa-fill-drip",name:"Fill / Color",cat:"Design"},
+  {cls:"fa-solid fa-eye-dropper",name:"Eye Dropper",cat:"Design"},
+  {cls:"fa-solid fa-object-group",name:"Group Objects",cat:"Design"},
+  {cls:"fa-solid fa-object-ungroup",name:"Ungroup",cat:"Design"},
+  {cls:"fa-solid fa-square",name:"Square",cat:"Design"},
+  {cls:"fa-solid fa-circle",name:"Circle",cat:"Design"},
+  {cls:"fa-solid fa-diamond",name:"Diamond",cat:"Design"},
+  /* Education */
+  {cls:"fa-solid fa-graduation-cap",name:"Graduation Cap",cat:"Education"},
+  {cls:"fa-solid fa-school",name:"School",cat:"Education"},
+  {cls:"fa-solid fa-chalkboard-user",name:"Chalkboard",cat:"Education"},
+  {cls:"fa-solid fa-microscope",name:"Microscope",cat:"Education"},
+  {cls:"fa-solid fa-flask",name:"Flask / Science",cat:"Education"},
+  {cls:"fa-solid fa-atom",name:"Atom",cat:"Education"},
+  {cls:"fa-solid fa-dna",name:"DNA",cat:"Education"},
+  {cls:"fa-solid fa-calculator",name:"Calculator",cat:"Education"},
+  {cls:"fa-solid fa-pen-clip",name:"Pen Clip",cat:"Education"},
+  {cls:"fa-solid fa-lightbulb",name:"Lightbulb / Idea",cat:"Education"},
+  {cls:"fa-solid fa-certificate",name:"Certificate",cat:"Education"},
+  {cls:"fa-solid fa-infinity",name:"Infinity",cat:"Education"},
+  {cls:"fa-solid fa-subscript",name:"Subscript",cat:"Education"},
+  {cls:"fa-solid fa-superscript",name:"Superscript",cat:"Education"},
+  {cls:"fa-solid fa-sigma",name:"Sigma",cat:"Education"},
+  {cls:"fa-solid fa-spell-check",name:"Spell Check",cat:"Education"},
+  /* Health & Nature */
+  {cls:"fa-solid fa-heart-pulse",name:"Heartbeat",cat:"Health"},
+  {cls:"fa-solid fa-stethoscope",name:"Stethoscope",cat:"Health"},
+  {cls:"fa-solid fa-hospital",name:"Hospital",cat:"Health"},
+  {cls:"fa-solid fa-pill",name:"Pill",cat:"Health"},
+  {cls:"fa-solid fa-syringe",name:"Syringe",cat:"Health"},
+  {cls:"fa-solid fa-leaf",name:"Leaf / Nature",cat:"Health"},
+  {cls:"fa-solid fa-seedling",name:"Seedling",cat:"Health"},
+  {cls:"fa-solid fa-tree",name:"Tree",cat:"Health"},
+  {cls:"fa-solid fa-sun",name:"Sun",cat:"Health"},
+  {cls:"fa-solid fa-moon",name:"Moon",cat:"Health"},
+  {cls:"fa-solid fa-cloud-sun",name:"Cloud Sun",cat:"Health"},
+  {cls:"fa-solid fa-cloud-rain",name:"Rain",cat:"Health"},
+  {cls:"fa-solid fa-snowflake",name:"Snowflake",cat:"Health"},
+  {cls:"fa-solid fa-wind",name:"Wind",cat:"Health"},
+  {cls:"fa-solid fa-droplet",name:"Droplet / Water",cat:"Health"},
+  {cls:"fa-solid fa-recycle",name:"Recycle",cat:"Health"},
+  /* Travel & Places */
+  {cls:"fa-solid fa-car",name:"Car",cat:"Travel"},
+  {cls:"fa-solid fa-car-side",name:"Car Side",cat:"Travel"},
+  {cls:"fa-solid fa-plane",name:"Plane",cat:"Travel"},
+  {cls:"fa-solid fa-plane-up",name:"Plane Up",cat:"Travel"},
+  {cls:"fa-solid fa-train",name:"Train",cat:"Travel"},
+  {cls:"fa-solid fa-bus",name:"Bus",cat:"Travel"},
+  {cls:"fa-solid fa-bicycle",name:"Bicycle",cat:"Travel"},
+  {cls:"fa-solid fa-motorcycle",name:"Motorcycle",cat:"Travel"},
+  {cls:"fa-solid fa-ship",name:"Ship",cat:"Travel"},
+  {cls:"fa-solid fa-rocket",name:"Rocket",cat:"Travel"},
+  {cls:"fa-solid fa-hotel",name:"Hotel",cat:"Travel"},
+  {cls:"fa-solid fa-map-pin",name:"Map Pin",cat:"Travel"},
+  {cls:"fa-solid fa-route",name:"Route",cat:"Travel"},
+  {cls:"fa-solid fa-suitcase",name:"Suitcase",cat:"Travel"},
+  {cls:"fa-solid fa-suitcase-rolling",name:"Suitcase Rolling",cat:"Travel"},
+  {cls:"fa-solid fa-umbrella-beach",name:"Beach",cat:"Travel"},
+  {cls:"fa-solid fa-mountain",name:"Mountain",cat:"Travel"},
+  {cls:"fa-solid fa-city",name:"City",cat:"Travel"},
+  /* Food & Shopping */
+  {cls:"fa-solid fa-utensils",name:"Utensils",cat:"Food & Shop"},
+  {cls:"fa-solid fa-mug-hot",name:"Coffee Mug",cat:"Food & Shop"},
+  {cls:"fa-solid fa-burger",name:"Burger",cat:"Food & Shop"},
+  {cls:"fa-solid fa-pizza-slice",name:"Pizza",cat:"Food & Shop"},
+  {cls:"fa-solid fa-ice-cream",name:"Ice Cream",cat:"Food & Shop"},
+  {cls:"fa-solid fa-wine-glass",name:"Wine Glass",cat:"Food & Shop"},
+  {cls:"fa-solid fa-cart-shopping",name:"Shopping Cart",cat:"Food & Shop"},
+  {cls:"fa-solid fa-basket-shopping",name:"Basket",cat:"Food & Shop"},
+  {cls:"fa-solid fa-bag-shopping",name:"Bag",cat:"Food & Shop"},
+  {cls:"fa-solid fa-store",name:"Store",cat:"Food & Shop"},
+  {cls:"fa-solid fa-shop",name:"Shop",cat:"Food & Shop"},
+  {cls:"fa-solid fa-gift",name:"Gift",cat:"Food & Shop"},
+  {cls:"fa-solid fa-percent",name:"Percent / Discount",cat:"Food & Shop"},
+  {cls:"fa-solid fa-tag",name:"Price Tag",cat:"Food & Shop"},
+  /* Brands */
+  {cls:"fa-brands fa-github",name:"GitHub",cat:"Brands"},
+  {cls:"fa-brands fa-gitlab",name:"GitLab",cat:"Brands"},
+  {cls:"fa-brands fa-bitbucket",name:"Bitbucket",cat:"Brands"},
+  {cls:"fa-brands fa-git-alt",name:"Git",cat:"Brands"},
+  {cls:"fa-brands fa-html5",name:"HTML5",cat:"Brands"},
+  {cls:"fa-brands fa-css3-alt",name:"CSS3",cat:"Brands"},
+  {cls:"fa-brands fa-js",name:"JavaScript",cat:"Brands"},
+  {cls:"fa-brands fa-square-js",name:"JavaScript Square",cat:"Brands"},
+  {cls:"fa-brands fa-typescript",name:"TypeScript",cat:"Brands"},
+  {cls:"fa-brands fa-node",name:"Node.js",cat:"Brands"},
+  {cls:"fa-brands fa-node-js",name:"Node.js Alt",cat:"Brands"},
+  {cls:"fa-brands fa-npm",name:"NPM",cat:"Brands"},
+  {cls:"fa-brands fa-react",name:"React",cat:"Brands"},
+  {cls:"fa-brands fa-vuejs",name:"Vue.js",cat:"Brands"},
+  {cls:"fa-brands fa-angular",name:"Angular",cat:"Brands"},
+  {cls:"fa-brands fa-php",name:"PHP",cat:"Brands"},
+  {cls:"fa-brands fa-laravel",name:"Laravel",cat:"Brands"},
+  {cls:"fa-brands fa-python",name:"Python",cat:"Brands"},
+  {cls:"fa-brands fa-java",name:"Java",cat:"Brands"},
+  {cls:"fa-brands fa-swift",name:"Swift",cat:"Brands"},
+  {cls:"fa-brands fa-rust",name:"Rust",cat:"Brands"},
+  {cls:"fa-brands fa-golang",name:"Go",cat:"Brands"},
+  {cls:"fa-brands fa-docker",name:"Docker",cat:"Brands"},
+  {cls:"fa-brands fa-aws",name:"AWS",cat:"Brands"},
+  {cls:"fa-brands fa-google-cloud",name:"Google Cloud",cat:"Brands"},
+  {cls:"fa-brands fa-microsoft",name:"Microsoft",cat:"Brands"},
+  {cls:"fa-brands fa-linux",name:"Linux",cat:"Brands"},
+  {cls:"fa-brands fa-ubuntu",name:"Ubuntu",cat:"Brands"},
+  {cls:"fa-brands fa-apple",name:"Apple",cat:"Brands"},
+  {cls:"fa-brands fa-android",name:"Android",cat:"Brands"},
+  {cls:"fa-brands fa-windows",name:"Windows",cat:"Brands"},
+  {cls:"fa-brands fa-figma",name:"Figma",cat:"Brands"},
+  {cls:"fa-brands fa-wordpress",name:"WordPress",cat:"Brands"},
+  {cls:"fa-brands fa-shopify",name:"Shopify",cat:"Brands"},
+  {cls:"fa-brands fa-stripe",name:"Stripe",cat:"Brands"},
+  {cls:"fa-brands fa-paypal",name:"PayPal",cat:"Brands"},
+  {cls:"fa-brands fa-google",name:"Google",cat:"Brands"},
+  {cls:"fa-brands fa-google-drive",name:"Google Drive",cat:"Brands"},
+  {cls:"fa-brands fa-google-play",name:"Google Play",cat:"Brands"},
+  {cls:"fa-brands fa-chrome",name:"Chrome",cat:"Brands"},
+  {cls:"fa-brands fa-firefox",name:"Firefox",cat:"Brands"},
+  {cls:"fa-brands fa-safari",name:"Safari",cat:"Brands"},
+  {cls:"fa-brands fa-edge",name:"Edge",cat:"Brands"},
+  {cls:"fa-brands fa-slack",name:"Slack",cat:"Brands"},
+  {cls:"fa-brands fa-discord",name:"Discord",cat:"Brands"},
+  {cls:"fa-brands fa-trello",name:"Trello",cat:"Brands"},
+  {cls:"fa-brands fa-jira",name:"Jira",cat:"Brands"},
+  {cls:"fa-brands fa-confluence",name:"Confluence",cat:"Brands"},
+  {cls:"fa-brands fa-notion",name:"Notion",cat:"Brands"},
+  {cls:"fa-brands fa-linkedin",name:"LinkedIn",cat:"Brands"},
+  {cls:"fa-brands fa-linkedin-in",name:"LinkedIn In",cat:"Brands"},
+  {cls:"fa-brands fa-twitter",name:"Twitter / X",cat:"Brands"},
+  {cls:"fa-brands fa-x-twitter",name:"X (Twitter)",cat:"Brands"},
+  {cls:"fa-brands fa-facebook",name:"Facebook",cat:"Brands"},
+  {cls:"fa-brands fa-instagram",name:"Instagram",cat:"Brands"},
+  {cls:"fa-brands fa-youtube",name:"YouTube",cat:"Brands"},
+  {cls:"fa-brands fa-tiktok",name:"TikTok",cat:"Brands"},
+  {cls:"fa-brands fa-pinterest",name:"Pinterest",cat:"Brands"},
+  {cls:"fa-brands fa-reddit",name:"Reddit",cat:"Brands"},
+  {cls:"fa-brands fa-stack-overflow",name:"Stack Overflow",cat:"Brands"},
+  {cls:"fa-brands fa-dev",name:"DEV.to",cat:"Brands"},
+  {cls:"fa-brands fa-medium",name:"Medium",cat:"Brands"},
+  {cls:"fa-brands fa-hashnode",name:"Hashnode",cat:"Brands"},
+  {cls:"fa-brands fa-codepen",name:"CodePen",cat:"Brands"},
+  {cls:"fa-brands fa-dribbble",name:"Dribbble",cat:"Brands"},
+  {cls:"fa-brands fa-behance",name:"Behance",cat:"Brands"},
+  {cls:"fa-brands fa-whatsapp",name:"WhatsApp",cat:"Brands"},
+  {cls:"fa-brands fa-telegram",name:"Telegram",cat:"Brands"},
+  {cls:"fa-brands fa-skype",name:"Skype",cat:"Brands"},
+  {cls:"fa-brands fa-spotify",name:"Spotify",cat:"Brands"},
+  {cls:"fa-brands fa-apple-pay",name:"Apple Pay",cat:"Brands"},
+  {cls:"fa-brands fa-google-pay",name:"Google Pay",cat:"Brands"}
+];
+
+/* ── Icon picker state ───────────────────────────────────────────── */
+let _iconPickerTarget = null;
+let _iconPickerPreview = null;
+
 /* ── state ──────────────────────────────────────────────────────── */
 let currentUser = null;
 let siteContent = null;
@@ -50,6 +513,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupNavigation();
   setupMobileMenu();
   setupQuickActions();
+  setupIconPicker();
 });
 
 /* ================================================================
@@ -173,6 +637,7 @@ async function loadAll() {
   populatePagesForm();
   renderMediaPanel();
   populateSettingsForm();
+  setupAdminUsers();
   setupImportExport();
 }
 
@@ -372,9 +837,9 @@ function updateHeroPreview() {
    ================================================================ */
 function populateProfileForm() {
   const p = siteContent?.profile || {};
-  setVal("profile-bio1", p.bio);
-  setVal("profile-bio2", p.bio2);
-  setVal("profile-bio3", p.bio3);
+  // Merge legacy bio/bio2/bio3 into a single field (blank-line-separated paragraphs)
+  const bioparts = [p.bio, p.bio2, p.bio3].filter(Boolean);
+  setVal("profile-bio", bioparts.join("\n\n"));
   setVal("profile-location", p.location);
   setVal("profile-email", p.email);
   setVal("profile-phone1", p.phone1);
@@ -397,9 +862,9 @@ function populateProfileForm() {
         flash("profile-status", "Image upload failed: " + err.message, true);
       }
     }
-    siteContent.profile.bio = getVal("profile-bio1");
-    siteContent.profile.bio2 = getVal("profile-bio2");
-    siteContent.profile.bio3 = getVal("profile-bio3");
+    siteContent.profile.bio = getVal("profile-bio");
+    siteContent.profile.bio2 = "";
+    siteContent.profile.bio3 = "";
     siteContent.profile.location = getVal("profile-location");
     siteContent.profile.email = getVal("profile-email");
     siteContent.profile.phone1 = getVal("profile-phone1");
@@ -442,28 +907,66 @@ function renderProjectsTable() {
       renderOverview();
     });
   });
+}
 
-  // Image preview
-  $("#proj-img-file")?.addEventListener("change", (e) => {
-    previewFile(e.target, "proj-img-preview");
+function setupProjectForm() {
+  // Featured image preview
+  $("#proj-feat-file")?.addEventListener("change", (e) => {
+    previewFile(e.target, "proj-feat-preview");
   });
 
-  // Form
+  // Gallery preview (multiple files)
+  $("#proj-gallery-files")?.addEventListener("change", (e) => {
+    const wrap = $("#proj-gallery-preview");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+    Array.from(e.target.files).forEach((file) => {
+      const img = document.createElement("img");
+      img.style.cssText = "width:72px;height:54px;object-fit:cover;border-radius:6px;border:1px solid var(--border)";
+      img.src = URL.createObjectURL(file);
+      wrap.appendChild(img);
+    });
+  });
+
+  $("#proj-reset")?.addEventListener("click", resetProjectForm);
+
   const form = $("#proj-form");
-  form.onsubmit = async (e) => {
+  if (!form) return;
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const id = getVal("proj-id") || `project-${Date.now()}`;
-    const file = $("#proj-img-file")?.files[0];
-    let image = projects.find((p) => p.id === getVal("proj-id"))?.image || "";
-    if (file) {
+    const editingId = getVal("proj-id");
+    const id = editingId || `project-${Date.now()}`;
+    const existing = projects.find((p) => p.id === editingId) || {};
+
+    // Featured image
+    const featFile = $("#proj-feat-file")?.files[0];
+    let featuredImage = existing.featuredImage || existing.image || "";
+    if (featFile) {
       try {
-        image = await uploadProjectImage(id, file);
+        featuredImage = await uploadProjectImage(id, featFile);
       } catch (err) {
-        flash("proj-status", "Image upload failed: " + err.message, true);
+        flash("proj-status", "Featured image upload failed: " + err.message, true);
+        return;
+      }
+    }
+
+    // Gallery images
+    const galleryFiles = Array.from($("#proj-gallery-files")?.files || []);
+    let gallery = existing.gallery || [];
+    if (galleryFiles.length) {
+      try {
+        const uploads = await Promise.all(
+          galleryFiles.map((f) => uploadProjectImage(id, f))
+        );
+        gallery = [...gallery, ...uploads];
+      } catch (err) {
+        flash("proj-status", "Gallery upload failed: " + err.message, true);
+        return;
       }
     }
 
     const proj = {
+      ...existing,
       id,
       title: getVal("proj-title"),
       shortDesc: getVal("proj-short"),
@@ -471,20 +974,19 @@ function renderProjectsTable() {
       tags: getVal("proj-tags").split(",").map((s) => s.trim()).filter(Boolean),
       url: getVal("proj-url"),
       github: getVal("proj-github"),
-      image,
-      featured: getChecked("proj-featured"),
-      gradient: getVal("proj-gradient") || "linear-gradient(135deg, #1a1a2e, #16213e)"
+      featuredImage,
+      image: featuredImage,   // keep legacy field in sync
+      gallery,
+      featured: getChecked("proj-featured")
     };
 
     await saveProject(proj);
     projects = await loadProjects();
     renderProjectsTable();
     resetProjectForm();
-    flash("proj-status", "Project saved!");
+    flash("proj-status", editingId ? "Project updated!" : "Project created!");
     renderOverview();
-  };
-
-  $("#proj-reset")?.addEventListener("click", resetProjectForm);
+  });
 }
 
 function editProject(id) {
@@ -497,16 +999,42 @@ function editProject(id) {
   setVal("proj-tags", (p.tags || []).join(", "));
   setVal("proj-url", p.url);
   setVal("proj-github", p.github);
-  setVal("proj-gradient", p.gradient);
   setChecked("proj-featured", p.featured);
-  setImgPreview("proj-img-preview", p.image);
+  // Featured image
+  const featSrc = p.featuredImage || p.image || "";
+  setImgPreview("proj-feat-preview", featSrc || "assets/images/project-placeholder.svg");
+  // Gallery thumbnails
+  const galleryWrap = $("#proj-gallery-preview");
+  if (galleryWrap) {
+    galleryWrap.innerHTML = (p.gallery || []).map((url) =>
+      `<div style="position:relative;display:inline-block">
+        <img src="${escapeHtml(url)}" style="width:72px;height:54px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">
+        <button type="button" data-url="${escapeHtml(url)}" class="proj-gal-remove" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#ef4444;color:#fff;border:none;font-size:.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">&times;</button>
+      </div>`
+    ).join("");
+    galleryWrap.querySelectorAll(".proj-gal-remove").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const urlToRemove = btn.dataset.url;
+        const proj = projects.find((x) => x.id === getVal("proj-id"));
+        if (!proj) return;
+        proj.gallery = (proj.gallery || []).filter((u) => u !== urlToRemove);
+        await saveProject(proj);
+        projects = await loadProjects();
+        editProject(id); // refresh form
+      });
+    });
+  }
   $("#proj-form-title").textContent = "Edit Project";
+  // Scroll form into view
+  $("#proj-form")?.closest(".admin-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function resetProjectForm() {
   $("#proj-form")?.reset();
   setVal("proj-id", "");
-  setImgPreview("proj-img-preview", "assets/images/project-placeholder.svg");
+  setImgPreview("proj-feat-preview", "assets/images/project-placeholder.svg");
+  const galleryWrap = $("#proj-gallery-preview");
+  if (galleryWrap) galleryWrap.innerHTML = "";
   $("#proj-form-title").textContent = "New Project";
 }
 
@@ -564,10 +1092,10 @@ function renderFilterCategories() {
    ================================================================ */
 function populateSkillsForm() {
   renderTechSelector();
-  populateSkillsTextareas();
+  renderTechSkillsManager();
   renderSoftSkillsManager();
 
-  // search filter
+  // Tech stack search filter
   $("#tech-search")?.addEventListener("input", (e) => {
     const q = e.target.value.toLowerCase();
     $$(".tech-chip").forEach((chip) => {
@@ -576,12 +1104,11 @@ function populateSkillsForm() {
     });
   });
 
-  $("#skills-form").addEventListener("submit", async (e) => {
+  $("#skills-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     siteContent.techStacks = $$(".tech-chip.selected").map((c) => c.dataset.id);
-    siteContent.skills.technical = parseTechnicalSkills(getVal("tech-skills-text"));
     await saveSiteContent(siteContent);
-    flash("skills-status", "Saved!");
+    flash("skills-status", "Tech Stack saved!");
   });
 }
 
@@ -605,11 +1132,81 @@ function renderTechSelector() {
   });
 }
 
-function populateSkillsTextareas() {
-  const tech = (siteContent?.skills?.technical || [])
-    .map((s) => `${s.category}|${s.icon}|${(s.items || []).join(",")}`)
-    .join("\n");
-  setVal("tech-skills-text", tech);
+function renderTechSkillsManager() {
+  const tbody = $("#tech-skill-tbody");
+  if (!tbody) return;
+  const techSkills = siteContent?.skills?.technical || [];
+
+  tbody.innerHTML = techSkills.length
+    ? techSkills.map((s, i) => `
+        <tr data-idx="${i}">
+          <td data-label="Category">${escapeHtml(s.category)}</td>
+          <td data-label="Icon"><i class="${escapeHtml(s.icon)}"></i></td>
+          <td data-label="Items" style="max-width:280px;white-space:normal">${(s.items || []).map((x) => escapeHtml(x)).join(", ")}</td>
+          <td class="row-actions">
+            <button title="Edit" class="tech-skill-edit"><i class="fa-solid fa-pen"></i></button>
+            <button title="Delete" class="tech-skill-del danger"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        </tr>`).join("")
+    : `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:1.5rem">No skill groups yet. Add one below.</td></tr>`;
+
+  tbody.querySelectorAll("tr[data-idx]").forEach((row) => {
+    const idx = +row.dataset.idx;
+    row.querySelector(".tech-skill-edit")?.addEventListener("click", () => {
+      const s = techSkills[idx];
+      setVal("tech-skill-idx", idx);
+      setVal("tech-skill-cat", s.category);
+      setVal("tech-skill-icon", s.icon || "fa-solid fa-wrench");
+      setVal("tech-skill-items", (s.items || []).join(", "));
+      const prev = $("#tech-skill-icon-preview");
+      if (prev) prev.className = s.icon || "fa-solid fa-wrench";
+      $("#tech-skill-form-title").textContent = "Edit Skill Group";
+      $("#tech-skill-cat")?.focus();
+    });
+    row.querySelector(".tech-skill-del")?.addEventListener("click", async () => {
+      if (!confirm(`Delete "${techSkills[idx].category}"?`)) return;
+      siteContent.skills.technical.splice(idx, 1);
+      await saveSiteContent(siteContent);
+      renderTechSkillsManager();
+      flash("tech-skill-status", "Group deleted.");
+    });
+  });
+
+  const form = $("#tech-skill-form");
+  if (!form) return;
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const idx = +getVal("tech-skill-idx");
+    const entry = {
+      id: idx >= 0 ? (siteContent.skills.technical[idx]?.id || `tech-${Date.now()}`) : `tech-${Date.now()}`,
+      category: getVal("tech-skill-cat"),
+      icon: getVal("tech-skill-icon") || "fa-solid fa-wrench",
+      items: getVal("tech-skill-items").split(",").map((s) => s.trim()).filter(Boolean)
+    };
+    if (!siteContent.skills) siteContent.skills = {};
+    if (!siteContent.skills.technical) siteContent.skills.technical = [];
+    if (idx >= 0) {
+      siteContent.skills.technical[idx] = entry;
+    } else {
+      siteContent.skills.technical.push(entry);
+    }
+    await saveSiteContent(siteContent);
+    resetTechSkillForm();
+    renderTechSkillsManager();
+    flash("tech-skill-status", "Skill group saved!");
+  };
+
+  $("#tech-skill-reset")?.addEventListener("click", resetTechSkillForm);
+}
+
+function resetTechSkillForm() {
+  setVal("tech-skill-idx", "-1");
+  setVal("tech-skill-cat", "");
+  setVal("tech-skill-icon", "fa-solid fa-wrench");
+  setVal("tech-skill-items", "");
+  const prev = $("#tech-skill-icon-preview");
+  if (prev) prev.className = "fa-solid fa-wrench";
+  $("#tech-skill-form-title").textContent = "Add Skill Group";
 }
 
 function renderSoftSkillsManager() {
@@ -622,7 +1219,7 @@ function renderSoftSkillsManager() {
     ? skills.map((s, i) => `
         <tr data-idx="${i}">
           <td data-label="Title">${escapeHtml(s.title)}</td>
-          <td data-label="Icon"><i class="${escapeHtml(s.icon)}"></i> <small>${escapeHtml(s.icon)}</small></td>
+          <td data-label="Icon"><i class="${escapeHtml(s.icon)}"></i></td>
           <td data-label="Description" style="max-width:320px;white-space:normal">${escapeHtml(s.desc)}</td>
           <td class="row-actions">
             <button title="Edit" class="soft-skill-edit"><i class="fa-solid fa-pen"></i></button>
@@ -637,8 +1234,10 @@ function renderSoftSkillsManager() {
       const s = skills[idx];
       setVal("soft-skill-idx", idx);
       setVal("soft-skill-title", s.title);
-      setVal("soft-skill-icon", s.icon);
+      setVal("soft-skill-icon", s.icon || "fa-solid fa-star");
       setVal("soft-skill-desc", s.desc);
+      const ssprev = $("#soft-skill-icon-preview");
+      if (ssprev) ssprev.className = s.icon || "fa-solid fa-star";
       $("#soft-skill-form-title").textContent = "Edit Soft Skill";
       $("#soft-skill-title")?.focus();
     });
@@ -681,24 +1280,11 @@ function renderSoftSkillsManager() {
 function resetSoftSkillForm() {
   setVal("soft-skill-idx", "-1");
   setVal("soft-skill-title", "");
-  setVal("soft-skill-icon", "");
+  setVal("soft-skill-icon", "fa-solid fa-star");
   setVal("soft-skill-desc", "");
+  const ssprev = $("#soft-skill-icon-preview");
+  if (ssprev) ssprev.className = "fa-solid fa-star";
   $("#soft-skill-form-title").textContent = "Add Soft Skill";
-}
-
-function parseTechnicalSkills(text) {
-  return text
-    .split("\n")
-    .filter((l) => l.trim())
-    .map((line, i) => {
-      const [category, icon, items] = line.split("|").map((s) => s.trim());
-      return {
-        id: `tech-${i + 1}`,
-        category: category || "Skill Group",
-        icon: icon || "fa-solid fa-wrench",
-        items: (items || "").split(",").map((s) => s.trim()).filter(Boolean)
-      };
-    });
 }
 
 function parseSoftSkills(text) {
@@ -1044,6 +1630,78 @@ function populateSettingsForm() {
   });
 }
 
+/* ================================================================
+   TEAM & ACCESS — Admin user management
+   ================================================================ */
+function setupAdminUsers() {
+  const form = $("#invite-admin-form");
+  if (!form) return;
+
+  renderAdminUsersTable();
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = getVal("invite-email").trim();
+    const role = document.getElementById("invite-role")?.value || "editor";
+    if (!email) return;
+
+    if (!siteContent.settings) siteContent.settings = {};
+    const users = siteContent.settings.adminUsers || [];
+
+    if (users.find((u) => u.email === email)) {
+      flash("invite-status", "This email is already in the list.", true);
+      return;
+    }
+
+    users.push({ email, role, addedAt: new Date().toISOString() });
+    siteContent.settings.adminUsers = users;
+    await saveSiteContent(siteContent);
+    renderAdminUsersTable();
+    flash("invite-status", `${email} added as ${capitalize(role)}.`);
+    form.reset();
+  });
+}
+
+function capitalize(str) {
+  return str ? str.charAt(0).toUpperCase() + str.slice(1) : str;
+}
+
+function renderAdminUsersTable() {
+  const tbody = document.getElementById("admin-users-tbody");
+  const wrap = document.getElementById("admin-users-wrap");
+  if (!tbody || !wrap) return;
+
+  const users = (siteContent?.settings?.adminUsers) || [];
+  wrap.hidden = users.length === 0;
+  if (users.length === 0) { tbody.innerHTML = ""; return; }
+
+  const ROLE_BADGE = {
+    viewer: '<span class="badge-sm badge-read">Viewer</span>',
+    editor: '<span class="badge-sm badge-published">Editor</span>',
+    admin: '<span class="badge-sm badge-featured">Admin</span>',
+  };
+
+  tbody.innerHTML = users.map((u, i) => `
+    <tr>
+      <td data-label="Email">${u.email}</td>
+      <td data-label="Role">${ROLE_BADGE[u.role] || capitalize(u.role)}</td>
+      <td data-label="Added">${u.addedAt ? new Date(u.addedAt).toLocaleDateString() : "&mdash;"}</td>
+      <td class="row-actions" data-label="">
+        <button class="danger" title="Remove admin" data-idx="${i}"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>`).join("");
+
+  tbody.querySelectorAll("[data-idx]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const idx = parseInt(btn.dataset.idx, 10);
+      siteContent.settings.adminUsers.splice(idx, 1);
+      await saveSiteContent(siteContent);
+      renderAdminUsersTable();
+      flash("invite-status", "Admin removed.");
+    });
+  });
+}
+
 function setupImportExport() {
   $("#export-btn")?.addEventListener("click", () => {
     const data = exportStateSnapshot();
@@ -1228,6 +1886,84 @@ function setupAIWriter() {
 
 // Initialize AI writer when DOM is ready
 document.addEventListener("DOMContentLoaded", setupAIWriter);
+
+/* ================================================================
+   ICON PICKER
+   ================================================================ */
+function setupIconPicker() {
+  const modal = $("#icon-picker-modal");
+  const searchEl = $("#icon-picker-search");
+  const catEl = $("#icon-picker-cat");
+  const grid = $("#icon-picker-grid");
+  const countEl = $("#icon-picker-count");
+  const closeBtn = $("#icon-picker-close");
+  if (!modal) return;
+
+  // Populate category dropdown from data
+  const cats = [...new Set(FA_ICONS.map((i) => i.cat))].sort();
+  cats.forEach((c) => {
+    const opt = document.createElement("option");
+    opt.value = c; opt.textContent = c;
+    catEl.appendChild(opt);
+  });
+
+  function renderGrid() {
+    const q = (searchEl.value || "").toLowerCase();
+    const cat = catEl.value;
+    const filtered = FA_ICONS.filter((icon) => {
+      const matchQ = !q || icon.name.toLowerCase().includes(q) || icon.cls.toLowerCase().includes(q);
+      const matchCat = !cat || icon.cat === cat;
+      return matchQ && matchCat;
+    });
+    countEl.textContent = `${filtered.length} icon${filtered.length !== 1 ? "s" : ""}`;
+    grid.innerHTML = filtered
+      .map((icon) =>
+        `<button type="button" class="icon-picker-item" data-cls="${escapeHtml(icon.cls)}" title="${escapeHtml(icon.name)}">
+          <i class="${escapeHtml(icon.cls)}"></i>
+          <span>${escapeHtml(icon.name)}</span>
+        </button>`
+      ).join("");
+    grid.querySelectorAll(".icon-picker-item").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const cls = btn.dataset.cls;
+        if (_iconPickerTarget) {
+          const inp = document.getElementById(_iconPickerTarget);
+          if (inp) inp.value = cls;
+        }
+        if (_iconPickerPreview) {
+          const prev = document.getElementById(_iconPickerPreview);
+          if (prev) prev.className = cls;
+        }
+        closeIconPicker();
+      });
+    });
+  }
+
+  searchEl.addEventListener("input", renderGrid);
+  catEl.addEventListener("change", renderGrid);
+  closeBtn.addEventListener("click", closeIconPicker);
+  modal.addEventListener("click", (e) => { if (e.target === modal) closeIconPicker(); });
+
+  // Open picker when any .icon-pick-trigger is clicked (event delegation on body)
+  document.addEventListener("click", (e) => {
+    const trigger = e.target.closest(".icon-pick-trigger");
+    if (!trigger) return;
+    _iconPickerTarget = trigger.dataset.target;
+    _iconPickerPreview = trigger.dataset.preview || null;
+    modal.hidden = false;
+    searchEl.value = "";
+    catEl.value = "";
+    renderGrid();
+    requestAnimationFrame(() => searchEl.focus());
+  });
+}
+
+function closeIconPicker() {
+  const modal = $("#icon-picker-modal");
+  if (modal) modal.hidden = true;
+  _iconPickerTarget = null;
+  _iconPickerPreview = null;
+}
 
 /* ================================================================
    UTILITIES

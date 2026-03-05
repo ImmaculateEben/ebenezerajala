@@ -167,9 +167,11 @@
             <form id="profile-form" class="admin-form-grid">
               <div class="form-group"><label for="profile-img-file">Profile Image</label><input type="file" id="profile-img-file" accept="image/*"></div>
               <img id="profile-img-preview" class="admin-img-preview" src="assets/images/profile-placeholder.svg" alt="Profile">
-              <div class="form-group has-ai"><label for="profile-bio1">Bio Paragraph 1</label><textarea id="profile-bio1" rows="4"></textarea><button type="button" class="btn-ai-assist" data-target="profile-bio1" data-ctx="professional bio for a web developer"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div>
-              <div class="form-group has-ai"><label for="profile-bio2">Bio Paragraph 2</label><textarea id="profile-bio2" rows="4"></textarea><button type="button" class="btn-ai-assist" data-target="profile-bio2" data-ctx="second bio paragraph about work philosophy"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div>
-              <div class="form-group has-ai"><label for="profile-bio3">Bio Paragraph 3</label><textarea id="profile-bio3" rows="4"></textarea><button type="button" class="btn-ai-assist" data-target="profile-bio3" data-ctx="closing bio paragraph about goals"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div>
+              <div class="form-group has-ai">
+                <label for="profile-bio">Bio <small style="font-weight:400;opacity:.7">&mdash; press Enter twice to start a new paragraph</small></label>
+                <textarea id="profile-bio" rows="10"></textarea>
+                <button type="button" class="btn-ai-assist" data-target="profile-bio" data-ctx="professional multi-paragraph bio for a web developer"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+              </div>
               <div class="form-row-2">
                 <div class="form-group"><label for="profile-location">Location</label><input type="text" id="profile-location"></div>
                 <div class="form-group"><label for="profile-email">Email</label><input type="email" id="profile-email"></div>
@@ -202,12 +204,19 @@
                 <div class="form-group"><label for="proj-url">Live URL</label><input type="url" id="proj-url"></div>
                 <div class="form-group"><label for="proj-github">Source URL</label><input type="url" id="proj-github"></div>
               </div>
+              <div class="form-group"><label for="proj-tags">Tags <small>(comma-sep)</small></label><input type="text" id="proj-tags"></div>
               <div class="form-row-2">
-                <div class="form-group"><label for="proj-tags">Tags <small>(comma-sep)</small></label><input type="text" id="proj-tags"></div>
-                <div class="form-group"><label for="proj-gradient">Gradient</label><input type="text" id="proj-gradient" placeholder="linear-gradient(135deg,#1a1a2e,#16213e)"></div>
+                <div class="form-group">
+                  <label for="proj-feat-file">Featured Image <small>shown on cards &amp; project hero</small></label>
+                  <input type="file" id="proj-feat-file" accept="image/*">
+                  <img id="proj-feat-preview" class="admin-img-preview" src="assets/images/project-placeholder.svg" alt="Featured" style="margin-top:.5rem">
+                </div>
+                <div class="form-group">
+                  <label for="proj-gallery-files">Gallery Images <small>additional screenshots (multi-select)</small></label>
+                  <input type="file" id="proj-gallery-files" accept="image/*" multiple>
+                  <div id="proj-gallery-preview" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem"></div>
+                </div>
               </div>
-              <div class="form-group"><label for="proj-img-file">Image</label><input type="file" id="proj-img-file" accept="image/*"></div>
-              <img id="proj-img-preview" class="admin-img-preview" src="assets/images/project-placeholder.svg" alt="Project">
               <label class="check-label"><input type="checkbox" id="proj-featured"> Featured</label>
               <div class="admin-actions-row">
                 <button type="submit" class="btn btn-primary">Save Project</button>
@@ -235,18 +244,50 @@
       <section class="admin-section" data-panel="skills" hidden>
         <div class="panel-header"><h1><i class="fa-solid fa-layer-group"></i> Skills &amp; Tech</h1><p>Tech stack icons, technical skills, and soft skills.</p></div>
 
-        <!-- Tech Stack + Technical Skills -->
+        <!-- Tech Stack -->
         <div class="admin-card">
           <form id="skills-form" class="admin-form-grid">
             <div>
               <label class="form-group-label">Homepage Tech Stack</label>
-              <input id="tech-search" type="search" placeholder="Filter by name or categoryâ€¦">
+              <input id="tech-search" type="search" placeholder="Filter by name or category&#x2026;">
               <div id="tech-selector" class="tech-selector-wrap"></div>
             </div>
-            <div class="form-group expand"><label for="tech-skills-text">Technical Skills <small>(one per line: Category|fa-icon-class|Item1,Item2,â€¦)</small></label><textarea id="tech-skills-text" class="mono-ta"></textarea></div>
-            <button type="submit" class="btn btn-primary">Save Tech Stack &amp; Technical Skills</button>
+            <button type="submit" class="btn btn-primary">Save Tech Stack</button>
           </form>
           <div id="skills-status" class="admin-status is-success" hidden></div>
+        </div>
+
+        <!-- Technical Skills Visual Manager -->
+        <div class="admin-card" style="margin-top:1.5rem">
+          <h3><i class="fa-solid fa-code"></i> Technical Skills</h3>
+          <p class="muted-copy" style="margin:.25rem 0 1rem">Add skill groups shown on the Skills page. Each group has a category, icon, and comma-separated items.</p>
+          <div class="admin-card table-wrap" style="margin-bottom:1.25rem">
+            <table class="admin-table">
+              <thead><tr><th>Category</th><th>Icon</th><th>Items</th><th>Actions</th></tr></thead>
+              <tbody id="tech-skill-tbody"></tbody>
+            </table>
+          </div>
+          <h4 id="tech-skill-form-title" style="margin-bottom:.85rem">Add Skill Group</h4>
+          <form id="tech-skill-form" class="admin-form-grid">
+            <input type="hidden" id="tech-skill-idx" value="-1">
+            <div class="form-row-2">
+              <div class="form-group"><label for="tech-skill-cat">Category</label><input type="text" id="tech-skill-cat" placeholder="e.g. Frontend Development" required></div>
+              <div class="form-group">
+                <label>Icon</label>
+                <div class="icon-pick-row">
+                  <span class="icon-pick-preview"><i id="tech-skill-icon-preview" class="fa-solid fa-wrench"></i></span>
+                  <input type="hidden" id="tech-skill-icon" value="fa-solid fa-wrench">
+                  <button type="button" class="btn btn-outline btn-sm icon-pick-trigger" data-target="tech-skill-icon" data-preview="tech-skill-icon-preview">Pick Icon</button>
+                </div>
+              </div>
+            </div>
+            <div class="form-group"><label for="tech-skill-items">Items <small>(comma-separated)</small></label><input type="text" id="tech-skill-items" placeholder="HTML, CSS, JavaScript, React&#x2026;"></div>
+            <div class="admin-actions-row">
+              <button type="submit" class="btn btn-primary">Save Group</button>
+              <button type="button" id="tech-skill-reset" class="btn btn-outline">New</button>
+            </div>
+          </form>
+          <div id="tech-skill-status" class="admin-status is-success" hidden></div>
         </div>
 
         <!-- Soft / Personal Skills (visual manager) -->
@@ -264,7 +305,14 @@
             <input type="hidden" id="soft-skill-idx" value="-1">
             <div class="form-row-2">
               <div class="form-group"><label for="soft-skill-title">Title</label><input type="text" id="soft-skill-title" placeholder="e.g. Creativity" required></div>
-              <div class="form-group"><label for="soft-skill-icon">Icon class <small>(<a href="https://fontawesome.com/icons" target="_blank" rel="noopener">FA 6</a>)</small></label><input type="text" id="soft-skill-icon" placeholder="fa-solid fa-lightbulb"></div>
+              <div class="form-group">
+                <label>Icon</label>
+                <div class="icon-pick-row">
+                  <span class="icon-pick-preview"><i id="soft-skill-icon-preview" class="fa-solid fa-star"></i></span>
+                  <input type="hidden" id="soft-skill-icon" value="fa-solid fa-star">
+                  <button type="button" class="btn btn-outline btn-sm icon-pick-trigger" data-target="soft-skill-icon" data-preview="soft-skill-icon-preview">Pick Icon</button>
+                </div>
+              </div>
             </div>
             <div class="form-group"><label for="soft-skill-desc">Description</label><textarea id="soft-skill-desc" rows="2" placeholder="One or two sentences describing this skill."></textarea></div>
             <div class="admin-actions-row">
@@ -444,6 +492,48 @@
           </div>
           <div id="settings-status" class="admin-status is-success" hidden></div>
         </div>
+
+        <!-- Team & Access -->
+        <div class="admin-card" style="margin-top:1.25rem">
+          <h3><i class="fa-solid fa-users-gear"></i> Team &amp; Access</h3>
+          <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:1rem">Add people who can access this admin dashboard and set their permission level.</p>
+          <form id="invite-admin-form" class="admin-form-grid">
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="invite-email">Email Address</label>
+                <input type="email" id="invite-email" placeholder="colleague@example.com" required>
+              </div>
+              <div class="form-group">
+                <label for="invite-role">Role</label>
+                <select id="invite-role">
+                  <option value="viewer">Viewer &mdash; read-only access</option>
+                  <option value="editor" selected>Editor &mdash; manage content</option>
+                  <option value="admin">Admin &mdash; full access</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-user-plus"></i> Add Admin</button>
+            </div>
+          </form>
+          <div id="invite-status" class="admin-status is-success" hidden></div>
+          <div id="admin-users-wrap" style="margin-top:1.25rem" hidden>
+            <h4 style="margin-bottom:.75rem">Current Admins</h4>
+            <div class="table-wrap">
+              <table class="admin-table" id="admin-users-table">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Added</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="admin-users-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- ===== AI WRITER ===== -->
@@ -471,6 +561,22 @@
       </section>
 
     </main>
+  </div>
+
+  <!-- ===== ICON PICKER MODAL ===== -->
+  <div id="icon-picker-modal" class="icon-picker-overlay" hidden>
+    <div class="icon-picker-dialog">
+      <div class="icon-picker-header">
+        <h4><i class="fa-solid fa-icons"></i> Pick an Icon</h4>
+        <div class="icon-picker-controls">
+          <input type="search" id="icon-picker-search" placeholder="Search icons&#x2026;" autocomplete="off">
+          <select id="icon-picker-cat"><option value="">All Categories</option></select>
+        </div>
+        <button type="button" id="icon-picker-close" class="admin-login-close" style="position:static;margin-left:.5rem"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p id="icon-picker-count" class="icon-picker-count"></p>
+      <div id="icon-picker-grid" class="icon-picker-grid"></div>
+    </div>
   </div>
 
   <script src="assets/js/runtime-config.js"></script>
