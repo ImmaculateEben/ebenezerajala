@@ -54,6 +54,45 @@ body.admin-body {
 
 .admin-login-close i { pointer-events: none; }
 
+/* Login form inputs */
+.admin-login-card input[type="email"],
+.admin-login-card input[type="password"] {
+  width: 100%;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 0.9rem;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.92rem;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.admin-login-card input:focus {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.admin-login-card input::placeholder {
+  color: var(--text-muted);
+}
+
+.admin-login-card .form-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-login-card .form-group {
+  margin-bottom: 0;
+}
+
 /* ---- SHELL LAYOUT ---- */
 .admin-shell {
   display: grid;
@@ -400,12 +439,127 @@ body.admin-body {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+/* --- Admin-wide input styling --- */
+.admin-main input[type="text"],
+.admin-main input[type="email"],
+.admin-main input[type="url"],
+.admin-main input[type="password"],
+.admin-main input[type="search"],
+.admin-main input[type="number"],
+.admin-main input[type="tel"],
+.admin-main textarea,
+.admin-main select {
+  width: 100%;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 0.9rem;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  outline: none;
+  appearance: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.admin-main input::placeholder,
+.admin-main textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.admin-main input:focus,
+.admin-main textarea:focus,
+.admin-main select:focus {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* File input */
+.admin-main input[type="file"] {
+  background: var(--bg-alt);
+  border: 1px dashed var(--border-hover);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.85rem;
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.admin-main input[type="file"]:hover {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.admin-main input[type="file"]::file-selector-button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: 0.75rem;
+  transition: background 0.15s;
+}
+
+.admin-main input[type="file"]:hover::file-selector-button {
+  background: var(--accent-hover);
+}
+
+/* Checkbox styling */
+.admin-main label:has(input[type="checkbox"]) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  user-select: none;
+}
+
+.admin-main input[type="checkbox"] {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Search input extra styling */
+.admin-main input[type="search"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 0.75rem center;
+  background-size: 1rem;
+  padding-left: 2.25rem;
+}
+
+/* Form labels inside admin */
+.admin-main .form-group {
+  margin-bottom: 0;
+}
+
+.admin-main .form-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .admin-form-grid textarea { min-height: 140px; }
 
 .admin-field-compact textarea {
   min-height: 220px;
   font-family: Consolas, "Courier New", monospace;
   font-size: 0.86rem;
+  line-height: 1.6;
 }
 
 /* ---- IMAGE PREVIEWS ---- */
@@ -526,14 +680,14 @@ body.admin-body {
 }
 
 .selector-chip-icon {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
-
-.selector-chip-fallback { display: none; }
 
 /* ---- CUSTOM SCROLLBAR (admin area) ---- */
 .admin-sidebar::-webkit-scrollbar,

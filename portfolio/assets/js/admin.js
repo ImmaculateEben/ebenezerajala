@@ -306,11 +306,10 @@ function renderTechStackSelector() {
     entries.forEach((item) => {
       const chip = document.createElement("label");
       chip.className = `selector-chip${selected.has(item.id) ? " active" : ""}`;
+      const iconClass = item.fallbackIcon || item.icon || "fa-solid fa-code";
       chip.innerHTML = `
         <input type="checkbox" value="${escapeHtml(item.id)}" ${selected.has(item.id) ? "checked" : ""}>
-        <span class="selector-chip-icon"><i class="${escapeHtml(item.icon)}"></i><i class="selector-chip-fallback ${escapeHtml(
-          item.fallbackIcon || "fa-solid fa-code"
-        )}"></i></span>
+        <span class="selector-chip-icon"><i class="${escapeHtml(iconClass)}"></i></span>
         <span>${escapeHtml(item.name)}</span>
       `;
       chips.appendChild(chip);
