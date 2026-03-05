@@ -39,23 +39,40 @@
     </div>
   </nav>
 
-  <section class="page-header">
-    <div class="container">
-      <h1 class="fade-in-up">Selected <span class="highlight">Projects</span></h1>
-      <p class="fade-in-up delay-1">Filter by capability and review real delivery work.</p>
+  <!-- Hero banner -->
+  <section class="projects-hero">
+    <div class="projects-hero-bg"></div>
+    <div class="container projects-hero-inner">
+      <span class="projects-hero-badge fade-in-up"><i class="fa-solid fa-layer-group"></i> Portfolio</span>
+      <h1 class="fade-in-up delay-1">Selected <span class="highlight">Projects</span></h1>
+      <p class="fade-in-up delay-2">Real client work — filtered by capability and reviewed for results.</p>
+      <div class="projects-hero-stats fade-in-up delay-3">
+        <div class="phs-item"><strong id="proj-stat-total">0</strong><span>Projects</span></div>
+        <div class="phs-item"><strong id="proj-stat-featured">0</strong><span>Featured</span></div>
+        <div class="phs-item"><strong id="proj-stat-tags">0</strong><span>Technologies</span></div>
+      </div>
     </div>
-    <div class="blob blob-1"></div>
   </section>
 
-  <section class="section">
+  <!-- Filter + grid -->
+  <section class="section projects-section">
     <div class="container">
-      <div id="project-filter-list" class="selector-group" style="margin-bottom:1.5rem;"></div>
-      <div id="projects-container"></div>
+      <div class="projects-toolbar">
+        <div id="project-filter-list" class="filter-bar"></div>
+        <div class="projects-view-toggle">
+          <button type="button" class="view-btn active" data-view="grid" title="Grid view"><i class="fa-solid fa-grid-2"></i></button>
+          <button type="button" class="view-btn" data-view="list" title="List view"><i class="fa-solid fa-list"></i></button>
+        </div>
+      </div>
+      <div id="projects-container" class="projects-grid"></div>
+      <p id="projects-empty" class="projects-empty" hidden><i class="fa-solid fa-filter-circle-xmark"></i> No projects match that filter.</p>
     </div>
   </section>
 
+  <!-- CTA -->
   <section class="section alt-bg">
-    <div class="container cta-strip reveal">
+    <div class="container projects-cta reveal">
+      <div class="projects-cta-icon"><i class="fa-solid fa-rocket"></i></div>
       <h2>Need similar results for your website?</h2>
       <p>Reach out if you need a cleaner build, better performance, or a stronger conversion path.</p>
       <a href="contact.html" class="btn btn-primary">Start a Conversation <i class="fa-solid fa-arrow-right"></i></a>
@@ -66,7 +83,7 @@
     <div class="container">
       <div class="footer-content">
         <a href="index.html" class="logo">EA<span>.</span></a>
-        <p>&copy; 2026 Ebenezer Ajala. All Rights Reserved.</p>
+        <p class="footer-copy">&copy; 2026 Ebenezer Ajala. All Rights Reserved.</p>
         <div class="footer-links">
           <a href="about.html">About</a>
           <a href="projects.html">Projects</a>

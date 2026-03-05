@@ -139,53 +139,64 @@ function initRevealObserver() {
 
 function buildProjectCard(project, index, options = {}) {
   const card = document.createElement("article");
-  card.className = "project-card-full card-glass reveal";
+  card.className = "project-card reveal";
 
-  const link = document.createElement("a");
-  link.className = "project-card-link";
-  link.href = `project.html?id=${encodeURIComponent(project.id)}`;
-  card.appendChild(link);
+  // --- Image wrapper ---
+  const imgWrap = document.createElement("div");
+  imgWrap.className = "project-card-img";
+  card.appendChild(imgWrap);
 
   const image = document.createElement("img");
-  image.className = "project-featured-img";
   image.src = project.image || PROJECT_IMAGE_FALLBACK;
   image.alt = `${project.title} preview`;
-  link.appendChild(image);
+  image.loading = "lazy";
+  imgWrap.appendChild(image);
 
-  const number = document.createElement("div");
-  number.className = "project-number";
-  number.textContent = String(index + 1).padStart(2, "0");
-  link.appendChild(number);
+  if (project.featured) {
+    const ribbon = document.createElement("span");
+    ribbon.className = "project-card-ribbon";
+    ribbon.textContent = "Featured";
+    imgWrap.appendChild(ribbon);
+  }
 
-  const info = document.createElement("div");
-  info.className = "project-info";
-  link.appendChild(info);
+  const numEl = document.createElement("span");
+  numEl.className = "project-card-num";
+  numEl.textContent = String(index + 1).padStart(2, "0");
+  imgWrap.appendChild(numEl);
+
+  // --- Body ---
+  const body = document.createElement("div");
+  body.className = "project-card-body";
+  card.appendChild(body);
 
   const title = document.createElement("h3");
   title.textContent = project.title;
-  info.appendChild(title);
+  body.appendChild(title);
 
-  const summary = document.createElement("p");
-  summary.textContent = project.shortDesc;
-  info.appendChild(summary);
+  const desc = document.createElement("p");
+  desc.className = "project-desc";
+  desc.textContent = project.shortDesc;
+  body.appendChild(desc);
 
   const tags = document.createElement("div");
-  tags.className = "project-tags";
+  tags.className = "project-card-tags";
   project.tags.forEach((tag) => {
     const pill = document.createElement("span");
     pill.textContent = tag;
     tags.appendChild(pill);
   });
-  info.appendChild(tags);
+  body.appendChild(tags);
 
-  const actions = document.createElement("div");
-  actions.className = "project-actions";
-  info.appendChild(actions);
+  // --- Footer ---
+  const footer = document.createElement("div");
+  footer.className = "project-card-footer";
+  card.appendChild(footer);
 
-  const details = document.createElement("span");
-  details.className = "btn btn-primary";
-  details.textContent = "View Details";
-  actions.appendChild(details);
+  const detailLink = document.createElement("a");
+  detailLink.className = "btn btn-primary";
+  detailLink.href = `project.html?id=${encodeURIComponent(project.id)}`;
+  detailLink.innerHTML = 'View Details <i class="fa-solid fa-arrow-right"></i>';
+  footer.appendChild(detailLink);
 
   if (options.includeExternal && project.url) {
     const external = document.createElement("a");
@@ -194,7 +205,7 @@ function buildProjectCard(project, index, options = {}) {
     external.target = "_blank";
     external.rel = "noopener noreferrer";
     external.innerHTML = 'Live Site <i class="fa-solid fa-arrow-up-right-from-square"></i>';
-    actions.appendChild(external);
+    footer.appendChild(external);
   }
 
   return card;
@@ -322,6 +333,88 @@ function initTitleRotators(titles) {
   });
 }
 
+const GITHUB_USERNAME_PATTERN = /^[A-Za-z0-9-]{1,39}$/;
+const GITHUB_UNAVAILABLE_MESSAGE = "GitHub activity is temporarily unavailable.";
+
+function isValidGitHubUsername(value) {
+  const username = String(value || "").trim();
+  return GITHUB_USERNAME_PATTERN.test(username) && !username.startsWith("-") && !username.endsWith("-");
+}
+
+function extractGitHubUsernameFromUrl(value) {
+  const safeUrl = sanitizeUrl(value);
+  if (!safeUrl) {
+    return "";
+  }
+
+  try {
+    const parsed = new URL(safeUrl);
+    const host = parsed.hostname.replace(/^www\./i, "").toLowerCase();
+    if (host !== "github.com") {
+      return "";
+    }
+
+    const [username] = parsed.pathname.split("/").filter(Boolean);
+    return String(username || "").trim();
+  } catch (error) {
+    return "";
+  }
+}
+
+function resolveGitHubUsername(siteContent) {
+  const direct = String(siteContent?.profile?.githubUsername || "").trim();
+  if (isValidGitHubUsername(direct)) {
+    return direct;
+  }
+
+  const fromProfileUrl = extractGitHubUsernameFromUrl(siteContent?.profile?.github || "");
+  if (isValidGitHubUsername(fromProfileUrl)) {
+    return fromProfileUrl;
+  }
+
+  return "";
+}
+
+function hasGitHubContributionCells(scope) {
+  return Boolean(scope?.querySelector?.(".ContributionCalendar-day[data-level]"));
+}
+
+function setGitHubUnavailable(calendar) {
+  if (calendar) {
+    calendar.textContent = GITHUB_UNAVAILABLE_MESSAGE;
+  }
+}
+
+async function renderGitHubCalendarFallback(calendar, username) {
+  const endpoint = `https://api.bloggify.net/gh-calendar/?username=${encodeURIComponent(username)}`;
+  const response = await fetch(endpoint, { method: "GET" });
+
+  if (!response.ok) {
+    throw new Error(`Fallback GitHub calendar request failed with status ${response.status}`);
+  }
+
+  const body = await response.text();
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(body, "text/html");
+  const yearly = doc.querySelector(".js-yearly-contributions");
+  if (!yearly) {
+    return false;
+  }
+
+  yearly
+    .querySelectorAll(".position-relative h2, .contrib-column, .contrib-footer, .width-full.f6.px-0.tmp-px-md-5.py-1")
+    .forEach((element) => element.remove());
+
+  yearly.querySelectorAll("a").forEach((link) => {
+    if (String(link.textContent || "").includes("View your contributions in 3D, VR and IRL!")) {
+      link.parentElement?.remove();
+    }
+  });
+
+  calendar.innerHTML = yearly.innerHTML;
+  return hasGitHubContributionCells(calendar);
+}
+
 async function waitForGitHubCalendar(timeoutMs = 4500) {
   if (typeof window.GitHubCalendar === "function") {
     return true;
@@ -344,34 +437,54 @@ async function initGitHubContributions(siteContent) {
     return;
   }
 
-  const username = String(siteContent?.profile?.githubUsername || "").trim();
   const calendar = container.querySelector(".github-calendar");
   const profileLink = container.querySelector("[data-github-profile-link]");
+  const username = resolveGitHubUsername(siteContent);
+  const safeProfileUrl = sanitizeUrl(siteContent?.profile?.github || "");
 
-  if (!calendar || !username) {
-    container.hidden = true;
+  if (!calendar) {
     return;
   }
 
   if (profileLink) {
-    profileLink.href = `https://github.com/${encodeURIComponent(username)}`;
+    profileLink.href = username
+      ? `https://github.com/${encodeURIComponent(username)}`
+      : safeProfileUrl || "https://github.com";
   }
 
-  calendar.setAttribute("data-github-username", username);
-
-  const ready = await waitForGitHubCalendar();
-  if (!ready || typeof window.GitHubCalendar !== "function") {
-    calendar.textContent = "GitHub activity is temporarily unavailable.";
+  if (!username) {
+    setGitHubUnavailable(calendar);
     return;
   }
 
-  try {
-    window.GitHubCalendar(calendar, username, {
-      responsive: true,
-      tooltips: true
-    });
-  } catch (error) {
-    calendar.textContent = "GitHub activity is temporarily unavailable.";
+  calendar.setAttribute("data-github-username", username);
+  let rendered = false;
+
+  const ready = await waitForGitHubCalendar();
+  if (ready && typeof window.GitHubCalendar === "function") {
+    try {
+      const maybePromise = window.GitHubCalendar(calendar, username, {
+        global_stats: false,
+        responsive: false,
+        tooltips: false
+      });
+      await Promise.resolve(maybePromise);
+      rendered = hasGitHubContributionCells(calendar);
+    } catch (error) {
+      rendered = false;
+    }
+  }
+
+  if (!rendered) {
+    try {
+      rendered = await renderGitHubCalendarFallback(calendar, username);
+    } catch (error) {
+      rendered = false;
+    }
+  }
+
+  if (!rendered) {
+    setGitHubUnavailable(calendar);
   }
 }
 
@@ -385,9 +498,16 @@ function setupTestimonialsMarquee(container) {
     return;
   }
 
-  const mobile = window.matchMedia("(max-width: 767px)").matches;
+  const isDesktop = window.matchMedia("(min-width: 768px)").matches;
   const reduceMotion = prefersReducedMotion();
 
+  /* Desktop: show as a responsive grid, no marquee */
+  if (isDesktop) {
+    container.classList.add("testimonials-desktop-grid");
+    return;
+  }
+
+  /* Mobile: horizontal scroll marquee */
   const viewport = document.createElement("div");
   viewport.className = "testimonials-marquee";
   const track = document.createElement("div");
@@ -395,7 +515,7 @@ function setupTestimonialsMarquee(container) {
 
   cards.forEach((card) => track.appendChild(card));
 
-  if (!mobile && !reduceMotion) {
+  if (!reduceMotion && cards.length > 2) {
     cards.forEach((card) => {
       const clone = card.cloneNode(true);
       clone.classList.add("is-clone");
@@ -472,9 +592,8 @@ async function renderHomePage(siteContent, projects, testimonials) {
     itemsToRender.forEach((item) => {
       const tile = document.createElement("div");
       tile.className = "tech-stack-item reveal";
-      tile.innerHTML = `<div class="tech-stack-icon-wrapper"><i class="${item.icon}"></i><i class="tech-stack-fallback ${
-        item.fallbackIcon || "fa-solid fa-code"
-      }" aria-hidden="true"></i></div><span>${escapeHtml(
+      const iconClass = item.fallbackIcon || item.icon || "fa-solid fa-code";
+      tile.innerHTML = `<div class="tech-stack-icon-wrapper"><i class="${iconClass}" aria-hidden="true"></i></div><span>${escapeHtml(
         item.name
       )}</span>`;
       techGrid.appendChild(tile);
@@ -596,16 +715,23 @@ function renderExperience(siteContent) {
 function renderProjectsPage(projects) {
   const container = document.getElementById("projects-container");
   const filterBar = document.getElementById("project-filter-list");
+  const emptyMsg = document.getElementById("projects-empty");
   if (!container) {
     return;
   }
 
-  const tags = [...new Set(projects.flatMap((project) => project.tags))];
+  // Stats
+  const allTags = [...new Set(projects.flatMap((p) => p.tags))];
+  setText("proj-stat-total", projects.length);
+  setText("proj-stat-featured", projects.filter((p) => p.featured).length);
+  setText("proj-stat-tags", allTags.length);
+
   let activeTag = "All";
 
   const renderCards = () => {
     container.innerHTML = "";
-    const filtered = activeTag === "All" ? projects : projects.filter((project) => project.tags.includes(activeTag));
+    const filtered = activeTag === "All" ? projects : projects.filter((p) => p.tags.includes(activeTag));
+    if (emptyMsg) emptyMsg.hidden = filtered.length > 0;
     filtered.forEach((project, index) => {
       container.appendChild(buildProjectCard(project, index, { includeExternal: true }));
     });
@@ -614,8 +740,9 @@ function renderProjectsPage(projects) {
     attachImageFallbacks(container);
   };
 
+  // Filters
   if (filterBar) {
-    const options = ["All", ...tags];
+    const options = ["All", ...allTags];
     filterBar.innerHTML = "";
     options.forEach((tag) => {
       const button = document.createElement("button");
@@ -624,13 +751,23 @@ function renderProjectsPage(projects) {
       button.textContent = tag;
       button.addEventListener("click", () => {
         activeTag = tag;
-        filterBar.querySelectorAll(".filter-chip").forEach((chip) => chip.classList.remove("active"));
+        filterBar.querySelectorAll(".filter-chip").forEach((c) => c.classList.remove("active"));
         button.classList.add("active");
         renderCards();
       });
       filterBar.appendChild(button);
     });
   }
+
+  // View toggle (grid / list)
+  document.querySelectorAll(".view-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".view-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      const view = btn.dataset.view;
+      container.classList.toggle("view-list", view === "list");
+    });
+  });
 
   renderCards();
 }
@@ -642,15 +779,17 @@ async function renderProjectDetailPage() {
   }
 
   const id = new URLSearchParams(window.location.search).get("id");
-  const project = await loadProject(id);
+  const allProjects = await loadProjects();
+  const project = allProjects.find((p) => p.id === id) || (await loadProject(id));
 
   if (!project) {
     container.innerHTML = `
-      <section class="section">
-        <div class="container card-glass">
+      <section class="section" style="padding-top:calc(var(--nav-height) + 4rem)">
+        <div class="container card-glass" style="text-align:center;padding:3rem 2rem">
+          <i class="fa-solid fa-circle-exclamation" style="font-size:2.5rem;color:var(--accent);margin-bottom:1rem"></i>
           <h1>Project not found</h1>
-          <p>The requested project could not be loaded.</p>
-          <a class="btn btn-primary" href="projects.html">Back to Projects</a>
+          <p style="color:var(--text-secondary);margin-bottom:1.5rem">The requested project could not be loaded.</p>
+          <a class="btn btn-primary" href="projects.html"><i class="fa-solid fa-arrow-left"></i> Back to Projects</a>
         </div>
       </section>
     `;
@@ -661,20 +800,20 @@ async function renderProjectDetailPage() {
   setMetaDescription(project.shortDesc);
 
   container.innerHTML = `
-    <div class="project-hero" style="background:${escapeHtml(project.gradient)};">
+    <div class="project-detail-hero" style="background:${escapeHtml(project.gradient)};">
       <div class="blob blob-1"></div>
       <div class="blob blob-2"></div>
-      <div class="project-hero-content fade-in-up">
-        <a href="projects.html" class="project-back"><i class="fa-solid fa-arrow-left"></i> Back to Projects</a>
-        <div class="project-tags">${project.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
+      <div class="project-detail-hero-inner fade-in-up">
+        <a href="projects.html" class="project-back"><i class="fa-solid fa-arrow-left"></i> All Projects</a>
         <h1>${escapeHtml(project.title)}</h1>
-        <p>${escapeHtml(project.shortDesc)}</p>
+        <p class="project-hero-desc">${escapeHtml(project.shortDesc)}</p>
+        <div class="project-tags">${project.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
       </div>
     </div>
     <section class="section">
       <div class="container">
         <div class="project-detail-grid">
-          <div class="project-long-desc reveal ck-content custom-html-content" id="project-rich-copy"></div>
+          <div class="project-detail-main project-long-desc reveal ck-content custom-html-content" id="project-rich-copy"></div>
           <aside class="project-detail-sidebar reveal delay-1">
             <div class="sidebar-card card-glass">
               <h4>Project Links</h4>
@@ -690,12 +829,17 @@ async function renderProjectDetailPage() {
     </section>
   `;
 
+  // Rich content
   const copy = document.getElementById("project-rich-copy");
-  const image = project.image
-    ? `<img src="${escapeHtml(project.image)}" alt="${escapeHtml(project.title)}" class="project-featured-img">`
-    : `<img src="${PROJECT_IMAGE_FALLBACK}" alt="${escapeHtml(project.title)}" class="project-featured-img">`;
-  safeSetHtml(copy, `${image}<h2 class="section-title">Project Overview</h2>${project.longDesc || `<p>${escapeHtml(project.shortDesc)}</p>`}`);
+  const imageSrc = project.image || PROJECT_IMAGE_FALLBACK;
+  safeSetHtml(
+    copy,
+    `<img src="${escapeHtml(imageSrc)}" alt="${escapeHtml(project.title)}" class="project-featured-img">
+     <h2 class="section-title">Project Overview</h2>
+     ${project.longDesc || `<p>${escapeHtml(project.shortDesc)}</p>`}`
+  );
 
+  // Links
   const linkList = document.getElementById("project-link-list");
   if (project.url) {
     linkList.insertAdjacentHTML(
@@ -713,6 +857,28 @@ async function renderProjectDetailPage() {
     linkList.innerHTML = '<p class="muted-copy">No external links have been added for this project yet.</p>';
   }
 
+  // Prev / Next navigation
+  const navSection = document.getElementById("project-nav-section");
+  const navStrip = document.getElementById("project-nav-strip");
+  if (navSection && navStrip && allProjects.length > 1) {
+    const idx = allProjects.findIndex((p) => p.id === project.id);
+    const prev = idx > 0 ? allProjects[idx - 1] : null;
+    const next = idx < allProjects.length - 1 ? allProjects[idx + 1] : null;
+    let navHTML = "";
+    if (prev) {
+      navHTML += `<a class="project-nav-link" href="project.html?id=${encodeURIComponent(prev.id)}"><i class="fa-solid fa-arrow-left"></i> ${escapeHtml(prev.title)}</a>`;
+    }
+    if (next) {
+      navHTML += `<a class="project-nav-link is-next" href="project.html?id=${encodeURIComponent(next.id)}">${escapeHtml(next.title)} <i class="fa-solid fa-arrow-right"></i></a>`;
+    }
+    navStrip.innerHTML = navHTML;
+    navSection.hidden = false;
+  }
+
+  // Show CTA
+  const cta = document.getElementById("project-cta");
+  if (cta) cta.hidden = false;
+
   initRevealObserver();
   applyExternalLinkSafety(container);
   attachImageFallbacks(container);
@@ -720,6 +886,60 @@ async function renderProjectDetailPage() {
 
 function renderHomeAndAboutEducation(siteContent) {
   renderEducation(siteContent);
+}
+
+function renderPageText(siteContent) {
+  const pt = siteContent?.pageText;
+  if (!pt) return;
+
+  // Hero prefix ("Hi, I'm")
+  const prefix = document.getElementById("hero-prefix");
+  if (prefix && pt.heroPrefix) prefix.textContent = pt.heroPrefix;
+
+  // Homepage CTA
+  const ctaTitle = document.getElementById("pt-cta-title");
+  if (ctaTitle && pt.ctaTitle) ctaTitle.textContent = pt.ctaTitle;
+  const ctaBody = document.getElementById("pt-cta-body");
+  if (ctaBody && pt.ctaBody) ctaBody.textContent = pt.ctaBody;
+
+  // About section title (supports "Word <highlight>Word</highlight>" format)
+  const aboutTitle = document.getElementById("pt-about-title");
+  if (aboutTitle && pt.aboutTitle) {
+    aboutTitle.innerHTML = highlightTitle(pt.aboutTitle);
+  }
+
+  // Featured Projects section
+  const projTitle = document.getElementById("pt-projects-title");
+  if (projTitle && pt.projectsTitle) {
+    projTitle.innerHTML = highlightTitle(pt.projectsTitle);
+  }
+  const projSub = document.getElementById("pt-projects-sub");
+  if (projSub && pt.projectsSub) projSub.textContent = pt.projectsSub;
+
+  // Client Feedback section
+  const fbTitle = document.getElementById("pt-feedback-title");
+  if (fbTitle && pt.feedbackTitle) {
+    fbTitle.innerHTML = highlightTitle(pt.feedbackTitle);
+  }
+  const fbSub = document.getElementById("pt-feedback-sub");
+  if (fbSub && pt.feedbackSub) fbSub.textContent = pt.feedbackSub;
+
+  // Footer copy (all pages)
+  const footerCopy = pt.footerCopy;
+  if (footerCopy) {
+    document.querySelectorAll(".footer-copy").forEach((el) => {
+      el.textContent = footerCopy;
+    });
+  }
+}
+
+function highlightTitle(text) {
+  // If text contains *word*, wrap that word in a .highlight span
+  // e.g. "About *Me*" → 'About <span class="highlight">Me</span>'
+  return escapeHtml(text).replace(
+    /\*([^*]+)\*/g,
+    '<span class="highlight">$1</span>'
+  );
 }
 
 async function initPage() {
@@ -734,6 +954,7 @@ async function initPage() {
 
   injectAnalytics(siteContent.settings.analyticsMeasurementId);
   renderProfileBlocks(siteContent);
+  renderPageText(siteContent);
   renderHomeAndAboutEducation(siteContent);
   renderSkills(siteContent);
   renderExperience(siteContent);

@@ -17,461 +17,398 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/devicon@2.16.0/devicon.min.css">
 </head>
 <body class="admin-body">
+
+  <!-- ===== LOGIN OVERLAY ===== -->
   <div id="admin-login-overlay" class="admin-login-overlay">
     <div class="card-glass admin-login-card">
-      <button type="button" id="admin-login-close" class="admin-login-close" aria-label="Close login">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+      <button type="button" id="admin-login-close" class="admin-login-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
       <h1 class="section-title" style="margin-bottom:1.25rem;">Admin Access</h1>
-      <p class="section-subtitle" style="margin-bottom:1.5rem;">Sign in to manage your portfolio content.</p>
+      <p class="section-subtitle" style="margin-bottom:1.5rem;">Sign in to manage your portfolio.</p>
       <form id="admin-login-form" class="admin-form-grid">
-        <div class="form-group">
-          <label for="admin-email">Email</label>
-          <input type="email" id="admin-email" required placeholder="admin@example.com">
-        </div>
-        <div class="form-group">
-          <label for="admin-password">Password</label>
-          <input type="password" id="admin-password" required placeholder="At least 6 characters">
-        </div>
+        <div class="form-group"><label for="admin-email">Email</label><input type="email" id="admin-email" required placeholder="admin@example.com"></div>
+        <div class="form-group"><label for="admin-password">Password</label><input type="password" id="admin-password" required placeholder="At least 6 characters"></div>
         <button type="submit" id="admin-login-submit" class="btn btn-primary">Sign in</button>
       </form>
       <div id="admin-login-error" class="admin-status is-error" hidden></div>
     </div>
   </div>
 
+  <!-- ===== DASHBOARD SHELL ===== -->
   <div id="admin-shell" class="admin-shell" hidden>
+
     <!-- Mobile top bar -->
     <header class="admin-topbar">
-      <button type="button" id="admin-menu-toggle" class="admin-menu-toggle" aria-label="Toggle menu">
-        <span></span><span></span><span></span>
-      </button>
+      <button type="button" id="admin-menu-toggle" class="admin-menu-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
       <a href="index.html" class="logo">EA<span>.</span></a>
-      <span class="admin-topbar-title">Dashboard</span>
+      <span class="admin-topbar-title" id="topbar-title">Dashboard</span>
     </header>
 
-    <!-- Sidebar backdrop (mobile) -->
     <div id="admin-sidebar-backdrop" class="admin-sidebar-backdrop"></div>
 
+    <!-- Sidebar -->
     <aside id="admin-sidebar" class="admin-sidebar">
-      <div class="admin-brand">
-        <a href="index.html" class="logo">EA<span>.</span></a>
-        <p class="muted-copy" style="margin-top:0.5rem;">Portfolio Management</p>
-      </div>
+      <div class="admin-brand"><a href="index.html" class="logo">EA<span>.</span></a><p class="muted-copy">Portfolio CMS</p></div>
       <nav class="admin-nav">
         <button class="admin-nav-btn active" data-section="overview"><i class="fa-solid fa-gauge-high"></i><span>Overview</span></button>
         <button class="admin-nav-btn" data-section="messages"><i class="fa-solid fa-envelope"></i><span>Messages</span><span class="admin-nav-badge" id="nav-badge-messages"></span></button>
+        <button class="admin-nav-btn" data-section="hero"><i class="fa-solid fa-bolt"></i><span>Hero Section</span></button>
+        <button class="admin-nav-btn" data-section="profile"><i class="fa-solid fa-user-pen"></i><span>Profile / About</span></button>
         <button class="admin-nav-btn" data-section="projects"><i class="fa-solid fa-diagram-project"></i><span>Projects</span></button>
-        <button class="admin-nav-btn" data-section="profile"><i class="fa-solid fa-user-pen"></i><span>Profile</span></button>
+        <button class="admin-nav-btn" data-section="skills"><i class="fa-solid fa-layer-group"></i><span>Skills &amp; Tech</span></button>
         <button class="admin-nav-btn" data-section="experience"><i class="fa-solid fa-briefcase"></i><span>Experience</span></button>
-        <button class="admin-nav-btn" data-section="skills"><i class="fa-solid fa-layer-group"></i><span>Skills</span></button>
+        <button class="admin-nav-btn" data-section="education"><i class="fa-solid fa-graduation-cap"></i><span>Education</span></button>
         <button class="admin-nav-btn" data-section="testimonials"><i class="fa-solid fa-quote-left"></i><span>Testimonials</span></button>
+        <button class="admin-nav-btn" data-section="pages"><i class="fa-solid fa-file-lines"></i><span>Page Text</span></button>
+        <button class="admin-nav-btn" data-section="media"><i class="fa-solid fa-images"></i><span>Media</span></button>
         <button class="admin-nav-btn" data-section="settings"><i class="fa-solid fa-gear"></i><span>Settings</span></button>
+        <button class="admin-nav-btn" data-section="ai-writer"><i class="fa-solid fa-wand-magic-sparkles"></i><span>AI Writer</span></button>
       </nav>
-      <div class="admin-sidebar-footer">
-        <button type="button" id="admin-logout-btn" class="btn btn-outline"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button>
-      </div>
+      <div class="admin-sidebar-footer"><button type="button" id="admin-logout-btn" class="btn btn-outline btn-sm"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button></div>
     </aside>
 
-    <main class="admin-main">
+    <!-- Main -->
+    <main class="admin-main" id="admin-main">
       <div id="admin-runtime-banner" class="admin-runtime-banner"></div>
 
-      <section class="admin-section" data-admin-panel="overview">
-        <div class="admin-hero">
-          <div>
-            <h1 class="section-title" style="margin-bottom:0.75rem;">Overview</h1>
-            <p class="section-subtitle">Track portfolio health, unread messages, and the current delivery status at a glance.</p>
-          </div>
-        </div>
-        <div class="admin-grid cols-3">
-          <div class="admin-card admin-kpi">
-            <div class="admin-kpi-icon" style="--kpi-clr:#3b82f6"><i class="fa-solid fa-folder-open"></i></div>
-            <div class="admin-kpi-body"><span>Total Projects</span><strong id="overview-project-count">0</strong></div>
-          </div>
-          <div class="admin-card admin-kpi">
-            <div class="admin-kpi-icon" style="--kpi-clr:#a855f7"><i class="fa-solid fa-star"></i></div>
-            <div class="admin-kpi-body"><span>Featured</span><strong id="overview-featured-count">0</strong></div>
-          </div>
-          <div class="admin-card admin-kpi">
-            <div class="admin-kpi-icon" style="--kpi-clr:#f59e0b"><i class="fa-solid fa-envelope-open-text"></i></div>
-            <div class="admin-kpi-body"><span>Unread Messages</span><strong id="overview-unread-count">0</strong></div>
-          </div>
-          <div class="admin-card admin-kpi">
-            <div class="admin-kpi-icon" style="--kpi-clr:#22c55e"><i class="fa-solid fa-comments"></i></div>
-            <div class="admin-kpi-body"><span>Testimonials</span><strong id="overview-testimonial-count">0</strong></div>
-          </div>
-          <div class="admin-card admin-kpi">
-            <div class="admin-kpi-icon" style="--kpi-clr:#06b6d4"><i class="fa-solid fa-at"></i></div>
-            <div class="admin-kpi-body"><span>Contact Inbox</span><strong id="overview-contact-email" class="admin-kpi-email">-</strong></div>
-          </div>
-          <div class="admin-card admin-kpi">
-            <div class="admin-kpi-icon" style="--kpi-clr:#10b981"><i class="fa-solid fa-circle-check"></i></div>
-            <div class="admin-kpi-body"><span>Availability</span><strong id="overview-availability">-</strong></div>
-          </div>
+      <!-- ===== OVERVIEW ===== -->
+      <section class="admin-section" data-panel="overview">
+        <div class="panel-header"><h1><i class="fa-solid fa-gauge-high"></i> Overview</h1><p>Portfolio health and quick actions.</p></div>
+        <div class="admin-grid cols-3" id="kpi-grid">
+          <div class="admin-card kpi"><div class="kpi-icon" style="--c:#3b82f6"><i class="fa-solid fa-folder-open"></i></div><div class="kpi-body"><span>Projects</span><strong id="kpi-projects">0</strong></div></div>
+          <div class="admin-card kpi"><div class="kpi-icon" style="--c:#a855f7"><i class="fa-solid fa-star"></i></div><div class="kpi-body"><span>Featured</span><strong id="kpi-featured">0</strong></div></div>
+          <div class="admin-card kpi"><div class="kpi-icon" style="--c:#f59e0b"><i class="fa-solid fa-envelope-open-text"></i></div><div class="kpi-body"><span>Unread</span><strong id="kpi-unread">0</strong></div></div>
+          <div class="admin-card kpi"><div class="kpi-icon" style="--c:#22c55e"><i class="fa-solid fa-comments"></i></div><div class="kpi-body"><span>Testimonials</span><strong id="kpi-testimonials">0</strong></div></div>
+          <div class="admin-card kpi"><div class="kpi-icon" style="--c:#06b6d4"><i class="fa-solid fa-at"></i></div><div class="kpi-body"><span>Email</span><strong id="kpi-email" class="kpi-small">—</strong></div></div>
+          <div class="admin-card kpi"><div class="kpi-icon" style="--c:#10b981"><i class="fa-solid fa-circle-check"></i></div><div class="kpi-body"><span>Status</span><strong id="kpi-availability">—</strong></div></div>
         </div>
         <div class="admin-card">
-          <h3><i class="fa-solid fa-bolt" style="color:var(--accent);margin-right:0.4rem;"></i>Quick Actions</h3>
-          <div class="admin-actions-row" style="margin-top:1rem;">
-            <button type="button" class="btn btn-primary" data-jump-section="projects"><i class="fa-solid fa-plus"></i> Add / Edit Projects</button>
-            <button type="button" class="btn btn-outline" data-jump-section="messages"><i class="fa-solid fa-inbox"></i> Open Inbox</button>
-            <button type="button" class="btn btn-outline" data-jump-section="profile"><i class="fa-solid fa-user-pen"></i> Update Profile</button>
-            <button type="button" class="btn btn-outline" data-jump-section="settings"><i class="fa-solid fa-envelope-circle-check"></i> Contact Email</button>
+          <h3><i class="fa-solid fa-bolt"></i> Quick Actions</h3>
+          <div class="admin-actions-row">
+            <button class="btn btn-primary btn-sm" data-jump="projects"><i class="fa-solid fa-plus"></i> New Project</button>
+            <button class="btn btn-outline btn-sm" data-jump="messages"><i class="fa-solid fa-inbox"></i> Inbox</button>
+            <button class="btn btn-outline btn-sm" data-jump="hero"><i class="fa-solid fa-pen"></i> Edit Hero</button>
+            <button class="btn btn-outline btn-sm" data-jump="profile"><i class="fa-solid fa-user-pen"></i> Profile</button>
+            <button class="btn btn-outline btn-sm" data-jump="ai-writer"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Writer</button>
           </div>
         </div>
       </section>
 
-      <section class="admin-section" data-admin-panel="messages" hidden>
-        <div class="admin-hero">
-          <div>
-            <h1 class="section-title" style="margin-bottom:0.75rem;"><i class="fa-solid fa-envelope" style="color:var(--accent);margin-right:0.5rem;font-size:0.85em;"></i>Messages</h1>
-            <p class="section-subtitle">Every contact submission lands here. Review, mark as read, or archive.</p>
-          </div>
-        </div>
-        <div class="admin-grid cols-2 admin-grid-stack-md">
-          <div class="admin-card admin-table-wrap">
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Subject</th>
-                  <th>Received</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="messages-table-body"></tbody>
-            </table>
-          </div>
-          <div class="admin-card" id="message-detail">
-            <p>Select a message to inspect it here.</p>
-          </div>
+      <!-- ===== MESSAGES ===== -->
+      <section class="admin-section" data-panel="messages" hidden>
+        <div class="panel-header"><h1><i class="fa-solid fa-envelope"></i> Messages</h1><p>Review, mark read, or archive contact submissions.</p></div>
+        <div class="panel-split">
+          <div class="admin-card table-wrap"><table class="admin-table"><thead><tr><th>Name</th><th>Email</th><th>Subject</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody id="msg-tbody"></tbody></table></div>
+          <div class="admin-card" id="msg-detail"><p class="empty-hint">Select a message to view.</p></div>
         </div>
       </section>
 
-      <section class="admin-section" data-admin-panel="projects" hidden>
-        <div class="admin-hero">
-          <div>
-            <h1 class="section-title" style="margin-bottom:0.75rem;"><i class="fa-solid fa-diagram-project" style="color:var(--accent);margin-right:0.5rem;font-size:0.85em;"></i>Projects</h1>
-            <p class="section-subtitle">Manage project content, URLs, featured status, and hero styling from one form.</p>
-          </div>
-        </div>
-        <div class="admin-grid cols-2 admin-grid-stack-md">
-          <div class="admin-card admin-table-wrap">
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>Project</th>
-                  <th>Tags</th>
-                  <th>Type</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="projects-table-body"></tbody>
-            </table>
-          </div>
+      <!-- ===== HERO ===== -->
+      <section class="admin-section" data-panel="hero" hidden>
+        <div class="panel-header"><h1><i class="fa-solid fa-bolt"></i> Hero Section</h1><p>Edit the main banner — name, tagline, stats, social links.</p></div>
+        <div class="panel-split">
           <div class="admin-card">
-            <h3>Project Editor</h3>
-            <form id="project-form" class="admin-form-grid" style="margin-top:1rem;">
-              <input type="hidden" id="project-id">
-              <div class="form-group">
-                <label for="project-title">Title</label>
-                <input type="text" id="project-title" required>
+            <form id="hero-form" class="admin-form-grid">
+              <div class="form-row-2">
+                <div class="form-group"><label for="hero-name">Display Name</label><input type="text" id="hero-name" required></div>
+                <div class="form-group"><label for="hero-titles">Animated Titles <small>(comma-sep)</small></label><input type="text" id="hero-titles" required></div>
               </div>
-              <div class="form-group">
-                <label for="project-short">Short Description</label>
-                <textarea id="project-short" rows="3" required></textarea>
+              <div class="form-group has-ai"><label for="hero-tagline">Tagline</label><textarea id="hero-tagline" rows="3"></textarea><button type="button" class="btn-ai-assist" data-target="hero-tagline" data-ctx="portfolio hero tagline"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div>
+              <div class="form-row-2">
+                <div class="form-group"><label for="hero-years">Years Exp.</label><input type="text" id="hero-years"></div>
+                <div class="form-group"><label for="hero-clients">Clients</label><input type="text" id="hero-clients"></div>
               </div>
-              <div class="form-group">
-                <label for="project-long">Detailed Description</label>
-                <textarea id="project-long" rows="8"></textarea>
+              <div class="form-row-2">
+                <div class="form-group"><label for="hero-speed">Avg Speed ↑</label><input type="text" id="hero-speed"></div>
+                <div class="form-group"><label for="hero-traffic">Avg Traffic ↑</label><input type="text" id="hero-traffic"></div>
               </div>
-              <div class="admin-form-grid cols-2">
-                <div class="form-group">
-                  <label for="project-url">Live URL</label>
-                  <input type="url" id="project-url">
-                </div>
-                <div class="form-group">
-                  <label for="project-github">Source URL</label>
-                  <input type="url" id="project-github">
-                </div>
+              <label class="check-label"><input type="checkbox" id="hero-available"> Available for new work</label>
+              <div class="form-row-2">
+                <div class="form-group"><label for="hero-linkedin">LinkedIn URL</label><input type="url" id="hero-linkedin"></div>
+                <div class="form-group"><label for="hero-github-url">GitHub URL</label><input type="url" id="hero-github-url"></div>
               </div>
-              <div class="admin-form-grid cols-2">
-                <div class="form-group">
-                  <label for="project-tags">Tags (comma separated)</label>
-                  <input type="text" id="project-tags">
-                </div>
-                <div class="form-group">
-                  <label for="project-gradient">Background Gradient</label>
-                  <input type="text" id="project-gradient">
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="project-image-file">Project Image</label>
-                <input type="file" id="project-image-file" accept="image/*">
-              </div>
-              <img id="project-image-preview" class="admin-image-preview" src="assets/images/profile-placeholder.svg" alt="Project preview">
-              <label><input type="checkbox" id="project-featured"> Mark as featured</label>
-              <div class="admin-actions-row">
-                <button type="submit" class="btn btn-primary">Save Project</button>
-                <button type="button" id="project-reset-btn" class="btn btn-outline">New Project</button>
-              </div>
+              <div class="form-group"><label for="hero-github-user">GitHub Username <small>(contributions graph)</small></label><input type="text" id="hero-github-user"></div>
+              <button type="submit" class="btn btn-primary">Save Hero</button>
             </form>
-            <div id="project-form-status" class="admin-status is-success" hidden></div>
+            <div id="hero-status" class="admin-status is-success" hidden></div>
           </div>
+          <div class="admin-card"><h3>Preview</h3><div id="hero-preview" class="preview-box"></div></div>
         </div>
       </section>
 
-      <section class="admin-section" data-admin-panel="profile" hidden>
-        <div class="admin-hero">
-          <div>
-            <h1 class="section-title" style="margin-bottom:0.75rem;"><i class="fa-solid fa-user-pen" style="color:var(--accent);margin-right:0.5rem;font-size:0.85em;"></i>Profile</h1>
-            <p class="section-subtitle">Update hero content, stats, social links, and the public profile copy.</p>
-          </div>
-        </div>
-        <div class="admin-grid cols-2 admin-grid-stack-md">
+      <!-- ===== PROFILE / ABOUT ===== -->
+      <section class="admin-section" data-panel="profile" hidden>
+        <div class="panel-header"><h1><i class="fa-solid fa-user-pen"></i> Profile &amp; About</h1><p>Bio, profile image, contact details.</p></div>
+        <div class="panel-split">
           <div class="admin-card">
             <form id="profile-form" class="admin-form-grid">
-              <div class="admin-form-grid cols-2">
-                <div class="form-group">
-                  <label for="profile-name-input">Name</label>
-                  <input type="text" id="profile-name-input">
-                </div>
-                <div class="form-group">
-                  <label for="profile-titles-input">Animated Titles</label>
-                  <input type="text" id="profile-titles-input">
-                </div>
+              <div class="form-group"><label for="profile-img-file">Profile Image</label><input type="file" id="profile-img-file" accept="image/*"></div>
+              <img id="profile-img-preview" class="admin-img-preview" src="assets/images/profile-placeholder.svg" alt="Profile">
+              <div class="form-group has-ai"><label for="profile-bio1">Bio Paragraph 1</label><textarea id="profile-bio1" rows="4"></textarea><button type="button" class="btn-ai-assist" data-target="profile-bio1" data-ctx="professional bio for a web developer"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div>
+              <div class="form-group has-ai"><label for="profile-bio2">Bio Paragraph 2</label><textarea id="profile-bio2" rows="4"></textarea><button type="button" class="btn-ai-assist" data-target="profile-bio2" data-ctx="second bio paragraph about work philosophy"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div>
+              <div class="form-group has-ai"><label for="profile-bio3">Bio Paragraph 3</label><textarea id="profile-bio3" rows="4"></textarea><button type="button" class="btn-ai-assist" data-target="profile-bio3" data-ctx="closing bio paragraph about goals"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div>
+              <div class="form-row-2">
+                <div class="form-group"><label for="profile-location">Location</label><input type="text" id="profile-location"></div>
+                <div class="form-group"><label for="profile-email">Email</label><input type="email" id="profile-email"></div>
               </div>
-              <div class="form-group">
-                <label for="profile-tagline-input">Tagline</label>
-                <textarea id="profile-tagline-input" rows="3"></textarea>
+              <div class="form-row-2">
+                <div class="form-group"><label for="profile-phone1">Phone 1</label><input type="text" id="profile-phone1"></div>
+                <div class="form-group"><label for="profile-phone2">Phone 2</label><input type="text" id="profile-phone2"></div>
               </div>
-              <div class="admin-form-grid cols-2">
-                <div class="form-group">
-                  <label for="profile-location-input">Location</label>
-                  <input type="text" id="profile-location-input">
-                </div>
-                <div class="form-group">
-                  <label for="profile-email-input">Email</label>
-                  <input type="email" id="profile-email-input">
-                </div>
-              </div>
-              <div class="admin-form-grid cols-2">
-                <div class="form-group">
-                  <label for="profile-phone1-input">Phone 1</label>
-                  <input type="text" id="profile-phone1-input">
-                </div>
-                <div class="form-group">
-                  <label for="profile-phone2-input">Phone 2</label>
-                  <input type="text" id="profile-phone2-input">
-                </div>
-              </div>
-              <div class="admin-form-grid cols-2">
-                <div class="form-group">
-                  <label for="profile-linkedin-input">LinkedIn</label>
-                  <input type="url" id="profile-linkedin-input">
-                </div>
-                <div class="form-group">
-                  <label for="profile-github-input">GitHub</label>
-                  <input type="url" id="profile-github-input">
-                </div>
-              </div>
-              <div class="admin-form-grid cols-2">
-                <div class="form-group">
-                  <label for="profile-github-username-input">GitHub Username</label>
-                  <input type="text" id="profile-github-username-input">
-                </div>
-                <div class="form-group">
-                  <label for="profile-image-file">Profile Image</label>
-                  <input type="file" id="profile-image-file" accept="image/*">
-                </div>
-              </div>
-              <div class="admin-form-grid cols-2">
-                <div class="form-group">
-                  <label for="profile-years-input">Years Experience</label>
-                  <input type="text" id="profile-years-input">
-                </div>
-                <div class="form-group">
-                  <label for="profile-clients-input">Clients Served</label>
-                  <input type="text" id="profile-clients-input">
-                </div>
-              </div>
-              <div class="admin-form-grid cols-2">
-                <div class="form-group">
-                  <label for="profile-speed-input">Avg Speed Improvement</label>
-                  <input type="text" id="profile-speed-input">
-                </div>
-                <div class="form-group">
-                  <label for="profile-traffic-input">Avg Traffic Increase</label>
-                  <input type="text" id="profile-traffic-input">
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="profile-bio-input">Bio Paragraph 1</label>
-                <textarea id="profile-bio-input" rows="4"></textarea>
-              </div>
-              <div class="form-group">
-                <label for="profile-bio2-input">Bio Paragraph 2</label>
-                <textarea id="profile-bio2-input" rows="4"></textarea>
-              </div>
-              <div class="form-group">
-                <label for="profile-bio3-input">Bio Paragraph 3</label>
-                <textarea id="profile-bio3-input" rows="4"></textarea>
-              </div>
-              <label><input type="checkbox" id="profile-available-input"> Available for new work</label>
               <button type="submit" class="btn btn-primary">Save Profile</button>
             </form>
-            <div id="profile-form-status" class="admin-status is-success" hidden></div>
+            <div id="profile-status" class="admin-status is-success" hidden></div>
           </div>
+          <div class="admin-card"><h3>Preview</h3><img id="profile-preview-img" class="admin-img-preview" src="assets/images/profile-placeholder.svg" alt=""><div id="profile-preview" class="preview-box"></div></div>
+        </div>
+      </section>
+
+      <!-- ===== PROJECTS ===== -->
+      <section class="admin-section" data-panel="projects" hidden>
+        <div class="panel-header"><h1><i class="fa-solid fa-diagram-project"></i> Projects</h1><p>Manage all portfolio projects.</p></div>
+        <div class="panel-split">
+          <div class="admin-card table-wrap"><table class="admin-table"><thead><tr><th>Project</th><th>Tags</th><th>Type</th><th>Actions</th></tr></thead><tbody id="proj-tbody"></tbody></table></div>
           <div class="admin-card">
-            <h3>Live Preview</h3>
-            <img id="profile-image-preview" class="admin-image-preview" src="assets/images/profile-placeholder.svg" alt="Profile preview" style="margin:1rem 0;">
-            <div id="profile-live-preview"></div>
+            <h3 id="proj-form-title">New Project</h3>
+            <form id="proj-form" class="admin-form-grid">
+              <input type="hidden" id="proj-id">
+              <div class="form-group"><label for="proj-title">Title</label><input type="text" id="proj-title" required></div>
+              <div class="form-group has-ai"><label for="proj-short">Short Description</label><textarea id="proj-short" rows="3" required></textarea><button type="button" class="btn-ai-assist" data-target="proj-short" data-ctx="short project description, 1-2 sentences"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div>
+              <div class="form-group has-ai"><label for="proj-long">Detailed Description <small>(HTML ok)</small></label><textarea id="proj-long" rows="8"></textarea><button type="button" class="btn-ai-assist" data-target="proj-long" data-ctx="detailed project case study"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div>
+              <div class="form-row-2">
+                <div class="form-group"><label for="proj-url">Live URL</label><input type="url" id="proj-url"></div>
+                <div class="form-group"><label for="proj-github">Source URL</label><input type="url" id="proj-github"></div>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group"><label for="proj-tags">Tags <small>(comma-sep)</small></label><input type="text" id="proj-tags"></div>
+                <div class="form-group"><label for="proj-gradient">Gradient</label><input type="text" id="proj-gradient" placeholder="linear-gradient(135deg,#1a1a2e,#16213e)"></div>
+              </div>
+              <div class="form-group"><label for="proj-img-file">Image</label><input type="file" id="proj-img-file" accept="image/*"></div>
+              <img id="proj-img-preview" class="admin-img-preview" src="assets/images/project-placeholder.svg" alt="Project">
+              <label class="check-label"><input type="checkbox" id="proj-featured"> Featured</label>
+              <div class="admin-actions-row">
+                <button type="submit" class="btn btn-primary">Save Project</button>
+                <button type="button" id="proj-reset" class="btn btn-outline">New</button>
+              </div>
+            </form>
+            <div id="proj-status" class="admin-status is-success" hidden></div>
           </div>
         </div>
       </section>
 
-      <section class="admin-section" data-admin-panel="experience" hidden>
-        <div class="admin-hero">
-          <div>
-            <h1 class="section-title" style="margin-bottom:0.75rem;"><i class="fa-solid fa-briefcase" style="color:var(--accent);margin-right:0.5rem;font-size:0.85em;"></i>Experience</h1>
-            <p class="section-subtitle">Add one experience entry per line and keep the timeline up to date.</p>
-          </div>
-        </div>
-        <div class="admin-card admin-field-compact">
-          <form id="experience-form" class="admin-form-grid">
-            <div class="form-group">
-              <label for="experience-json">Experience Entries (one entry per line)</label>
-              <textarea id="experience-json"></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">Save Experience</button>
-          </form>
-          <div id="experience-form-status" class="admin-status is-success" hidden></div>
-        </div>
-      </section>
-
-      <section class="admin-section" data-admin-panel="skills" hidden>
-        <div class="admin-hero">
-          <div>
-            <h1 class="section-title" style="margin-bottom:0.75rem;"><i class="fa-solid fa-layer-group" style="color:var(--accent);margin-right:0.5rem;font-size:0.85em;"></i>Skills</h1>
-            <p class="section-subtitle">Update the skills shown on your website.</p>
-          </div>
-        </div>
+      <!-- ===== SKILLS ===== -->
+      <section class="admin-section" data-panel="skills" hidden>
+        <div class="panel-header"><h1><i class="fa-solid fa-layer-group"></i> Skills &amp; Tech</h1><p>Tech stack icons, technical skills, and soft skills.</p></div>
         <div class="admin-card">
           <form id="skills-form" class="admin-form-grid">
             <div>
-              <label class="form-group" style="margin-bottom:0.75rem;">Homepage Tech Stack</label>
-              <input id="tech-stack-search" type="search" placeholder="Search tech stack (name, slug, category)" style="margin-bottom:0.75rem;">
-              <div id="tech-stack-selector" class="selector-group selector-group-scroll"></div>
+              <label class="form-group-label">Homepage Tech Stack</label>
+              <input id="tech-search" type="search" placeholder="Filter by name or category…">
+              <div id="tech-selector" class="tech-selector-wrap"></div>
             </div>
-            <div class="admin-form-grid cols-2">
-              <div class="form-group admin-field-compact">
-                <label for="technical-skills-lines">Main Skills (Category | Icon | Items)</label>
-                <textarea id="technical-skills-lines"></textarea>
-              </div>
-              <div class="form-group admin-field-compact">
-                <label for="soft-skills-lines">Personal Skills (Title | Icon | Description)</label>
-                <textarea id="soft-skills-lines"></textarea>
-              </div>
+            <div class="form-row-2">
+              <div class="form-group expand"><label for="tech-skills-text">Technical Skills <small>(Category|Icon|Items)</small></label><textarea id="tech-skills-text" class="mono-ta"></textarea></div>
+              <div class="form-group expand"><label for="soft-skills-text">Personal Skills <small>(Title|Icon|Desc)</small></label><textarea id="soft-skills-text" class="mono-ta"></textarea></div>
             </div>
             <button type="submit" class="btn btn-primary">Save Skills</button>
           </form>
-          <div id="skills-form-status" class="admin-status is-success" hidden></div>
+          <div id="skills-status" class="admin-status is-success" hidden></div>
         </div>
       </section>
 
-      <section class="admin-section" data-admin-panel="testimonials" hidden>
-        <div class="admin-hero">
-          <div>
-            <h1 class="section-title" style="margin-bottom:0.75rem;"><i class="fa-solid fa-quote-left" style="color:var(--accent);margin-right:0.5rem;font-size:0.85em;"></i>Testimonials</h1>
-            <p class="section-subtitle">Maintain social proof used on the homepage and across your pitch flow.</p>
-          </div>
-        </div>
-        <div class="admin-grid cols-2 admin-grid-stack-md">
-          <div class="admin-card admin-table-wrap">
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Role</th>
-                  <th>Content</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="testimonials-table-body"></tbody>
-            </table>
+      <!-- ===== EXPERIENCE ===== -->
+      <section class="admin-section" data-panel="experience" hidden>
+        <div class="panel-header"><h1><i class="fa-solid fa-briefcase"></i> Experience</h1><p>Roles, companies, dates, and highlights for the timeline.</p></div>
+        <div class="panel-split">
+          <div class="admin-card table-wrap">
+            <table class="admin-table"><thead><tr><th>Role</th><th>Company</th><th>Period</th><th>Actions</th></tr></thead><tbody id="exp-tbody"></tbody></table>
+            <button type="button" id="exp-add" class="btn btn-outline btn-sm" style="margin-top:1rem"><i class="fa-solid fa-plus"></i> Add</button>
           </div>
           <div class="admin-card">
-            <h3>Testimonial Editor</h3>
-            <form id="testimonial-form" class="admin-form-grid" style="margin-top:1rem;">
-              <input type="hidden" id="testimonial-id">
-              <div class="form-group">
-                <label for="testimonial-name">Client Name</label>
-                <input type="text" id="testimonial-name">
+            <h3 id="exp-form-title">New Entry</h3>
+            <form id="exp-form" class="admin-form-grid">
+              <input type="hidden" id="exp-idx" value="-1">
+              <div class="form-row-2">
+                <div class="form-group"><label for="exp-role">Role</label><input type="text" id="exp-role" required></div>
+                <div class="form-group"><label for="exp-company">Company</label><input type="text" id="exp-company" required></div>
               </div>
-              <div class="form-group">
-                <label for="testimonial-role">Role / Company</label>
-                <input type="text" id="testimonial-role">
+              <div class="form-row-2">
+                <div class="form-group"><label for="exp-date">Period</label><input type="text" id="exp-date" placeholder="Jan 2024 – Present"></div>
+                <div class="form-group"><label for="exp-type">Type</label><input type="text" id="exp-type" placeholder="Full-time"></div>
               </div>
-              <div class="form-group">
-                <label for="testimonial-content">Testimonial</label>
-                <textarea id="testimonial-content" rows="5"></textarea>
+              <div class="form-row-2">
+                <div class="form-group"><label for="exp-badge">Badge</label><input type="text" id="exp-badge" placeholder="Current"></div>
+                <div class="form-group"><label for="exp-badge-cls">Badge Class</label><input type="text" id="exp-badge-cls" placeholder="badge-highlight"></div>
               </div>
-              <div class="form-group">
-                <label for="testimonial-image-file">Avatar Image</label>
-                <input type="file" id="testimonial-image-file" accept="image/*">
-              </div>
-              <img id="testimonial-image-preview" class="admin-image-preview" src="assets/images/profile-placeholder.svg" alt="Testimonial preview">
-              <label><input type="checkbox" id="testimonial-published" checked> Publish on the site</label>
+              <div class="form-group has-ai"><label for="exp-summary">Summary</label><textarea id="exp-summary" rows="3"></textarea><button type="button" class="btn-ai-assist" data-target="exp-summary" data-ctx="work experience summary for portfolio timeline"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div>
+              <div class="form-group"><label for="exp-bullets">Bullets <small>(one per line)</small></label><textarea id="exp-bullets" rows="4" class="mono-ta"></textarea></div>
               <div class="admin-actions-row">
-                <button type="submit" class="btn btn-primary">Save Testimonial</button>
-                <button type="button" id="testimonial-reset-btn" class="btn btn-outline">New Testimonial</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" id="exp-reset" class="btn btn-outline">New</button>
               </div>
             </form>
-            <div id="testimonial-form-status" class="admin-status is-success" hidden></div>
+            <div id="exp-status" class="admin-status is-success" hidden></div>
           </div>
         </div>
       </section>
 
-      <section class="admin-section" data-admin-panel="settings" hidden>
-        <div class="admin-hero">
-          <div>
-            <h1 class="section-title" style="margin-bottom:0.75rem;"><i class="fa-solid fa-gear" style="color:var(--accent);margin-right:0.5rem;font-size:0.85em;"></i>Settings</h1>
-            <p class="section-subtitle">Manage operational settings, imports/exports, and the seeded reset workflow.</p>
+      <!-- ===== EDUCATION ===== -->
+      <section class="admin-section" data-panel="education" hidden>
+        <div class="panel-header"><h1><i class="fa-solid fa-graduation-cap"></i> Education</h1><p>Degrees, certs, schools shown on the About page.</p></div>
+        <div class="panel-split">
+          <div class="admin-card table-wrap">
+            <table class="admin-table"><thead><tr><th>Degree</th><th>School</th><th>Period</th><th>Actions</th></tr></thead><tbody id="edu-tbody"></tbody></table>
+            <button type="button" id="edu-add" class="btn btn-outline btn-sm" style="margin-top:1rem"><i class="fa-solid fa-plus"></i> Add</button>
+          </div>
+          <div class="admin-card">
+            <h3 id="edu-form-title">New Entry</h3>
+            <form id="edu-form" class="admin-form-grid">
+              <input type="hidden" id="edu-idx" value="-1">
+              <div class="form-group"><label for="edu-degree">Degree / Certificate</label><input type="text" id="edu-degree" required></div>
+              <div class="form-group"><label for="edu-school">School / Institution</label><input type="text" id="edu-school" required></div>
+              <div class="form-row-2">
+                <div class="form-group"><label for="edu-period">Period</label><input type="text" id="edu-period" placeholder="2020 – 2024"></div>
+                <div class="form-group"><label for="edu-icon">Icon</label><input type="text" id="edu-icon" placeholder="fa-solid fa-graduation-cap"></div>
+              </div>
+              <div class="admin-actions-row">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" id="edu-reset" class="btn btn-outline">New</button>
+              </div>
+            </form>
+            <div id="edu-status" class="admin-status is-success" hidden></div>
           </div>
         </div>
+      </section>
+
+      <!-- ===== TESTIMONIALS ===== -->
+      <section class="admin-section" data-panel="testimonials" hidden>
+        <div class="panel-header"><h1><i class="fa-solid fa-quote-left"></i> Testimonials</h1><p>Client feedback shown on the homepage.</p></div>
+        <div class="panel-split">
+          <div class="admin-card table-wrap"><table class="admin-table"><thead><tr><th>Client</th><th>Role</th><th>Published</th><th>Actions</th></tr></thead><tbody id="test-tbody"></tbody></table></div>
+          <div class="admin-card">
+            <h3>Testimonial Editor</h3>
+            <form id="test-form" class="admin-form-grid">
+              <input type="hidden" id="test-id">
+              <div class="form-row-2">
+                <div class="form-group"><label for="test-name">Name</label><input type="text" id="test-name" required></div>
+                <div class="form-group"><label for="test-role">Role / Company</label><input type="text" id="test-role"></div>
+              </div>
+              <div class="form-group has-ai"><label for="test-content">Testimonial</label><textarea id="test-content" rows="5"></textarea><button type="button" class="btn-ai-assist" data-target="test-content" data-ctx="client testimonial for a web developer"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div>
+              <div class="form-group"><label for="test-img-file">Avatar</label><input type="file" id="test-img-file" accept="image/*"></div>
+              <img id="test-img-preview" class="admin-img-preview" src="assets/images/profile-placeholder.svg" alt="">
+              <label class="check-label"><input type="checkbox" id="test-published" checked> Publish</label>
+              <div class="admin-actions-row">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" id="test-reset" class="btn btn-outline">New</button>
+              </div>
+            </form>
+            <div id="test-status" class="admin-status is-success" hidden></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== PAGE TEXT ===== -->
+      <section class="admin-section" data-panel="pages" hidden>
+        <div class="panel-header"><h1><i class="fa-solid fa-file-lines"></i> Page Text</h1><p>Edit static headings, subtitles, CTA copy, footer text.</p></div>
+        <div class="admin-card">
+          <form id="pages-form" class="admin-form-grid">
+            <h3>Homepage Sections</h3>
+            <div class="form-row-2">
+              <div class="form-group"><label for="pg-hero-prefix">Hero Greeting Prefix</label><input type="text" id="pg-hero-prefix" placeholder="Hi, I'm"></div>
+              <div class="form-group"><label for="pg-cta-title">CTA Title</label><input type="text" id="pg-cta-title" placeholder="Ready to bring your idea to life?"></div>
+            </div>
+            <div class="form-group has-ai"><label for="pg-cta-body">CTA Body</label><textarea id="pg-cta-body" rows="2"></textarea><button type="button" class="btn-ai-assist" data-target="pg-cta-body" data-ctx="portfolio CTA paragraph, encouraging visitors"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div>
+            <h3>Section Titles <small style="font-weight:400;color:var(--text-muted);font-size:.72rem">Wrap a word in *asterisks* to highlight it</small></h3>
+            <div class="form-row-2">
+              <div class="form-group"><label for="pg-about-title">About Title</label><input type="text" id="pg-about-title" placeholder="About *Me*"></div>
+              <div class="form-group"><label for="pg-about-sub">About Subtitle</label><input type="text" id="pg-about-sub"></div>
+            </div>
+            <div class="form-row-2">
+              <div class="form-group"><label for="pg-projects-title">Projects Title</label><input type="text" id="pg-projects-title" placeholder="Featured *Projects*"></div>
+              <div class="form-group"><label for="pg-projects-sub">Projects Subtitle</label><input type="text" id="pg-projects-sub"></div>
+            </div>
+            <div class="form-row-2">
+              <div class="form-group"><label for="pg-feedback-title">Feedback Title</label><input type="text" id="pg-feedback-title" placeholder="Client *Feedback*"></div>
+              <div class="form-group"><label for="pg-feedback-sub">Feedback Subtitle</label><input type="text" id="pg-feedback-sub"></div>
+            </div>
+            <h3>Footer</h3>
+            <div class="form-group"><label for="pg-footer">Footer Copyright</label><input type="text" id="pg-footer" placeholder="© 2026 Ebenezer Ajala. All rights reserved."></div>
+            <button type="submit" class="btn btn-primary">Save Page Text</button>
+          </form>
+          <div id="pages-status" class="admin-status is-success" hidden></div>
+        </div>
+      </section>
+
+      <!-- ===== MEDIA ===== -->
+      <section class="admin-section" data-panel="media" hidden>
+        <div class="panel-header"><h1><i class="fa-solid fa-images"></i> Media</h1><p>Upload images and documents.</p></div>
+        <div class="admin-card">
+          <div class="form-row-2">
+            <div>
+              <h4>Profile Image</h4>
+              <img id="media-profile-img" class="admin-img-preview" src="assets/images/profile-placeholder.svg" alt="Profile">
+              <input type="file" id="media-profile-file" accept="image/*" style="margin-top:0.75rem">
+              <button type="button" id="media-profile-save" class="btn btn-primary btn-sm" style="margin-top:0.5rem">Upload</button>
+            </div>
+            <div>
+              <h4>Resume / CV</h4>
+              <p class="muted-copy">Current: <a id="media-resume-link" href="assets/docs/resume.docx" target="_blank">resume.docx</a></p>
+              <input type="file" id="media-resume-file" accept=".pdf,.doc,.docx" style="margin-top:0.75rem">
+              <button type="button" id="media-resume-save" class="btn btn-primary btn-sm" style="margin-top:0.5rem">Upload</button>
+            </div>
+          </div>
+          <div id="media-status" class="admin-status is-success" hidden></div>
+        </div>
+      </section>
+
+      <!-- ===== SETTINGS ===== -->
+      <section class="admin-section" data-panel="settings" hidden>
+        <div class="panel-header"><h1><i class="fa-solid fa-gear"></i> Settings</h1><p>Contact delivery, analytics, backup &amp; restore.</p></div>
         <div class="admin-card">
           <form id="settings-form" class="admin-form-grid">
-            <div class="admin-form-grid cols-2">
-              <div class="form-group">
-                <label for="settings-contact-email">Contact Recipient Email</label>
-                <input type="email" id="settings-contact-email">
-              </div>
-              <div class="form-group">
-                <label for="settings-sender-name">Notification Sender Name</label>
-                <input type="text" id="settings-sender-name">
-              </div>
+            <div class="form-row-2">
+              <div class="form-group"><label for="set-email">Contact Recipient Email</label><input type="email" id="set-email"></div>
+              <div class="form-group"><label for="set-sender">Sender Name</label><input type="text" id="set-sender"></div>
             </div>
-            <div class="admin-form-grid cols-2">
-              <div class="form-group">
-                <label for="settings-analytics-id">Analytics Measurement ID</label>
-                <input type="text" id="settings-analytics-id" placeholder="G-XXXXXXXXXX">
-              </div>
-              <div class="form-group">
-                <label for="settings-admin-label">Inbox Label</label>
-                <input type="text" id="settings-admin-label">
-              </div>
+            <div class="form-row-2">
+              <div class="form-group"><label for="set-analytics">Analytics ID</label><input type="text" id="set-analytics" placeholder="G-XXXXXXXXXX"></div>
+              <div class="form-group"><label for="set-label">Inbox Label</label><input type="text" id="set-label"></div>
             </div>
             <button type="submit" class="btn btn-primary">Save Settings</button>
           </form>
-          <div class="admin-actions-row" style="margin-top:1rem;">
-            <button type="button" id="export-state-btn" class="btn btn-outline">Export Backup</button>
-            <label class="btn btn-outline" for="import-state-input">Import Backup</label>
-            <input type="file" id="import-state-input" accept="application/json" hidden>
-            <button type="button" id="seed-defaults-btn" class="btn btn-outline">Restore Seed Defaults</button>
+          <div class="admin-actions-row" style="margin-top:1rem">
+            <button type="button" id="export-btn" class="btn btn-outline btn-sm"><i class="fa-solid fa-download"></i> Export</button>
+            <label class="btn btn-outline btn-sm" for="import-input"><i class="fa-solid fa-upload"></i> Import</label>
+            <input type="file" id="import-input" accept="application/json" hidden>
+            <button type="button" id="seed-btn" class="btn btn-outline btn-sm"><i class="fa-solid fa-rotate-left"></i> Restore Defaults</button>
           </div>
-          <div id="settings-form-status" class="admin-status is-success" hidden></div>
+          <div id="settings-status" class="admin-status is-success" hidden></div>
         </div>
       </section>
+
+      <!-- ===== AI WRITER ===== -->
+      <section class="admin-section" data-panel="ai-writer" hidden>
+        <div class="panel-header"><h1><i class="fa-solid fa-wand-magic-sparkles"></i> AI Writing Assistant</h1><p>Generate professional portfolio copy with AI.</p></div>
+        <div class="admin-card">
+          <form id="ai-form" class="admin-form-grid">
+            <div class="form-group"><label for="ai-prompt">What do you need written?</label><textarea id="ai-prompt" rows="4" placeholder="e.g. Write a professional bio for a web developer with 4+ years experience…"></textarea></div>
+            <div class="form-row-2">
+              <div class="form-group"><label for="ai-tone">Tone</label><select id="ai-tone"><option value="professional" selected>Professional</option><option value="friendly">Friendly</option><option value="confident">Confident</option><option value="creative">Creative</option><option value="formal">Formal</option></select></div>
+              <div class="form-group"><label for="ai-length">Length</label><select id="ai-length"><option value="short">Short (1-2 sentences)</option><option value="medium" selected>Medium (paragraph)</option><option value="long">Long (multi-paragraph)</option></select></div>
+            </div>
+            <button type="submit" class="btn btn-primary" id="ai-gen-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate</button>
+          </form>
+          <div id="ai-output" class="ai-output-box" hidden>
+            <h4>Generated Content</h4>
+            <div id="ai-result" class="ai-result"></div>
+            <div class="admin-actions-row" style="margin-top:0.75rem">
+              <button type="button" id="ai-copy" class="btn btn-outline btn-sm"><i class="fa-solid fa-copy"></i> Copy</button>
+              <button type="button" id="ai-regen" class="btn btn-outline btn-sm"><i class="fa-solid fa-rotate"></i> Regenerate</button>
+            </div>
+          </div>
+          <div id="ai-status" class="admin-status is-error" hidden></div>
+        </div>
+      </section>
+
     </main>
   </div>
 

@@ -22,6 +22,23 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/devicon@2.16.0/devicon.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-calendar@latest/dist/github-calendar-responsive.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    "mainEntity": {
+      "@type": "Person",
+      "name": "Ebenezer Ajala",
+      "jobTitle": "WordPress Developer & Graphics Designer",
+      "description": "Builds fast, conversion-focused WordPress websites, visual assets, and SEO-ready digital experiences.",
+      "sameAs": [
+        "https://www.linkedin.com/in/ebenezer-ajala13",
+        "https://github.com/ImmaculateEben"
+      ],
+      "knowsAbout": ["WordPress","Web Development","SEO","Web Design","Graphics Design","Web Performance"]
+    }
+  }
+  </script>
 </head>
 <body>
   <nav id="navbar">
@@ -46,7 +63,7 @@
   <header class="hero">
     <div class="hero-content">
       <p class="hero-tag fade-in-up" id="availability-badge">Available for new work</p>
-      <h1 class="fade-in-up delay-1"><span class="hero-greeting">Hi, I'm</span> <span class="highlight hero-name-line" id="hero-name">Ebenezer Ajala</span></h1>
+      <h1 class="fade-in-up delay-1"><span class="hero-greeting" id="hero-prefix">Hi, I'm</span> <span class="highlight hero-name-line" id="hero-name">Ebenezer Ajala</span></h1>
       <h2 class="fade-in-up delay-2" data-animated-title>WordPress Website Developer</h2>
       <p class="fade-in-up delay-3" id="hero-tagline">Building high-performance websites that improve user experience and drive measurable growth.</p>
       <div class="hero-buttons fade-in-up delay-3">
@@ -87,7 +104,7 @@
     <div class="container">
       <div class="about-grid">
         <div class="about-text reveal">
-          <h2 class="section-title">About <span class="highlight">Me</span></h2>
+          <h2 class="section-title" id="pt-about-title">About <span class="highlight">Me</span></h2>
           <p id="about-summary">I build reliable, modern websites that make businesses look credible and convert visitors into enquiries.</p>
           <p id="about-summary-2">My work combines development, design, SEO foundations, and performance work so each project ships cleaner and grows faster.</p>
           <a href="about.html" class="btn btn-primary">More About Me <i class="fa-solid fa-arrow-right"></i></a>
@@ -116,8 +133,8 @@
     <div class="container">
       <div class="section-head-row" style="display:flex;justify-content:space-between;align-items:flex-end;">
         <div>
-          <h2 class="section-title reveal">Featured <span class="highlight">Projects</span></h2>
-          <p class="section-subtitle reveal">A curated selection of builds focused on speed, usability, and business outcomes.</p>
+          <h2 class="section-title reveal" id="pt-projects-title">Featured <span class="highlight">Projects</span></h2>
+          <p class="section-subtitle reveal" id="pt-projects-sub">A curated selection of builds focused on speed, usability, and business outcomes.</p>
         </div>
         <a href="projects.html" class="btn btn-outline btn-sm reveal">View All</a>
       </div>
@@ -145,8 +162,8 @@
     <div class="container">
       <div class="section-head-row" style="display:flex;justify-content:space-between;align-items:flex-end;">
         <div>
-          <h2 class="section-title reveal">Client <span class="highlight">Feedback</span></h2>
-          <p class="section-subtitle reveal">Recent comments from people and teams I have built for.</p>
+          <h2 class="section-title reveal" id="pt-feedback-title">Client <span class="highlight">Feedback</span></h2>
+          <p class="section-subtitle reveal" id="pt-feedback-sub">Recent comments from people and teams I have built for.</p>
         </div>
         <a href="contact.html" class="btn btn-outline btn-sm reveal">Start a Project</a>
       </div>
@@ -155,9 +172,10 @@
   </section>
 
   <section class="section">
-    <div class="container cta-strip reveal">
-      <h2>Need a website that looks sharper and performs better?</h2>
-      <p>I work with businesses, institutions, and founders that need cleaner websites, stronger SEO, and a more credible digital presence.</p>
+    <div class="container page-cta reveal">
+      <div class="page-cta-icon"><i class="fa-solid fa-rocket"></i></div>
+      <h2 id="pt-cta-title">Need a website that looks sharper and performs better?</h2>
+      <p id="pt-cta-body">I work with businesses, institutions, and founders that need cleaner websites, stronger SEO, and a more credible digital presence.</p>
       <a href="contact.html" class="btn btn-primary">Let's Talk <i class="fa-solid fa-paper-plane"></i></a>
     </div>
     <p id="page-status" class="container" hidden></p>
@@ -167,7 +185,7 @@
     <div class="container">
       <div class="footer-content">
         <a href="index.html" class="logo">EA<span>.</span></a>
-        <p>&copy; 2026 Ebenezer Ajala. All Rights Reserved.</p>
+        <p class="footer-copy">&copy; 2026 Ebenezer Ajala. All Rights Reserved.</p>
         <div class="footer-links">
           <a href="about.html">About</a>
           <a href="projects.html">Projects</a>
