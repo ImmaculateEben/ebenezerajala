@@ -94,7 +94,7 @@ export function initContactForm() {
       const deliveredTo = escapeHtml(result?.deliveredTo || "the configured inbox");
       setStatus(
         status,
-        `Message sent successfully. A copy has been routed to <strong>${deliveredTo}</strong>.`,
+        `Message sent successfully. Thanks for reaching out — I will reply via <strong>${deliveredTo}</strong>.`,
         "success"
       );
     } catch (error) {

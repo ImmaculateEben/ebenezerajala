@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard | Ebenezer Ajala</title>
-  <meta name="description" content="Task-first admin dashboard for portfolio content, messages, settings, and media.">
+  <meta name="description" content="Admin dashboard for managing portfolio content, messages, settings, and media.">
   <link rel="canonical" href="/admin.html">
   <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
   <link rel="manifest" href="site.webmanifest">
@@ -14,13 +14,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/devicon@2.16.0/devicon.min.css">
 </head>
 <body class="admin-body">
   <div id="admin-login-overlay" class="admin-login-overlay">
     <div class="card-glass admin-login-card">
+      <button type="button" id="admin-login-close" class="admin-login-close" aria-label="Close login">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
       <h1 class="section-title" style="margin-bottom:1.25rem;">Admin Access</h1>
-      <p class="section-subtitle" style="margin-bottom:1.5rem;">Sign in with your Supabase admin account to open the dashboard.</p>
+      <p class="section-subtitle" style="margin-bottom:1.5rem;">Sign in to manage your portfolio content.</p>
       <form id="admin-login-form" class="admin-form-grid">
         <div class="form-group">
           <label for="admin-email">Email</label>
@@ -40,7 +43,7 @@
     <aside class="admin-sidebar">
       <div class="admin-brand">
         <a href="index.html" class="logo">EA<span>.</span></a>
-        <p class="muted-copy" style="margin-top:0.5rem;">Task-first content operations</p>
+        <p class="muted-copy" style="margin-top:0.5rem;">Portfolio Management</p>
       </div>
       <nav class="admin-nav">
         <button class="admin-nav-btn active" data-section="overview">Overview</button>
@@ -149,7 +152,7 @@
                 <textarea id="project-short" rows="3" required></textarea>
               </div>
               <div class="form-group">
-                <label for="project-long">Long Description (simple HTML allowed)</label>
+                <label for="project-long">Detailed Description</label>
                 <textarea id="project-long" rows="8"></textarea>
               </div>
               <div class="admin-form-grid cols-2">
@@ -301,13 +304,13 @@
         <div class="admin-hero">
           <div>
             <h1 class="section-title" style="margin-bottom:0.75rem;">Experience</h1>
-            <p class="section-subtitle">Each line below is one JSON object representing an experience entry. This keeps the data fully editable without hiding it in source files.</p>
+            <p class="section-subtitle">Add one experience entry per line and keep the timeline up to date.</p>
           </div>
         </div>
         <div class="admin-card admin-field-compact">
           <form id="experience-form" class="admin-form-grid">
             <div class="form-group">
-              <label for="experience-json">Experience Entries (one JSON object per line)</label>
+              <label for="experience-json">Experience Entries (one entry per line)</label>
               <textarea id="experience-json"></textarea>
             </div>
             <button type="submit" class="btn btn-primary">Save Experience</button>
@@ -320,35 +323,23 @@
         <div class="admin-hero">
           <div>
             <h1 class="section-title" style="margin-bottom:0.75rem;">Skills</h1>
-            <p class="section-subtitle">Update the homepage tech stack and edit technical and soft skills in line-based form.</p>
+            <p class="section-subtitle">Update the skills shown on your website.</p>
           </div>
         </div>
         <div class="admin-card">
           <form id="skills-form" class="admin-form-grid">
             <div>
               <label class="form-group" style="margin-bottom:0.75rem;">Homepage Tech Stack</label>
-              <div id="tech-stack-selector" class="selector-group">
-                <label class="selector-chip active"><input type="checkbox" value="html5" checked><span>HTML5</span></label>
-                <label class="selector-chip active"><input type="checkbox" value="css3" checked><span>CSS3</span></label>
-                <label class="selector-chip active"><input type="checkbox" value="javascript" checked><span>JavaScript</span></label>
-                <label class="selector-chip active"><input type="checkbox" value="wordpress" checked><span>WordPress</span></label>
-                <label class="selector-chip"><input type="checkbox" value="php"><span>PHP</span></label>
-                <label class="selector-chip"><input type="checkbox" value="mysql"><span>MySQL</span></label>
-                <label class="selector-chip"><input type="checkbox" value="nodejs"><span>Node.js</span></label>
-                <label class="selector-chip"><input type="checkbox" value="react"><span>React</span></label>
-                <label class="selector-chip"><input type="checkbox" value="figma"><span>Figma</span></label>
-                <label class="selector-chip"><input type="checkbox" value="photoshop"><span>Photoshop</span></label>
-                <label class="selector-chip"><input type="checkbox" value="illustrator"><span>Illustrator</span></label>
-                <label class="selector-chip"><input type="checkbox" value="coreldraw"><span>CorelDRAW</span></label>
-              </div>
+              <input id="tech-stack-search" type="search" placeholder="Search tech stack (name, slug, category)" style="margin-bottom:0.75rem;">
+              <div id="tech-stack-selector" class="selector-group selector-group-scroll"></div>
             </div>
             <div class="admin-form-grid cols-2">
               <div class="form-group admin-field-compact">
-                <label for="technical-skills-lines">Technical Skills (Category|Icon|Item 1, Item 2)</label>
+                <label for="technical-skills-lines">Main Skills (Category | Icon | Items)</label>
                 <textarea id="technical-skills-lines"></textarea>
               </div>
               <div class="form-group admin-field-compact">
-                <label for="soft-skills-lines">Soft Skills (Title|Icon|Description)</label>
+                <label for="soft-skills-lines">Personal Skills (Title | Icon | Description)</label>
                 <textarea id="soft-skills-lines"></textarea>
               </div>
             </div>
@@ -443,8 +434,8 @@
             <button type="submit" class="btn btn-primary">Save Settings</button>
           </form>
           <div class="admin-actions-row" style="margin-top:1rem;">
-            <button type="button" id="export-state-btn" class="btn btn-outline">Export JSON</button>
-            <label class="btn btn-outline" for="import-state-input">Import JSON</label>
+            <button type="button" id="export-state-btn" class="btn btn-outline">Export Backup</button>
+            <label class="btn btn-outline" for="import-state-input">Import Backup</label>
             <input type="file" id="import-state-input" accept="application/json" hidden>
             <button type="button" id="seed-defaults-btn" class="btn btn-outline">Restore Seed Defaults</button>
           </div>

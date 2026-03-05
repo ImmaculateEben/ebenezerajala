@@ -2,6 +2,7 @@ import {
   deleteProject,
   deleteTestimonial,
   exportStateSnapshot,
+  getAvailableTechStacks,
   getContentRuntimeMode,
   importStateSnapshot,
   loadMessages,
@@ -57,10 +58,10 @@ function renderRuntime() {
   const banner = document.getElementById("admin-runtime-banner");
   if (!banner) return;
   if (getContentRuntimeMode() === "supabase") {
-    banner.textContent = "Supabase mode is active. Admin changes are persistent.";
+    banner.textContent = "Live mode is active. Your updates are saved and visible across devices.";
     banner.classList.remove("warning");
   } else {
-    banner.textContent = `Supabase is unavailable. Configure runtime-config.js to enable admin access. ${getSupabaseInitializationError() || ""}`.trim();
+    banner.textContent = "Live saving is temporarily unavailable. Please check your configuration and try again.";
     banner.classList.add("warning");
   }
 }
@@ -235,9 +236,56 @@ function parseSkillLines(value, type) {
 function renderSkills() {
   $("#technical-skills-lines").value = formatSkillLines(state.siteContent.skills.technical, "technical");
   $("#soft-skills-lines").value = formatSkillLines(state.siteContent.skills.soft, "soft");
-  document.querySelectorAll('#tech-stack-selector input[type="checkbox"]').forEach((input) => {
-    input.checked = state.siteContent.techStacks.includes(input.value);
-    input.closest(".selector-chip").classList.toggle("active", input.checked);
+  renderTechStackSelector();
+}
+
+function renderTechStackSelector() {
+  const selector = document.getElementById("tech-stack-selector");
+  if (!selector) {
+    return;
+  }
+
+  const search = String(document.getElementById("tech-stack-search")?.value || "").trim().toLowerCase();
+  const selected = new Set(state.siteContent.techStacks || []);
+  const categories = ["frontend", "backend", "database", "cms", "devops", "tooling", "design"];
+
+  selector.innerHTML = "";
+
+  categories.forEach((category) => {
+    const entries = getAvailableTechStacks().filter((item) => {
+      const haystack = `${item.name} ${item.slug || ""} ${item.category || ""}`.toLowerCase();
+      if (item.category !== category) {
+        return false;
+      }
+      return !search || haystack.includes(search);
+    });
+
+    if (!entries.length) {
+      return;
+    }
+
+    const group = document.createElement("div");
+    group.className = "selector-category";
+    group.innerHTML = `<p class="selector-category-title">${escapeHtml(category)}</p>`;
+
+    const chips = document.createElement("div");
+    chips.className = "selector-group";
+
+    entries.forEach((item) => {
+      const chip = document.createElement("label");
+      chip.className = `selector-chip${selected.has(item.id) ? " active" : ""}`;
+      chip.innerHTML = `
+        <input type="checkbox" value="${escapeHtml(item.id)}" ${selected.has(item.id) ? "checked" : ""}>
+        <span class="selector-chip-icon"><i class="${escapeHtml(item.icon)}"></i><i class="selector-chip-fallback ${escapeHtml(
+          item.fallbackIcon || "fa-solid fa-code"
+        )}"></i></span>
+        <span>${escapeHtml(item.name)}</span>
+      `;
+      chips.appendChild(chip);
+    });
+
+    group.appendChild(chips);
+    selector.appendChild(group);
   });
 }
 
@@ -399,15 +447,29 @@ function bindExperience() {
       renderExperience();
       setStatus("experience-form-status", "Experience updated.");
     } catch (error) {
-      setStatus("experience-form-status", "Each experience line must be valid JSON.", "error");
+      setStatus("experience-form-status", "Please use one valid entry per line.", "error");
     }
   });
 }
 
 function bindSkills() {
-  document.querySelectorAll('#tech-stack-selector input[type="checkbox"]').forEach((input) => {
-    input.addEventListener("change", () => input.closest(".selector-chip").classList.toggle("active", input.checked));
-  });
+  const selector = document.getElementById("tech-stack-selector");
+  const search = document.getElementById("tech-stack-search");
+
+  if (search) {
+    search.addEventListener("input", () => renderTechStackSelector());
+  }
+
+  if (selector) {
+    selector.addEventListener("change", (event) => {
+      const input = event.target.closest('input[type="checkbox"]');
+      if (!input) {
+        return;
+      }
+      input.closest(".selector-chip")?.classList.toggle("active", input.checked);
+    });
+  }
+
   $("#skills-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const next = structuredClone(state.siteContent);
@@ -488,7 +550,7 @@ function bindSettings() {
       await refresh();
       setStatus("settings-form-status", "Snapshot imported.");
     } catch (error) {
-      setStatus("settings-form-status", "Import failed. Check your JSON file.", "error");
+      setStatus("settings-form-status", "Import failed. Check your backup file and try again.", "error");
     }
   });
   $("#seed-defaults-btn").addEventListener("click", async () => {
@@ -520,31 +582,46 @@ function bindImagePreviews() {
 function bindAuth() {
   const overlay = $("#admin-login-overlay");
   const shell = $("#admin-shell");
+  const closeButton = $("#admin-login-close");
+
+  const showDashboard = async () => {
+    overlay.hidden = true;
+    shell.hidden = false;
+    hideStatus("admin-login-error");
+    renderRuntime();
+    await refresh();
+    applyExternalLinkSafety();
+    attachImageFallbacks(shell);
+  };
+
+  const showLogin = () => {
+    overlay.hidden = false;
+    shell.hidden = true;
+  };
+
   onAdminAuthChanged(async (user) => {
     const email = sanitizePlainText(user?.email || "");
     const requiredEmail = sanitizePlainText(getRuntimeConfig().adminEmail || "");
     if (user && requiredEmail && email.toLowerCase() !== requiredEmail.toLowerCase()) {
       await signOutAdmin();
       setStatus("admin-login-error", "This account is not allowed for this dashboard.", "error");
+      showLogin();
       return;
     }
-    overlay.hidden = Boolean(user);
-    shell.hidden = !user;
     if (user) {
-      hideStatus("admin-login-error");
-      renderRuntime();
-      await refresh();
-      applyExternalLinkSafety();
-      attachImageFallbacks(shell);
+      await showDashboard();
+    } else {
+      showLogin();
     }
   });
+
   $("#admin-login-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     hideStatus("admin-login-error");
     if (!isSupabaseReady()) {
       setStatus(
         "admin-login-error",
-        "Supabase sign-in is unavailable right now. Configure runtime-config.js and try again.",
+        "Sign-in is unavailable right now. Please check your configuration and try again.",
         "error"
       );
       return;
@@ -553,7 +630,10 @@ function bindAuth() {
     submit.disabled = true;
     submit.textContent = "Signing in...";
     try {
-      await signInAdmin($("#admin-email").value, $("#admin-password").value);
+      const result = await signInAdmin($("#admin-email").value, $("#admin-password").value);
+      if (result?.user || result?.session?.user) {
+        await showDashboard();
+      }
     } catch (error) {
       setStatus("admin-login-error", escapeHtml(error instanceof Error ? error.message : "Unable to sign in."), "error");
     } finally {
@@ -564,8 +644,19 @@ function bindAuth() {
 
   $("#admin-logout-btn").addEventListener("click", async () => {
     await signOutAdmin();
-    overlay.hidden = false;
-    shell.hidden = true;
+    showLogin();
+  });
+
+  if (closeButton) {
+    closeButton.addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (!overlay.hidden && event.key === "Escape") {
+      window.location.href = "index.html";
+    }
   });
 }
 
@@ -581,11 +672,11 @@ function init() {
   bindImagePreviews();
   bindAuth();
   if (!isSupabaseReady()) {
-    $("#admin-login-submit").textContent = "Supabase unavailable";
+    $("#admin-login-submit").textContent = "Sign-in unavailable";
     $("#admin-login-submit").disabled = true;
     setStatus(
       "admin-login-error",
-      escapeHtml(getSupabaseInitializationError() || "Supabase is not configured. Complete runtime-config.js to enable admin sign-in."),
+      "Sign-in is not available right now. Please check your setup and reload this page.",
       "error"
     );
   }

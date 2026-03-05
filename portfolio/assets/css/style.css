@@ -212,10 +212,10 @@ img {
 
 .section-subtitle {
     color: var(--text-secondary);
-    font-size: 1.05rem;
+    font-size: clamp(1rem, 2.2vw, 1.08rem);
     margin-bottom: 3rem;
     max-width: 600px;
-    line-height: 1.8;
+    line-height: 1.75;
 }
 
 /* =========================================
@@ -571,6 +571,15 @@ img {
     margin-bottom: 1rem;
     letter-spacing: -1.5px;
     line-height: 1.05;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.hero-greeting,
+.hero-name-line {
+    display: block;
 }
 
 .hero h2 {
@@ -624,6 +633,12 @@ img {
     color: #fff;
     transform: translateY(-3px);
     box-shadow: 0 5px 15px var(--accent-glow);
+}
+
+.social-links a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-color: var(--accent);
 }
 
 /* Hero stats bar */
@@ -754,8 +769,9 @@ img {
 
 .page-header p {
     color: var(--text-secondary);
-    font-size: 1.15rem;
+    font-size: clamp(1.02rem, 2.6vw, 1.15rem);
     max-width: 600px;
+    line-height: 1.75;
 }
 
 /* =========================================
@@ -809,7 +825,8 @@ img {
 
 .profile-image-wrap {
     width: 100%;
-    aspect-ratio: 3/4;
+    aspect-ratio: 4/3;
+    max-height: clamp(230px, 38vw, 330px);
     overflow: hidden;
     background: var(--gradient-card);
     position: relative;
@@ -1715,6 +1732,72 @@ footer {
     gap: 1.5rem;
 }
 
+.featured-projects-viewport {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+
+.featured-projects-track {
+    display: flex;
+    gap: 1rem;
+    width: max-content;
+    min-width: 100%;
+    padding-bottom: 0.2rem;
+}
+
+.featured-projects-track .project-card-full {
+    width: min(90vw, 330px);
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+}
+
+.featured-projects-viewport.is-tablet-animated {
+    overflow: hidden;
+}
+
+.featured-projects-viewport.is-tablet-animated .featured-projects-track {
+    animation: featuredProjectsMarquee 26s linear infinite;
+}
+
+.featured-projects-viewport.is-tablet-animated:hover .featured-projects-track {
+    animation-play-state: paused;
+}
+
+.testimonials-marquee {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+}
+
+.testimonials-track {
+    display: flex;
+    gap: 1rem;
+    width: max-content;
+    min-width: 100%;
+    padding-bottom: 0.2rem;
+}
+
+.testimonials-track .testimonial-card {
+    width: min(90vw, 360px);
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+}
+
+.testimonials-marquee.is-animated {
+    overflow: hidden;
+}
+
+.testimonials-marquee.is-animated .testimonials-track {
+    animation: testimonialsMarquee 34s linear infinite;
+}
+
+.testimonials-marquee.is-animated:hover .testimonials-track {
+    animation-play-state: paused;
+}
+
 /* =========================================
    SINGLE PROJECT PAGE
    ========================================= */
@@ -2057,6 +2140,14 @@ footer {
         margin-bottom: 2rem;
     }
 
+    .page-header h1 {
+        font-size: clamp(2rem, 8vw, 3rem);
+    }
+
+    .page-header p {
+        font-size: 1.05rem;
+    }
+
     .hero {
         padding: calc(var(--nav-height) + 1rem) clamp(1rem, 4vw, 2rem) 4rem;
     }
@@ -2202,7 +2293,7 @@ footer {
     }
 
     .hero-stat p {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
     }
 
     .hero-stat::after {
@@ -2268,15 +2359,23 @@ footer {
     }
 
     .timeline-company {
-        font-size: 0.82rem;
+        font-size: 0.9rem;
     }
 
     /* Refine Buttons for mobile */
     .btn {
-        padding: 0.8rem 1.4rem;
-        font-size: 0.85rem;
+        padding: 0.85rem 1.4rem;
+        font-size: 0.92rem;
         width: 100%;
         justify-content: center;
+    }
+
+    .page-header h1 {
+        font-size: clamp(1.85rem, 8.5vw, 2.5rem);
+    }
+
+    .page-header p {
+        font-size: 1rem;
     }
 
     /* Reduce padding more aggressively for very small screens */
@@ -2360,7 +2459,7 @@ footer {
 
     .btn {
         padding: 0.75rem 1.2rem;
-        font-size: 0.8rem;
+        font-size: 0.86rem;
     }
 
     .hero h1 {
@@ -2457,6 +2556,11 @@ footer {
     transition: var(--transition);
 }
 
+.tech-stack-fallback {
+    display: none;
+    font-size: 1.5rem;
+}
+
 .tech-stack-item:hover .tech-stack-icon-wrapper {
     background: var(--accent);
     color: #fff;
@@ -2469,6 +2573,11 @@ footer {
     color: var(--text-primary);
 }
 
+.tech-stack-icon-wrapper i:empty+.tech-stack-fallback,
+.tech-stack-icon-wrapper i:not([class])+.tech-stack-fallback {
+    display: inline-flex;
+}
+
 /* =========================================
    PRINT / ACCESSIBILITY
    ========================================= */
@@ -2479,6 +2588,11 @@ footer {
     *::after {
         animation-duration: 0.01ms !important;
         transition-duration: 0.01ms !important;
+    }
+
+    .featured-projects-viewport.is-tablet-animated .featured-projects-track,
+    .testimonials-marquee.is-animated .testimonials-track {
+        animation: none !important;
     }
 }
 
@@ -2568,6 +2682,26 @@ footer {
     color: #22c55e;
     background: rgba(34, 197, 94, 0.08);
     border-color: rgba(34, 197, 94, 0.2);
+}
+
+@keyframes testimonialsMarquee {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes featuredProjectsMarquee {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
 }
 
 @keyframes blinkCursor {

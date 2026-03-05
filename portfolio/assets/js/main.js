@@ -20,6 +20,26 @@ function $(selector) {
 
 const PROJECT_IMAGE_FALLBACK = "assets/images/project-placeholder.svg";
 
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function normalizeStackKey(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function resolveTechStack(definitions, value) {
+  const key = normalizeStackKey(value);
+  return (
+    definitions.find((entry) => normalizeStackKey(entry.id) === key) ||
+    definitions.find((entry) => normalizeStackKey(entry.slug) === key) ||
+    definitions.find((entry) => normalizeStackKey(entry.name) === key)
+  );
+}
+
 function setMetaDescription(content) {
   let meta = document.querySelector('meta[name="description"]');
   if (!meta) {
@@ -262,6 +282,19 @@ function renderProfileBlocks(siteContent) {
     }
   }
 
+  const heroGitHub = document.getElementById("hero-github-link");
+  if (heroGitHub) {
+    const safeGitHub = sanitizeUrl(profile.github);
+    if (safeGitHub) {
+      heroGitHub.href = safeGitHub;
+      heroGitHub.target = "_blank";
+      heroGitHub.rel = "noopener noreferrer";
+      heroGitHub.hidden = false;
+    } else {
+      heroGitHub.hidden = true;
+    }
+  }
+
   const availabilityBadge = document.getElementById("availability-badge");
   if (availabilityBadge) {
     availabilityBadge.textContent = profile.availableForFreelance ? "Available for new work" : "Currently booked";
@@ -289,7 +322,23 @@ function initTitleRotators(titles) {
   });
 }
 
-function initGitHubContributions(siteContent) {
+async function waitForGitHubCalendar(timeoutMs = 4500) {
+  if (typeof window.GitHubCalendar === "function") {
+    return true;
+  }
+
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    await new Promise((resolve) => window.setTimeout(resolve, 120));
+    if (typeof window.GitHubCalendar === "function") {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+async function initGitHubContributions(siteContent) {
   const container = document.getElementById("github-contributions");
   if (!container) {
     return;
@@ -310,7 +359,8 @@ function initGitHubContributions(siteContent) {
 
   calendar.setAttribute("data-github-username", username);
 
-  if (typeof window.GitHubCalendar !== "function") {
+  const ready = await waitForGitHubCalendar();
+  if (!ready || typeof window.GitHubCalendar !== "function") {
     calendar.textContent = "GitHub activity is temporarily unavailable.";
     return;
   }
@@ -325,6 +375,79 @@ function initGitHubContributions(siteContent) {
   }
 }
 
+function setupTestimonialsMarquee(container) {
+  if (!container) {
+    return;
+  }
+
+  const cards = Array.from(container.children);
+  if (cards.length < 2) {
+    return;
+  }
+
+  const mobile = window.matchMedia("(max-width: 767px)").matches;
+  const reduceMotion = prefersReducedMotion();
+
+  const viewport = document.createElement("div");
+  viewport.className = "testimonials-marquee";
+  const track = document.createElement("div");
+  track.className = "testimonials-track";
+
+  cards.forEach((card) => track.appendChild(card));
+
+  if (!mobile && !reduceMotion) {
+    cards.forEach((card) => {
+      const clone = card.cloneNode(true);
+      clone.classList.add("is-clone");
+      clone.setAttribute("aria-hidden", "true");
+      track.appendChild(clone);
+    });
+    viewport.classList.add("is-animated");
+  }
+
+  viewport.appendChild(track);
+  container.appendChild(viewport);
+}
+
+function setupFeaturedProjectsUX(container) {
+  if (!container) {
+    return;
+  }
+
+  const cards = Array.from(container.children);
+  if (!cards.length) {
+    return;
+  }
+
+  const isTablet = window.matchMedia("(min-width: 768px) and (max-width: 1024px)").matches;
+  const isMobile = window.matchMedia("(max-width: 767px)").matches;
+  const reduceMotion = prefersReducedMotion();
+
+  if (!isTablet && !isMobile) {
+    return;
+  }
+
+  const viewport = document.createElement("div");
+  viewport.className = "featured-projects-viewport";
+  const track = document.createElement("div");
+  track.className = "featured-projects-track";
+
+  cards.forEach((card) => track.appendChild(card));
+
+  if (isTablet && !reduceMotion && cards.length > 1) {
+    cards.forEach((card) => {
+      const clone = card.cloneNode(true);
+      clone.classList.add("is-clone");
+      clone.setAttribute("aria-hidden", "true");
+      track.appendChild(clone);
+    });
+    viewport.classList.add("is-tablet-animated");
+  }
+
+  viewport.appendChild(track);
+  container.appendChild(viewport);
+}
+
 async function renderHomePage(siteContent, projects, testimonials) {
   const featuredGrid = document.getElementById("home-projects-grid");
   if (featuredGrid) {
@@ -334,6 +457,7 @@ async function renderHomePage(siteContent, projects, testimonials) {
     items.forEach((project, index) => {
       featuredGrid.appendChild(buildProjectCard(project, index));
     });
+    setupFeaturedProjectsUX(featuredGrid);
   }
 
   const techGrid = document.getElementById("home-tech-stack-grid");
@@ -342,15 +466,15 @@ async function renderHomePage(siteContent, projects, testimonials) {
     const definitions = getAvailableTechStacks();
     const selectedStacks = Array.isArray(siteContent.techStacks) && siteContent.techStacks.length
       ? siteContent.techStacks
-      : definitions.slice(0, 6).map((entry) => entry.id);
-    selectedStacks.forEach((stackId) => {
-      const item = definitions.find((entry) => entry.id === stackId);
-      if (!item) {
-        return;
-      }
+      : definitions.slice(0, 8).map((entry) => entry.id);
+    const resolved = selectedStacks.map((stackId) => resolveTechStack(definitions, stackId)).filter(Boolean);
+    const itemsToRender = resolved.length ? resolved : definitions.slice(0, 8);
+    itemsToRender.forEach((item) => {
       const tile = document.createElement("div");
       tile.className = "tech-stack-item reveal";
-      tile.innerHTML = `<div class="tech-stack-icon-wrapper"><i class="${item.icon}"></i></div><span>${escapeHtml(
+      tile.innerHTML = `<div class="tech-stack-icon-wrapper"><i class="${item.icon}"></i><i class="tech-stack-fallback ${
+        item.fallbackIcon || "fa-solid fa-code"
+      }" aria-hidden="true"></i></div><span>${escapeHtml(
         item.name
       )}</span>`;
       techGrid.appendChild(tile);
@@ -362,7 +486,7 @@ async function renderHomePage(siteContent, projects, testimonials) {
     testimonialsGrid.innerHTML = "";
     testimonials
       .filter((item) => item.published)
-      .slice(0, 3)
+      .slice(0, 10)
       .forEach((item) => {
         const card = document.createElement("article");
         card.className = "card-glass reveal testimonial-card";
@@ -378,9 +502,10 @@ async function renderHomePage(siteContent, projects, testimonials) {
         `;
         testimonialsGrid.appendChild(card);
       });
+    setupTestimonialsMarquee(testimonialsGrid);
   }
 
-  initGitHubContributions(siteContent);
+  await initGitHubContributions(siteContent);
 }
 
 function renderEducation(siteContent) {
