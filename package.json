@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "generate-config": "node -e \"const cfg = { supabase: { url: process.env.SUPABASE_URL || '', anonKey: process.env.SUPABASE_ANON_KEY || '' }, adminEmail: process.env.ADMIN_EMAIL || '', storageBucket: process.env.STORAGE_BUCKET || 'portfolio-assets' }; console.log('window.EA_RUNTIME_CONFIG = ' + JSON.stringify(cfg, null, 2) + ';');\" > portfolio/assets/js/runtime-config.js"
   },
   "repository": {
     "type": "git",
