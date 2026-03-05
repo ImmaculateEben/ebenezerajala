@@ -1,4 +1,4 @@
-const THEMES = ["dark", "light", "gold"];
+const THEMES = ["light", "gold", "dark"];
 const THEME_KEY = "ea_theme";
 
 const THEME_META = {
@@ -8,11 +8,11 @@ const THEME_META = {
 };
 
 function getTheme() {
-  return localStorage.getItem(THEME_KEY) || "dark";
+  return localStorage.getItem(THEME_KEY) || "light";
 }
 
 function applyTheme(theme) {
-  const active = THEMES.includes(theme) ? theme : "dark";
+  const active = THEMES.includes(theme) ? theme : "light";
   document.documentElement.setAttribute("data-theme", active);
   localStorage.setItem(THEME_KEY, active);
 
@@ -29,7 +29,7 @@ function applyTheme(theme) {
 
 function toggleTheme() {
   const current = getTheme();
-  applyTheme(THEME_META[current]?.next || "dark");
+  applyTheme(THEME_META[current]?.next || "light");
 }
 
 function injectToggleButton() {
