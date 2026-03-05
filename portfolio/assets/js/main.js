@@ -402,6 +402,48 @@ function githubContribProxy(username) {
   });
 }
 
+/* Read the current accent hex from CSS variables (no # prefix) */
+function getThemeAccentHex() {
+  return getComputedStyle(document.documentElement)
+    .getPropertyValue("--accent")
+    .trim()
+    .replace(/^#/, "") || "3b82f6";
+}
+
+/* Render a static ghchart.rshah.org PNG/SVG as a last-resort live fallback */
+async function renderGitHubPngFallback(calendar, username) {
+  return new Promise((resolve) => {
+    const hex = getThemeAccentHex();
+    const src = `https://ghchart.rshah.org/${hex}/${encodeURIComponent(username)}`;
+    const img = document.createElement("img");
+    img.className = "gh-png-fallback";
+    img.alt = `${username}'s GitHub contribution chart`;
+    img.setAttribute("data-gh-png", username);
+    img.src = src;
+    const done = (ok) => {
+      clearTimeout(timer);
+      if (ok) {
+        calendar.innerHTML = "";
+        calendar.appendChild(img);
+      }
+      resolve(ok);
+    };
+    const timer = setTimeout(() => done(false), 9000);
+    img.onload = () => done(true);
+    img.onerror = () => done(false);
+  });
+}
+
+/* Re-colour the PNG chart when the theme changes */
+function updateGitHubPngTheme(container) {
+  const img = container && container.querySelector("img[data-gh-png]");
+  if (!img) return;
+  const username = img.getAttribute("data-gh-png");
+  if (!username) return;
+  const hex = getThemeAccentHex();
+  img.src = `https://ghchart.rshah.org/${hex}/${encodeURIComponent(username)}`;
+}
+
 async function renderGitHubCalendarFallback(calendar, username) {
   const body = await githubContribProxy(username);
 
@@ -500,8 +542,20 @@ async function initGitHubContributions(siteContent) {
   }
 
   if (!rendered) {
+    try {
+      rendered = await renderGitHubPngFallback(calendar, username);
+    } catch (_e) {
+      rendered = false;
+    }
+  }
+
+  if (!rendered) {
     setGitHubUnavailable(calendar, username);
   }
+
+  /* Watch for theme changes and update PNG chart colour */
+  const ghThemeObserver = new MutationObserver(() => updateGitHubPngTheme(container));
+  ghThemeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 }
 
 function setupTestimonialsMarquee(container) {

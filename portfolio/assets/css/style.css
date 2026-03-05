@@ -2635,6 +2635,25 @@ footer {
     border-color: var(--border-hover);
 }
 
+/* GitHub PNG/SVG chart fallback (ghchart.rshah.org) */
+.gh-png-fallback {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+}
+
+/* When PNG fallback is active, remove the fixed min-width so it scales freely */
+.github-contributions-container .github-calendar:has(.gh-png-fallback) {
+    min-width: 0 !important;
+    overflow-x: visible;
+}
+
+.github-contributions-container .github-card:has(.gh-png-fallback) {
+    overflow-x: visible;
+}
+
 /* GitHub unavailable fallback */
 .gh-unavailable {
     display: flex;
