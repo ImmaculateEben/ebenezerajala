@@ -84,6 +84,7 @@ function normalizeSiteContent(siteContent) {
     },
     experience: normalizeArray(source.experience || base.experience).map((item, index) => normalizeExperience(item, index)),
     education: normalizeArray(source.education || base.education).map((item, index) => normalizeEducation(item, index)),
+    certifications: normalizeArray(source.certifications || base.certifications).map((item, index) => normalizeCertification(item, index)),
     techStacks: normalizeArray(source.techStacks || base.techStacks).filter(Boolean),
     settings: {
       ...base.settings,
@@ -136,7 +137,20 @@ function normalizeEducation(item, index) {
   };
 }
 
+function normalizeCertification(item, index) {
+  return {
+    title: sanitizePlainText(item?.title || `Certification ${index + 1}`),
+    issuer: sanitizePlainText(item?.issuer || ""),
+    date: sanitizePlainText(item?.date || ""),
+    icon: sanitizePlainText(item?.icon || "fa-solid fa-certificate"),
+    url: sanitizeUrl(item?.url || "")
+  };
+}
+
 function normalizeProject(project) {
+  const featuredImage = sanitizeImageUrl(project?.featuredImage || project?.image || "");
+  const image = sanitizeImageUrl(project?.image || project?.featuredImage || "");
+
   return {
     id: sanitizePlainText(project?.id || cryptoRandomId("project")),
     title: sanitizePlainText(project?.title || "Untitled Project"),
@@ -145,7 +159,9 @@ function normalizeProject(project) {
     tags: normalizeArray(project?.tags).map((tag) => sanitizePlainText(tag)).filter(Boolean),
     url: sanitizeUrl(project?.url || ""),
     github: sanitizeUrl(project?.github || ""),
-    image: sanitizeImageUrl(project?.image || ""),
+    featuredImage,
+    image,
+    gallery: normalizeArray(project?.gallery).map((url) => sanitizeImageUrl(url)).filter(Boolean),
     featured: Boolean(project?.featured),
     gradient: sanitizePlainText(project?.gradient || "linear-gradient(135deg, #1a1a2e, #16213e)")
   };

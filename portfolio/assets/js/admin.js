@@ -633,6 +633,7 @@ async function loadAll() {
   populateSkillsForm();
   renderExpTable();
   renderEduTable();
+  renderCertTable();
   renderTestimonialsTable();
   populatePagesForm();
   renderMediaPanel();
@@ -1453,6 +1454,80 @@ function resetEduForm() {
   $("#edu-form")?.reset();
   setVal("edu-idx", "-1");
   $("#edu-form-title").textContent = "New Entry";
+}
+
+/* ================================================================
+   CERTIFICATIONS
+   ================================================================ */
+function renderCertTable() {
+  const tbody = $("#cert-tbody");
+  if (!tbody) return;
+  const certs = siteContent?.certifications || [];
+  tbody.innerHTML = certs
+    .map((x, i) => `<tr data-idx="${i}">
+      <td data-label="Title">${escapeHtml(x.title)}</td>
+      <td data-label="Issuer">${escapeHtml(x.issuer)}</td>
+      <td data-label="Date">${escapeHtml(x.date)}</td>
+      <td class="row-actions">
+        <button title="Edit" class="cert-edit"><i class="fa-solid fa-pen"></i></button>
+        <button title="Delete" class="cert-del danger"><i class="fa-solid fa-trash"></i></button>
+      </td></tr>`)
+    .join("");
+
+  tbody.querySelectorAll("tr").forEach((row) => {
+    const idx = +row.dataset.idx;
+    row.querySelector(".cert-edit")?.addEventListener("click", () => editCert(idx));
+    row.querySelector(".cert-del")?.addEventListener("click", async () => {
+      if (!confirm("Delete this certification?")) return;
+      siteContent.certifications.splice(idx, 1);
+      await saveSiteContent(siteContent);
+      renderCertTable();
+    });
+  });
+
+  const form = $("#cert-form");
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const idx = +getVal("cert-idx");
+    const entry = {
+      title: getVal("cert-title"),
+      issuer: getVal("cert-issuer"),
+      date: getVal("cert-date"),
+      icon: getVal("cert-icon") || "fa-solid fa-certificate",
+      url: getVal("cert-url")
+    };
+    if (!siteContent.certifications) siteContent.certifications = [];
+    if (idx >= 0 && idx < siteContent.certifications.length) {
+      siteContent.certifications[idx] = entry;
+    } else {
+      siteContent.certifications.push(entry);
+    }
+    await saveSiteContent(siteContent);
+    renderCertTable();
+    resetCertForm();
+    flash("cert-status", "Certification saved!");
+  };
+
+  $("#cert-reset")?.addEventListener("click", resetCertForm);
+  $("#cert-add")?.addEventListener("click", resetCertForm);
+}
+
+function editCert(idx) {
+  const x = (siteContent.certifications || [])[idx];
+  if (!x) return;
+  setVal("cert-idx", idx);
+  setVal("cert-title", x.title);
+  setVal("cert-issuer", x.issuer);
+  setVal("cert-date", x.date);
+  setVal("cert-icon", x.icon);
+  setVal("cert-url", x.url || "");
+  $("#cert-form-title").textContent = "Edit Certification";
+}
+
+function resetCertForm() {
+  $("#cert-form")?.reset();
+  setVal("cert-idx", "-1");
+  $("#cert-form-title").textContent = "New Certification";
 }
 
 /* ================================================================

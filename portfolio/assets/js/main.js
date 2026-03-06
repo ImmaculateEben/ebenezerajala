@@ -701,7 +701,7 @@ async function renderHomePage(siteContent, projects, testimonials) {
   const featuredGrid = document.getElementById("home-projects-grid");
   if (featuredGrid) {
     featuredGrid.innerHTML = "";
-    const featured = projects.filter((project) => project.featured).slice(0, 3);
+    const featured = projects.filter((project) => project.featured);
     const items = featured.length ? featured : projects.slice(0, 3);
     items.forEach((project, index) => {
       featuredGrid.appendChild(buildProjectCard(project, index));
@@ -775,6 +775,40 @@ function renderEducation(siteContent) {
       </div>
     `;
     educationGrid.appendChild(card);
+  });
+}
+
+function renderCertifications(siteContent) {
+  const grid = document.getElementById("certifications-grid");
+  if (!grid) {
+    return;
+  }
+
+  const certs = siteContent.certifications || [];
+  grid.innerHTML = "";
+
+  if (!certs.length) {
+    grid.closest("section")?.setAttribute("hidden", "");
+    return;
+  }
+  grid.closest("section")?.removeAttribute("hidden");
+
+  certs.forEach((entry, index) => {
+    const card = document.createElement("article");
+    card.className = `edu-card card-glass reveal${index ? ` delay-${Math.min(index, 4)}` : ""}`;
+
+    const linkOpen = entry.url ? `<a href="${escapeHtml(entry.url)}" target="_blank" rel="noopener noreferrer">` : "";
+    const linkClose = entry.url ? "</a>" : "";
+
+    card.innerHTML = `
+      <div class="edu-icon"><i class="${escapeHtml(entry.icon)}"></i></div>
+      <div>
+        <span class="edu-badge">${escapeHtml(entry.date)}</span>
+        <h3>${linkOpen}${escapeHtml(entry.title)}${linkClose}</h3>
+        <p class="edu-school">${escapeHtml(entry.issuer)}</p>
+      </div>
+    `;
+    grid.appendChild(card);
   });
 }
 
@@ -1072,6 +1106,7 @@ async function renderProjectDetailPage() {
 
 function renderHomeAndAboutEducation(siteContent) {
   renderEducation(siteContent);
+  renderCertifications(siteContent);
 }
 
 function renderPageText(siteContent) {

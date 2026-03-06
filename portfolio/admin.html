@@ -81,6 +81,7 @@
         <button class="admin-nav-btn" data-section="skills"><i class="fa-solid fa-layer-group"></i><span>Skills &amp; Tech</span></button>
         <button class="admin-nav-btn" data-section="experience"><i class="fa-solid fa-briefcase"></i><span>Experience</span></button>
         <button class="admin-nav-btn" data-section="education"><i class="fa-solid fa-graduation-cap"></i><span>Education</span></button>
+        <button class="admin-nav-btn" data-section="certifications"><i class="fa-solid fa-certificate"></i><span>Certifications</span></button>
         <button class="admin-nav-btn" data-section="testimonials"><i class="fa-solid fa-quote-left"></i><span>Testimonials</span></button>
         <button class="admin-nav-btn" data-section="pages"><i class="fa-solid fa-file-lines"></i><span>Page Text</span></button>
         <button class="admin-nav-btn" data-section="media"><i class="fa-solid fa-images"></i><span>Media</span></button>
@@ -384,6 +385,35 @@
               </div>
             </form>
             <div id="edu-status" class="admin-status is-success" hidden></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== CERTIFICATIONS ===== -->
+      <section class="admin-section" data-panel="certifications" hidden>
+        <div class="panel-header"><h1><i class="fa-solid fa-certificate"></i> Certifications</h1><p>Professional certifications and credentials shown on the About page.</p></div>
+        <div class="panel-split">
+          <div class="admin-card table-wrap">
+            <table class="admin-table"><thead><tr><th>Title</th><th>Issuer</th><th>Date</th><th>Actions</th></tr></thead><tbody id="cert-tbody"></tbody></table>
+            <button type="button" id="cert-add" class="btn btn-outline btn-sm" style="margin-top:1rem"><i class="fa-solid fa-plus"></i> Add</button>
+          </div>
+          <div class="admin-card">
+            <h3 id="cert-form-title">New Certification</h3>
+            <form id="cert-form" class="admin-form-grid">
+              <input type="hidden" id="cert-idx" value="-1">
+              <div class="form-group"><label for="cert-title">Certification Title</label><input type="text" id="cert-title" required></div>
+              <div class="form-group"><label for="cert-issuer">Issuing Organization</label><input type="text" id="cert-issuer" required></div>
+              <div class="form-row-2">
+                <div class="form-group"><label for="cert-date">Date Earned</label><input type="text" id="cert-date" placeholder="Jan 2025"></div>
+                <div class="form-group"><label for="cert-icon">Icon</label><input type="text" id="cert-icon" placeholder="fa-solid fa-certificate"></div>
+              </div>
+              <div class="form-group"><label for="cert-url">Credential URL <small>(optional)</small></label><input type="url" id="cert-url" placeholder="https://..."></div>
+              <div class="admin-actions-row">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" id="cert-reset" class="btn btn-outline">New</button>
+              </div>
+            </form>
+            <div id="cert-status" class="admin-status is-success" hidden></div>
           </div>
         </div>
       </section>

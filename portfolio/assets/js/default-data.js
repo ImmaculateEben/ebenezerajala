@@ -195,6 +195,7 @@ export const DEFAULT_SITE_CONTENT = {
       icon: "fa-solid fa-school"
     }
   ],
+  certifications: [],
   settings: {
     contactRecipientEmail: "ebenezerajala1305@gmail.com",
     notificationSenderName: "Ebenezer Ajala Portfolio",

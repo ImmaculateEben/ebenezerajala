@@ -1028,6 +1028,12 @@ img {
     gap: 1.5rem;
 }
 
+.cert-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
 .edu-card {
     display: flex;
     align-items: flex-start;
@@ -2658,27 +2664,32 @@ footer {
     margin-bottom: 1.75rem;
 }
 
+.github-contributions-container {
+    --github-chart-min-width: 0px;
+}
+
 .github-card {
     border-color: var(--border-hover);
+    overflow: visible;
+}
+
+.github-scroll-hint {
+    display: none;
+    margin: 0.7rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    letter-spacing: 0.01em;
 }
 
 /* GitHub PNG/SVG chart fallback (ghchart.rshah.org) */
 .gh-png-fallback {
     display: block;
-    width: 100%;
-    max-width: 100%;
+    margin: 0 auto;
+    width: auto;
+    min-width: var(--github-chart-min-width);
+    max-width: none;
     height: auto;
     border-radius: var(--radius-sm);
-}
-
-/* When PNG fallback is active, remove the fixed min-width so it scales freely */
-.github-contributions-container .github-calendar:has(.gh-png-fallback) {
-    min-width: 0 !important;
-    overflow-x: visible;
-}
-
-.github-contributions-container .github-card:has(.gh-png-fallback) {
-    overflow-x: visible;
 }
 
 /* GitHub unavailable fallback */
@@ -2715,11 +2726,15 @@ footer {
     border-radius: var(--radius-sm);
     background: transparent;
     font-family: var(--font-main);
+    min-width: var(--github-chart-min-width);
 }
 
 .github-contributions-container .github-calendar>div {
-    max-width: 100%;
-    overflow-x: auto;
+    margin: 0 auto;
+    min-width: var(--github-chart-min-width);
+    width: max-content;
+    max-width: none;
+    overflow: visible;
 }
 
 .github-contributions-container .ContributionCalendar-grid {
@@ -3253,9 +3268,19 @@ footer {
         width: auto;
     }
 
-    .github-contributions-container .calendar,
-    .github-contributions-container .github-calendar {
-        min-width: 620px;
+    .github-contributions-container {
+        --github-chart-min-width: 760px;
+    }
+
+    .github-card {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+
+    .github-scroll-hint {
+        display: block;
     }
 
     /* ---- Grid Overlap Fixes for Mobile ---- */

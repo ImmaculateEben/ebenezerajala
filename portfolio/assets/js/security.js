@@ -38,7 +38,17 @@ export function sanitizeUrl(value) {
 }
 
 export function sanitizeImageUrl(value) {
-  const safe = sanitizeUrl(value);
+  const raw = String(value || "").trim();
+  if (!raw) {
+    return "";
+  }
+
+  // Local-mode uploads are stored as data URLs in localStorage.
+  if (raw.startsWith("data:image/")) {
+    return raw;
+  }
+
+  const safe = sanitizeUrl(raw);
   if (!safe) {
     return "";
   }
