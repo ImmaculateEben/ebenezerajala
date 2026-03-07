@@ -2602,6 +2602,11 @@ footer {
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+}
+
+.testimonials-marquee::-webkit-scrollbar {
+    display: none;
 }
 
 .testimonials-track {
@@ -2618,17 +2623,7 @@ footer {
     scroll-snap-align: start;
 }
 
-.testimonials-marquee.is-animated {
-    overflow: hidden;
-}
 
-.testimonials-marquee.is-animated .testimonials-track {
-    animation: testimonialsMarquee 34s linear infinite;
-}
-
-.testimonials-marquee.is-animated:hover .testimonials-track {
-    animation-play-state: paused;
-}
 
 /* =========================================
    SINGLE PROJECT PAGE
@@ -3515,8 +3510,7 @@ footer {
         transition-duration: 0.01ms !important;
     }
 
-    .featured-projects-viewport.is-tablet-animated .featured-projects-track,
-    .testimonials-marquee.is-animated .testimonials-track {
+    .featured-projects-viewport.is-tablet-animated .featured-projects-track {
         animation: none !important;
     }
 }
@@ -3602,15 +3596,7 @@ footer {
     border-color: rgba(34, 197, 94, 0.2);
 }
 
-@keyframes testimonialsMarquee {
-    from {
-        transform: translateX(0);
-    }
 
-    to {
-        transform: translateX(-50%);
-    }
-}
 
 @keyframes featuredProjectsMarquee {
     from {

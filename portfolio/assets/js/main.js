@@ -628,7 +628,6 @@ function setupTestimonialsMarquee(container) {
   }
 
   const isDesktop = window.matchMedia("(min-width: 768px)").matches;
-  const reduceMotion = prefersReducedMotion();
 
   /* Desktop: show as a responsive grid, no marquee */
   if (isDesktop) {
@@ -636,26 +635,60 @@ function setupTestimonialsMarquee(container) {
     return;
   }
 
-  /* Mobile: horizontal scroll marquee */
+  /* Mobile: snap-scroll carousel that auto-advances one card at a time */
   const viewport = document.createElement("div");
   viewport.className = "testimonials-marquee";
   const track = document.createElement("div");
   track.className = "testimonials-track";
 
   cards.forEach((card) => track.appendChild(card));
-
-  if (!reduceMotion && cards.length > 2) {
-    cards.forEach((card) => {
-      const clone = card.cloneNode(true);
-      clone.classList.add("is-clone");
-      clone.setAttribute("aria-hidden", "true");
-      track.appendChild(clone);
-    });
-    viewport.classList.add("is-animated");
-  }
-
   viewport.appendChild(track);
   container.appendChild(viewport);
+
+  if (prefersReducedMotion() || cards.length <= 1) {
+    return;
+  }
+
+  /* Auto-advance: scroll one card width every 4 seconds */
+  let autoTimer = null;
+  let userScrolling = false;
+
+  function advance() {
+    if (userScrolling) return;
+    const card = track.querySelector(".testimonial-card");
+    if (!card) return;
+    const step = card.offsetWidth + parseFloat(getComputedStyle(track).gap || 16);
+    const maxScroll = viewport.scrollWidth - viewport.clientWidth;
+
+    if (viewport.scrollLeft >= maxScroll - 2) {
+      viewport.scrollTo({ left: 0, behavior: "smooth" });
+    } else {
+      viewport.scrollBy({ left: step, behavior: "smooth" });
+    }
+  }
+
+  function startAuto() {
+    stopAuto();
+    autoTimer = setInterval(advance, 4000);
+  }
+
+  function stopAuto() {
+    if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+  }
+
+  /* Pause auto-scroll while user is interacting */
+  let resumeTimeout = null;
+  function onUserScroll() {
+    userScrolling = true;
+    stopAuto();
+    clearTimeout(resumeTimeout);
+    resumeTimeout = setTimeout(() => { userScrolling = false; startAuto(); }, 5000);
+  }
+
+  viewport.addEventListener("pointerdown", onUserScroll, { passive: true });
+  viewport.addEventListener("scroll", onUserScroll, { passive: true });
+
+  startAuto();
 }
 
 function setupFeaturedProjectsUX(container) {

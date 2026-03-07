@@ -886,11 +886,14 @@ function renderProjectsTable() {
   tbody.innerHTML = projects
     .map((p) => {
       const typeBadge = p.featured ? `<span class="badge-sm badge-featured">Featured</span>` : `<span class="badge-sm badge-draft">Standard</span>`;
+      const starIcon = p.featured ? "fa-solid fa-star" : "fa-regular fa-star";
+      const starTitle = p.featured ? "Remove from featured" : "Mark as featured";
       return `<tr data-id="${escapeHtml(p.id)}">
         <td data-label="Project">${escapeHtml(p.title)}</td>
         <td data-label="Tags">${(p.tags || []).map((t) => escapeHtml(t)).join(", ")}</td>
         <td data-label="Type">${typeBadge}</td>
         <td class="row-actions">
+          <button title="${starTitle}" class="proj-star${p.featured ? " active" : ""}"><i class="${starIcon}"></i></button>
           <button title="Edit" class="proj-edit"><i class="fa-solid fa-pen"></i></button>
           <button title="Delete" class="proj-del danger"><i class="fa-solid fa-trash"></i></button>
         </td></tr>`;
@@ -899,6 +902,15 @@ function renderProjectsTable() {
 
   tbody.querySelectorAll("tr").forEach((row) => {
     const id = row.dataset.id;
+    row.querySelector(".proj-star")?.addEventListener("click", async () => {
+      const proj = projects.find((x) => x.id === id);
+      if (!proj) return;
+      proj.featured = !proj.featured;
+      await saveProject(proj);
+      projects = await loadProjects();
+      renderProjectsTable();
+      renderOverview();
+    });
     row.querySelector(".proj-edit")?.addEventListener("click", () => editProject(id));
     row.querySelector(".proj-del")?.addEventListener("click", async () => {
       if (!confirm("Delete this project?")) return;
