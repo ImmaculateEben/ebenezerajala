@@ -8,13 +8,20 @@ const THEME_META = {
 };
 
 function getTheme() {
-  return localStorage.getItem(THEME_KEY) || "light";
+  try {
+    const storedTheme = localStorage.getItem(THEME_KEY);
+    return THEMES.includes(storedTheme) ? storedTheme : "light";
+  } catch (error) {
+    return "light";
+  }
 }
 
 function applyTheme(theme) {
   const active = THEMES.includes(theme) ? theme : "light";
   document.documentElement.setAttribute("data-theme", active);
-  localStorage.setItem(THEME_KEY, active);
+  try {
+    localStorage.setItem(THEME_KEY, active);
+  } catch (error) {}
 
   const button = document.getElementById("theme-toggle-btn");
   if (!button) {
@@ -49,3 +56,6 @@ document.addEventListener("DOMContentLoaded", () => {
   injectToggleButton();
   applyTheme(getTheme());
 });
+
+// Apply saved theme as soon as this file executes to avoid a late theme swap.
+applyTheme(getTheme());

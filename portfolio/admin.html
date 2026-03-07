@@ -1,5 +1,5 @@
-﻿<!DOCTYPE html>
-<html lang="en" data-theme="light">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,9 +12,8 @@
     (function () {
       try {
         var theme = localStorage.getItem("ea_theme");
-        if (theme === "light" || theme === "gold" || theme === "dark") {
-          document.documentElement.setAttribute("data-theme", theme);
-        }
+        var resolvedTheme = theme === "light" || theme === "gold" || theme === "dark" ? theme : "light";
+        document.documentElement.setAttribute("data-theme", resolvedTheme);
       } catch (error) {}
     })();
   </script>
