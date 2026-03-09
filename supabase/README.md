@@ -5,7 +5,7 @@ This repo now uses Supabase for:
 - Auth (email/password)
 - Database (Postgres with RLS)
 - Storage (public bucket for uploaded assets)
-- Edge Functions (`submit-contact`)
+- Edge Functions (`submit-contact`, `admin-ai`, `admin-invite`)
 
 ## Required runtime values
 
@@ -44,12 +44,15 @@ This email should match the admin account you create in Supabase Auth.
 2. Create the admin user in Authentication.
 3. Confirm the admin email exists in `public.admin_users`.
 
-## Secrets for the Edge Function
+## Secrets for the Edge Functions
 
 Set these secrets in Supabase:
 
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
+- `ALLOWED_ORIGINS`
+- `GEMINI_API_KEY`
+- `GEMINI_MODEL` (optional, defaults to `gemini-2.5-flash`)
 - `RESEND_API_KEY`
 - `RESEND_FROM_EMAIL`
 
@@ -71,10 +74,12 @@ Set secrets before deploying the function:
 supabase secrets set --env-file supabase/.env
 ```
 
-Deploy the function as a public endpoint:
+Deploy the functions:
 
 ```bash
 supabase functions deploy submit-contact --no-verify-jwt
+supabase functions deploy admin-ai --no-verify-jwt
+supabase functions deploy admin-invite --no-verify-jwt
 ```
 
 If you prefer the SQL editor instead of `supabase db push`, run both migration files manually in order, then deploy the function with the command above.
@@ -84,4 +89,5 @@ If you prefer the SQL editor instead of `supabase db push`, run both migration f
 - The browser only uses the Supabase anon key.
 - All writes are protected by RLS and require an authenticated admin in `public.admin_users`.
 - The contact form uses the public `submit-contact` Edge Function with honeypot validation and per-email rate limiting.
+- `admin-ai` and `admin-invite` also require an authenticated admin, but they validate the bearer token inside the function instead of relying on gateway JWT verification.
 - The service role key is used only inside the Edge Function, never in frontend code.

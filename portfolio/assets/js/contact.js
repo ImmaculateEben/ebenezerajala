@@ -4,6 +4,10 @@ import { applyExternalLinkSafety, escapeHtml, sanitizeUrl } from "./security.js"
 
 let turnstileLoaderPromise = null;
 let turnstileWidgetId = null;
+let turnstileResizeCleanup = null;
+
+const TURNSTILE_BASE_WIDTH = 300;
+const TURNSTILE_BASE_HEIGHT = 65;
 
 function setStatus(element, message, variant) {
   if (!element) {
@@ -49,6 +53,55 @@ function loadTurnstileScript() {
   return turnstileLoaderPromise;
 }
 
+function getTurnstileAvailableWidth(container) {
+  const styles = window.getComputedStyle(container);
+  const paddingLeft = parseFloat(styles.paddingLeft || "0") || 0;
+  const paddingRight = parseFloat(styles.paddingRight || "0") || 0;
+  return Math.max(0, container.clientWidth - paddingLeft - paddingRight);
+}
+
+function syncTurnstileWidgetLayout() {
+  const container = document.getElementById("turnstile-container");
+  const widget = document.getElementById("turnstile-widget");
+
+  if (!container || !widget || container.hidden) {
+    return;
+  }
+
+  const availableWidth = getTurnstileAvailableWidth(container);
+  const scale = availableWidth > 0 ? Math.min(1, availableWidth / TURNSTILE_BASE_WIDTH) : 1;
+
+  container.style.setProperty("--turnstile-scale", String(scale));
+  container.classList.toggle("turnstile-is-scaled", scale < 0.999);
+  widget.style.width = scale < 1 ? `${TURNSTILE_BASE_WIDTH}px` : "min(100%, 300px)";
+  widget.style.height = `${Math.ceil(TURNSTILE_BASE_HEIGHT * scale)}px`;
+  widget.style.transform = scale < 1 ? `scale(${scale})` : "";
+}
+
+function bindTurnstileLayoutWatcher() {
+  if (turnstileResizeCleanup) {
+    return;
+  }
+
+  const handleResize = () => syncTurnstileWidgetLayout();
+  window.addEventListener("resize", handleResize, { passive: true });
+
+  let resizeObserver = null;
+  if ("ResizeObserver" in window) {
+    const container = document.getElementById("turnstile-container");
+    if (container) {
+      resizeObserver = new ResizeObserver(() => syncTurnstileWidgetLayout());
+      resizeObserver.observe(container);
+    }
+  }
+
+  turnstileResizeCleanup = () => {
+    window.removeEventListener("resize", handleResize);
+    resizeObserver?.disconnect();
+    turnstileResizeCleanup = null;
+  };
+}
+
 async function ensureTurnstile(status) {
   const siteKey = getTurnstileSiteKey();
   const container = document.getElementById("turnstile-container");
@@ -63,6 +116,8 @@ async function ensureTurnstile(status) {
 
   if (turnstileWidgetId !== null) {
     container.hidden = false;
+    bindTurnstileLayoutWatcher();
+    window.requestAnimationFrame(syncTurnstileWidgetLayout);
     return;
   }
 
@@ -73,6 +128,8 @@ async function ensureTurnstile(status) {
       sitekey: siteKey,
       theme: "auto"
     });
+    bindTurnstileLayoutWatcher();
+    window.requestAnimationFrame(syncTurnstileWidgetLayout);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Cloudflare Turnstile could not be loaded.";
     setStatus(status, escapeHtml(message), "error");

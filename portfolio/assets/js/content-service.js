@@ -252,9 +252,54 @@ function getClient() {
   return getSupabaseClient();
 }
 
-function parseFunctionError(error, fallbackMessage) {
+async function parseFunctionError(error, fallbackMessage) {
   if (error?.context && typeof error.context === "object" && typeof error.context.error === "string") {
     return error.context.error;
+  }
+
+  const response = error?.context;
+  if (response && typeof response === "object") {
+    const readable = typeof response.clone === "function" ? response.clone() : response;
+
+    if (typeof readable.json === "function") {
+      try {
+        const parsed = await readable.json();
+        if (typeof parsed?.error === "string") {
+          return parsed.error;
+        }
+        if (typeof parsed?.message === "string") {
+          return parsed.message;
+        }
+      } catch (_error) {
+        // Fall through to plain-text parsing.
+      }
+    }
+
+    if (typeof readable.text === "function") {
+      try {
+        const text = String(await readable.text()).trim();
+        if (text) {
+          try {
+            const parsed = JSON.parse(text);
+            if (typeof parsed?.error === "string") {
+              return parsed.error;
+            }
+            if (typeof parsed?.message === "string") {
+              return parsed.message;
+            }
+          } catch (_error) {
+            return text;
+          }
+        }
+      } catch (_error) {
+        // Ignore unreadable bodies and fall through.
+      }
+    }
+
+    if (Number.isFinite(response.status) && response.status > 0) {
+      const label = String(response.statusText || "").trim();
+      return label ? `${response.status} ${label}` : `Request failed with status ${response.status}.`;
+    }
   }
 
   if (typeof error?.context === "string") {
@@ -629,14 +674,7 @@ export async function inviteAdminUser(input) {
   });
 
   if (error) {
-    let inviteErrMsg = null;
-    if (error.context && typeof error.context.json === "function") {
-      try {
-        const body = await error.context.json();
-        if (typeof body?.error === "string") inviteErrMsg = body.error;
-      } catch (_) { /* body not JSON or already consumed */ }
-    }
-    throw new Error(inviteErrMsg || parseFunctionError(error, "Unable to invite the admin user."));
+    throw new Error(await parseFunctionError(error, "Unable to invite the admin user."));
   }
 
   return {
@@ -690,14 +728,7 @@ export async function generateAdminAiText(input) {
   });
 
   if (error) {
-    let aiErrMsg = null;
-    if (error.context && typeof error.context.json === "function") {
-      try {
-        const body = await error.context.json();
-        if (typeof body?.error === "string") aiErrMsg = body.error;
-      } catch (_) { /* body not JSON or already consumed */ }
-    }
-    throw new Error(aiErrMsg || parseFunctionError(error, "Unable to generate AI copy."));
+    throw new Error(await parseFunctionError(error, "Unable to generate AI copy."));
   }
 
   const text = String(data?.text || "").trim();

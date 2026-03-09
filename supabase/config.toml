@@ -11,7 +11,7 @@ port = 54322
 verify_jwt = false
 
 [functions.admin-ai]
-verify_jwt = true
+verify_jwt = false
 
 [functions.admin-invite]
-verify_jwt = true
+verify_jwt = false
