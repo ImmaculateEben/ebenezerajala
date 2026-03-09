@@ -629,7 +629,14 @@ export async function inviteAdminUser(input) {
   });
 
   if (error) {
-    throw new Error(parseFunctionError(error, "Unable to invite the admin user."));
+    let inviteErrMsg = null;
+    if (error.context && typeof error.context.json === "function") {
+      try {
+        const body = await error.context.json();
+        if (typeof body?.error === "string") inviteErrMsg = body.error;
+      } catch (_) { /* body not JSON or already consumed */ }
+    }
+    throw new Error(inviteErrMsg || parseFunctionError(error, "Unable to invite the admin user."));
   }
 
   return {
@@ -683,7 +690,14 @@ export async function generateAdminAiText(input) {
   });
 
   if (error) {
-    throw new Error(parseFunctionError(error, "Unable to generate AI copy."));
+    let aiErrMsg = null;
+    if (error.context && typeof error.context.json === "function") {
+      try {
+        const body = await error.context.json();
+        if (typeof body?.error === "string") aiErrMsg = body.error;
+      } catch (_) { /* body not JSON or already consumed */ }
+    }
+    throw new Error(aiErrMsg || parseFunctionError(error, "Unable to generate AI copy."));
   }
 
   const text = String(data?.text || "").trim();
