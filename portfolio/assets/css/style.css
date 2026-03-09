@@ -910,23 +910,24 @@ img {
 
 .profile-image-wrap {
     width: 100%;
-    aspect-ratio: 4/3;
-    max-height: clamp(230px, 38vw, 330px);
+    aspect-ratio: 4/5;
+    max-height: clamp(300px, 46vw, 430px);
     overflow: hidden;
     background: var(--gradient-card);
     position: relative;
+    padding: clamp(0.55rem, 1.4vw, 0.9rem) clamp(0.55rem, 1.4vw, 0.9rem) 0;
 }
 
 .profile-image-wrap img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: top center;
+    object-fit: contain;
+    object-position: center top;
     transition: transform 0.5s ease;
 }
 
 .profile-card:hover .profile-image-wrap img {
-    transform: scale(1.04);
+    transform: scale(1.015);
 }
 
 /* Fallback: icon placeholder if no image */

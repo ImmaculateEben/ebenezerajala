@@ -3092,6 +3092,8 @@ async function runInlineAiAssist(field, button, options = {}) {
 function installAiFieldTriggers() {
   $$(".btn-ai-assist").forEach((button) => {
     const target = document.getElementById(button.dataset.target || "");
+    const group = target?.closest?.(".form-group");
+    group?.classList?.add("has-ai");
     if (target && isAiEditableField(target) && button.dataset.ctx && !target.dataset.aiContext) {
       target.dataset.aiContext = button.dataset.ctx;
     }
@@ -3109,8 +3111,7 @@ function installAiFieldTriggers() {
       return;
     }
 
-    const actionRow = document.createElement("div");
-    actionRow.className = "ai-field-actions";
+    group.classList.add("has-ai");
 
     const button = document.createElement("button");
     button.type = "button";
@@ -3119,8 +3120,7 @@ function installAiFieldTriggers() {
     button.setAttribute("aria-label", `Improve ${getFieldLabel(field)} with AI`);
     button.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i><span>AI</span>';
 
-    actionRow.appendChild(button);
-    field.insertAdjacentElement("afterend", actionRow);
+    group.appendChild(button);
   });
 }
 
