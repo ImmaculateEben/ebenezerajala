@@ -59,9 +59,9 @@ function getTaskInstruction(task: string) {
 
 function getMaxOutputTokens(length: string) {
   const value = normalizeText(length, 24).toLowerCase();
-  if (value === "short") return 180;
-  if (value === "long") return 700;
-  return 360;
+  if (value === "short") return 512;
+  if (value === "long") return 2048;
+  return 1024;
 }
 
 async function requireAdminEmail(
