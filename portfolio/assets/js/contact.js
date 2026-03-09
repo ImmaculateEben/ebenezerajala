@@ -197,10 +197,9 @@ export function initContactForm() {
       const result = await submitContactMessage(payload);
       form.reset();
       resetTurnstile();
-      const deliveredTo = escapeHtml(result?.deliveredTo || "the configured inbox");
       setStatus(
         status,
-        `Message sent successfully. Thanks for reaching out — I will reply via <strong>${deliveredTo}</strong>.`,
+        `Message sent! Thanks for reaching out — I'll get back to you as soon as possible.`,
         "success"
       );
     } catch (error) {
