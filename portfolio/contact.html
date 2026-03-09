@@ -60,88 +60,92 @@
 
   <section class="section">
     <div class="container">
-      <div class="contact-page-grid">
-        <div class="contact-panel card-glass reveal">
-          <h2 class="section-title contact-section-title">Let's Build Something Together</h2>
-          <p class="contact-lead">
-            Use the form to share your project details, collaboration ideas, or opportunities.
-            I will respond as soon as possible.
+      <div class="contact-layout">
+
+        <!-- Info panel -->
+        <div class="contact-info card-glass reveal">
+          <h2 class="contact-info-title">Let's Build Something Together</h2>
+          <p class="contact-info-lead">
+            Share your project details, collaboration ideas, or opportunities.
+            I'll get back to you as soon as possible.
           </p>
 
-          <div class="contact-detail-list">
-          <div class="contact-detail-item">
-            <div class="contact-detail-icon"><i class="fa-solid fa-envelope"></i></div>
-            <div>
-              <h4>Email</h4>
-              <a id="contact-email-link" href="mailto:ebenezerajala1305@gmail.com">ebenezerajala1305@gmail.com</a>
+          <div class="contact-channels">
+            <div class="contact-channel">
+              <div class="contact-channel-icon"><i class="fa-solid fa-envelope"></i></div>
+              <div class="contact-channel-body">
+                <span class="contact-channel-label">Email</span>
+                <a id="contact-email-link" class="contact-channel-value" href="mailto:ebenezerajala1305@gmail.com">ebenezerajala1305@gmail.com</a>
+              </div>
             </div>
-          </div>
 
-          <div class="contact-detail-item">
-            <div class="contact-detail-icon"><i class="fa-solid fa-phone"></i></div>
-            <div>
-              <h4>Phone</h4>
-              <a id="contact-phone-primary" href="tel:+2348152178472">+234 815 217 8472</a><br>
-              <a id="contact-phone-secondary" class="contact-phone-secondary" href="tel:+2349120037255">+234 912 003 7255</a>
+            <div class="contact-channel">
+              <div class="contact-channel-icon"><i class="fa-solid fa-phone"></i></div>
+              <div class="contact-channel-body">
+                <span class="contact-channel-label">Phone</span>
+                <a id="contact-phone-primary" class="contact-channel-value" href="tel:+2348152178472">+234 815 217 8472</a>
+                <a id="contact-phone-secondary" class="contact-channel-value contact-phone-alt" href="tel:+2349120037255">+234 912 003 7255</a>
+              </div>
             </div>
-          </div>
 
-          <div class="contact-detail-item">
-            <div class="contact-detail-icon"><i class="fa-brands fa-linkedin"></i></div>
-            <div>
-              <h4>LinkedIn</h4>
-              <a id="contact-linkedin-link" href="https://www.linkedin.com/in/ebenezer-ajala13" target="_blank" rel="noopener noreferrer">linkedin.com/in/ebenezer-ajala13</a>
+            <div class="contact-channel">
+              <div class="contact-channel-icon"><i class="fa-brands fa-linkedin"></i></div>
+              <div class="contact-channel-body">
+                <span class="contact-channel-label">LinkedIn</span>
+                <a id="contact-linkedin-link" class="contact-channel-value" href="https://www.linkedin.com/in/ebenezer-ajala13" target="_blank" rel="noopener noreferrer">linkedin.com/in/ebenezer-ajala13</a>
+              </div>
             </div>
-          </div>
 
-          <div class="contact-detail-item">
-            <div class="contact-detail-icon"><i class="fa-solid fa-location-dot"></i></div>
-            <div>
-              <h4>Location</h4>
-              <span id="contact-location-label">Lagos, Nigeria</span>
+            <div class="contact-channel">
+              <div class="contact-channel-icon"><i class="fa-solid fa-location-dot"></i></div>
+              <div class="contact-channel-body">
+                <span class="contact-channel-label">Location</span>
+                <span id="contact-location-label" class="contact-channel-value">Lagos, Nigeria</span>
+              </div>
             </div>
-          </div>
           </div>
         </div>
 
-        <div class="contact-form reveal delay-1">
-          <div class="card-glass contact-form-wrapper">
-            <h3>Send a Message</h3>
+        <!-- Form panel -->
+        <div class="contact-form-col">
+          <div class="card-glass contact-card reveal delay-1">
+            <h3 class="contact-card-heading">Send a Message</h3>
             <form id="contactForm">
-              <div class="form-row">
-                <div class="form-group">
+              <div class="c-form-row">
+                <div class="c-field">
                   <label for="form-name">Your Name</label>
                   <input type="text" id="form-name" name="name" required placeholder="John Doe">
                 </div>
-                <div class="form-group">
+                <div class="c-field">
                   <label for="form-email">Your Email</label>
                   <input type="email" id="form-email" name="email" required placeholder="john@example.com">
                 </div>
               </div>
-              <div class="form-group">
+              <div class="c-field">
                 <label for="form-subject">Subject</label>
                 <input type="text" id="form-subject" name="subject" placeholder="Project enquiry">
               </div>
-              <div class="form-group" style="display:none;">
+              <div class="c-field" style="display:none;">
                 <label for="form-website">Website</label>
                 <input type="text" id="form-website" name="website" autocomplete="off" tabindex="-1">
               </div>
-              <div class="form-group">
+              <div class="c-field">
                 <label for="form-message">Message</label>
-                <textarea id="form-message" name="message" rows="6" required placeholder="Tell me about the project, timeline, and what you need."></textarea>
+                <textarea id="form-message" name="message" rows="5" required placeholder="Tell me about the project, timeline, and what you need."></textarea>
               </div>
-              <div id="turnstile-container" class="turnstile-wrap" hidden>
-                <label class="form-turnstile-label">Spam Protection</label>
+              <div id="turnstile-container" class="c-turnstile" hidden>
+                <label class="c-turnstile-label">Spam Protection</label>
                 <div id="turnstile-widget"></div>
-                <p class="turnstile-note">This quick check helps protect the contact form from abuse.</p>
+                <p class="c-turnstile-note">This quick check helps protect the contact form from abuse.</p>
               </div>
               <button type="submit" id="submit-btn" class="btn btn-primary" style="width:100%;justify-content:center;">
                 Send Message <i class="fa-solid fa-paper-plane"></i>
               </button>
             </form>
-            <div id="contact-form-status" class="form-success" hidden></div>
+            <div id="contact-form-status" class="c-form-status"></div>
           </div>
         </div>
+
       </div>
     </div>
   </section>

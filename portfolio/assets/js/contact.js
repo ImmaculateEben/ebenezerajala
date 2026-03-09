@@ -17,7 +17,6 @@ function setStatus(element, message, variant) {
   element.classList.remove("is-error", "is-success");
   element.classList.add(variant === "error" ? "is-error" : "is-success");
   element.innerHTML = message;
-  element.hidden = false;
 }
 
 function getTurnstileSiteKey() {
@@ -246,7 +245,7 @@ export function initContactForm() {
       return;
     }
 
-    status.hidden = true;
+    status.classList.remove("is-error", "is-success");
     submitButton.disabled = true;
     submitButton.innerHTML = 'Sending <i class="fa-solid fa-spinner fa-spin"></i>';
 

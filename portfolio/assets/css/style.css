@@ -2254,255 +2254,273 @@ select:focus-visible {
 /* =========================================
    CONTACT PAGE
    ========================================= */
-.contact-page-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    align-items: start;
-    max-width: 100%;
-    overflow: hidden;
+.contact-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
 }
 
 @media (min-width: 900px) {
-    .contact-page-grid {
-        grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-        gap: 2rem;
+    .contact-layout {
+        flex-direction: row;
+        gap: 2.5rem;
     }
 }
 
-@media (min-width: 1200px) {
-    .contact-page-grid {
-        gap: 2.4rem;
-    }
-}
-
-.contact-panel {
-    padding: clamp(1.4rem, 2.4vw, 2rem);
-    display: flex;
-    flex-direction: column;
+/* ---- Left column: info panel ---- */
+.contact-info {
+    flex: 1 1 0;
     min-width: 0;
 }
 
-.contact-section-title {
-    margin-bottom: 1rem !important;
+.contact-info-title {
+    font-size: 1.35rem;
+    margin-bottom: 0.6rem;
 }
 
-.contact-lead {
+.contact-info-lead {
     color: var(--text-secondary);
-    font-size: 1rem;
-    line-height: 1.8;
-    margin-bottom: 1.5rem;
-    max-width: 52ch;
+    font-size: 0.98rem;
+    line-height: 1.75;
+    margin-bottom: 1.6rem;
 }
 
-.contact-detail-list {
-    display: grid;
-    gap: 0.95rem;
-}
-
-/* Contact details */
-.contact-detail-item {
+.contact-channels {
     display: flex;
-    gap: 1.2rem;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.contact-channel {
+    display: flex;
     align-items: center;
-    margin-bottom: 0;
-    padding: 0.95rem 1rem;
-    border: 1px solid var(--border);
+    gap: 1rem;
+    padding: 0.85rem 1rem;
     border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
     background: var(--accent-bg);
     transition: var(--transition);
     min-width: 0;
 }
 
-.contact-detail-item:hover {
+.contact-channel:hover {
     border-color: var(--accent);
     background: var(--accent-bg-hover);
     transform: translateY(-2px);
 }
 
-.contact-detail-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
+.contact-channel-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
     background: var(--accent-bg);
     border: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
     flex-shrink: 0;
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: var(--accent);
     transition: var(--transition);
 }
 
-.contact-detail-item:hover .contact-detail-icon {
+.contact-channel:hover .contact-channel-icon {
     background: var(--accent);
     color: #fff;
 }
 
-.contact-detail-item h4 {
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--text-muted);
-    margin-bottom: 0.2rem;
-}
-
-.contact-detail-item a,
-.contact-detail-item span {
-    font-size: 0.95rem;
-    color: var(--text-primary);
-    overflow-wrap: anywhere;
-    word-break: break-word;
-    min-width: 0;
-}
-
-.contact-detail-item > div:last-child {
+.contact-channel-body {
     min-width: 0;
     flex: 1;
 }
 
-.contact-detail-item a:hover {
+.contact-channel-label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 0.15rem;
+}
+
+.contact-channel-value {
+    font-size: 0.92rem;
+    color: var(--text-primary);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.contact-channel-value:hover {
     color: var(--accent);
 }
 
-.contact-phone-secondary {
-    margin-top: 0.25rem;
-    display: inline-block;
+.contact-phone-alt {
+    display: block;
+    margin-top: 0.2rem;
 }
 
-/* Contact form */
-.contact-form {
-    align-self: start;
+/* ---- Right column: form ---- */
+.contact-form-col {
+    flex: 1.1 1 0;
     min-width: 0;
 }
 
-.contact-form-wrapper {
-    position: relative;
-    padding: clamp(1.4rem, 2.4vw, 2rem);
-    min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
+.contact-card {
+    padding: clamp(1.4rem, 2.5vw, 2.2rem);
 }
 
 @media (min-width: 1100px) {
-    .contact-form-wrapper {
+    .contact-card {
         position: sticky;
-        top: calc(var(--nav-height) + 1.1rem);
+        top: calc(var(--nav-height) + 1.2rem);
     }
 }
 
-.contact-form h3 {
-    font-size: 1.4rem;
-    margin-bottom: 1.8rem;
+.contact-card-heading {
+    font-size: 1.3rem;
+    margin-bottom: 1.6rem;
 }
 
-.form-row {
+.c-form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1.2rem;
+    gap: 1rem;
 }
 
-@media (max-width: 600px) {
-    .form-row {
-        grid-template-columns: 1fr;
-    }
+.c-field {
+    margin-bottom: 1.2rem;
 }
 
-.form-group {
-    margin-bottom: 1.3rem;
-}
-
-.form-group label {
+.c-field label {
     display: block;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--text-secondary);
-    margin-bottom: 0.45rem;
+    margin-bottom: 0.4rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-.form-group input,
-.form-group textarea,
-.form-group select {
+.c-field input,
+.c-field textarea,
+.c-field select {
+    display: block;
     width: 100%;
     background: var(--accent-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    padding: 0.75rem 1rem;
+    padding: 0.7rem 0.9rem;
     color: var(--text-primary);
     font-family: var(--font-main);
     font-size: 0.95rem;
     transition: var(--transition);
     outline: none;
     appearance: none;
+    box-sizing: border-box;
 }
 
-.form-group input::placeholder,
-.form-group textarea::placeholder {
+.c-field input::placeholder,
+.c-field textarea::placeholder {
     color: var(--text-muted);
 }
 
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
+.c-field input:focus,
+.c-field textarea:focus,
+.c-field select:focus {
     border-color: var(--accent);
     background: var(--accent-bg-hover);
     box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
-.form-success {
+.c-form-status {
     margin-top: 1rem;
-    color: #22c55e;
     font-size: 0.9rem;
     text-align: center;
     padding: 0.75rem 1rem;
-    background: rgba(34, 197, 94, 0.08);
-    border: 1px solid rgba(34, 197, 94, 0.2);
     border-radius: var(--radius-sm);
+    display: none;
 }
 
-.turnstile-wrap {
-    --turnstile-scale: 1;
-    margin-bottom: 1.3rem;
-    padding: 0.9rem 1rem;
+.c-form-status.is-success {
+    display: block;
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.c-form-status.is-error {
+    display: block;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Turnstile */
+.c-turnstile {
+    margin-bottom: 1.2rem;
+    padding: 0.85rem 0.9rem;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background: rgba(255, 255, 255, 0.02);
-    max-width: 100%;
-    overflow: hidden;
-    min-width: 0;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
-.form-turnstile-label {
+.c-turnstile-label {
     display: block;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--text-secondary);
-    margin-bottom: 0.65rem;
+    margin-bottom: 0.5rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-.turnstile-note {
-    margin: 0.6rem 0 0;
-    font-size: 0.82rem;
+.c-turnstile-note {
+    margin: 0.5rem 0 0;
+    font-size: 0.8rem;
     color: var(--text-muted);
 }
 
 #turnstile-widget {
     width: min(100%, 300px);
     max-width: 100%;
-    min-width: 0;
     height: 65px;
     transform-origin: left top;
 }
 
-.turnstile-wrap.turnstile-is-scaled #turnstile-widget {
+.c-turnstile.turnstile-is-scaled #turnstile-widget {
     width: 300px;
     max-width: none;
+}
+
+/* ---- Contact responsive ---- */
+@media (max-width: 600px) {
+    .c-form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-card {
+        padding: 1.1rem;
+    }
+
+    .contact-info {
+        padding: 0;
+    }
+
+    .contact-channel {
+        padding: 0.7rem 0.8rem;
+    }
+
+    .contact-channel-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 0.9rem;
+    }
+
+    .c-turnstile {
+        padding: 0.7rem;
+    }
 }
 
 /* =========================================
@@ -2716,26 +2734,131 @@ footer {
     margin-bottom: 1.75rem;
 }
 
-.github-contributions-container {
+.github-contrib {
     width: 100%;
+    margin-top: 3.5rem;
+    text-align: center;
 }
 
-.github-card {
-    border-color: var(--border-hover);
+.github-contrib-heading {
+    font-size: 1.35rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.6rem;
+}
+
+.github-contrib-sub {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin: 0 auto 1.4rem;
+}
+
+.github-contrib-card {
+    position: relative;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: clamp(0.75rem, 2vw, 1.5rem);
     overflow: hidden;
+    border-color: var(--border-hover);
+}
+
+/* The calendar wrapper - force everything to scale down */
+.github-contrib-card .gh-cal {
+    width: 100%;
+    overflow: hidden;
+}
+
+/* SVG / table / img emitted by the library or fallback */
+.github-contrib-card .gh-cal svg,
+.github-contrib-card .gh-cal table,
+.github-contrib-card .gh-cal img {
+    display: block;
+    width: 100%;
+    height: auto;
     max-width: 100%;
 }
 
-.github-scroll-hint {
-    display: none;
-    margin: 0.7rem 0 0;
-    color: var(--text-muted);
-    font-size: 0.82rem;
-    letter-spacing: 0.01em;
+/* Calendar colour theming */
+.gh-cal,
+.gh-cal .calendar,
+.gh-cal .github-calendar {
+    --color-calendar-graph-day-bg: var(--gh-calendar-level-0);
+    --color-calendar-graph-day-L1-bg: var(--gh-calendar-level-1);
+    --color-calendar-graph-day-L2-bg: var(--gh-calendar-level-2);
+    --color-calendar-graph-day-L3-bg: var(--gh-calendar-level-3);
+    --color-calendar-graph-day-L4-bg: var(--gh-calendar-level-4);
+    color: var(--text-primary);
+    font-family: var(--font-main);
 }
 
-/* GitHub PNG/SVG chart fallback (ghchart.rshah.org) */
-.gh-png-fallback {
+/* Inner wrapper generated by the library */
+.gh-cal > div {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.gh-cal svg text {
+    fill: var(--text-muted);
+}
+
+.gh-cal .ContributionCalendar-grid {
+    margin: 0;
+}
+
+.gh-cal .ContributionCalendar-grid td {
+    color: var(--text-muted);
+}
+
+.gh-cal .ContributionCalendar-label span[aria-hidden="true"] {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+
+/* Hide unwanted UI cruft from the calendar library */
+.gh-cal .contrib-column,
+.gh-cal .contrib-footer,
+.gh-cal .width-full.f6.px-0.tmp-px-md-5.py-1,
+.gh-cal .position-relative > h2.f4 {
+    display: none !important;
+}
+
+.gh-cal .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+.gh-cal .ContributionCalendar-day,
+.gh-cal rect[data-date] {
+    shape-rendering: geometricPrecision;
+}
+
+/* Level colour overrides */
+.gh-cal .ContributionCalendar-day[data-level="0"],
+.gh-cal rect[data-date][data-level="0"] {
+    fill: var(--color-calendar-graph-day-bg) !important;
+}
+
+.gh-cal .ContributionCalendar-day[data-level="1"],
+.gh-cal rect[data-date][data-level="1"] {
+    fill: var(--color-calendar-graph-day-L1-bg) !important;
+}
+
+.gh-cal .ContributionCalendar-day[data-level="2"],
+.gh-cal rect[data-date][data-level="2"] {
+    fill: var(--color-calendar-graph-day-L2-bg) !important;
+}
+
+.gh-cal .ContributionCalendar-day[data-level="3"],
+.gh-cal rect[data-date][data-level="3"] {
+    fill: var(--color-calendar-graph-day-L3-bg) !important;
+}
+
+.gh-cal .ContributionCalendar-day[data-level="4"],
+.gh-cal rect[data-date][data-level="4"] {
+    fill: var(--color-calendar-graph-day-L4-bg) !important;
+}
+
+/* PNG fallback image */
+.gh-cal .gh-png-fallback {
     display: block;
     width: 100%;
     max-width: 100%;
@@ -2743,7 +2866,7 @@ footer {
     border-radius: var(--radius-sm);
 }
 
-/* GitHub unavailable fallback */
+/* Unavailable state */
 .gh-unavailable {
     display: flex;
     flex-direction: column;
@@ -2764,106 +2887,8 @@ footer {
     margin: 0;
 }
 
-.github-contributions-container .calendar,
-.github-contributions-container .github-calendar {
-    --color-calendar-graph-day-bg: var(--gh-calendar-level-0);
-    --color-calendar-graph-day-L1-bg: var(--gh-calendar-level-1);
-    --color-calendar-graph-day-L2-bg: var(--gh-calendar-level-2);
-    --color-calendar-graph-day-L3-bg: var(--gh-calendar-level-3);
-    --color-calendar-graph-day-L4-bg: var(--gh-calendar-level-4);
-    min-height: 140px;
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: transparent;
-    font-family: var(--font-main);
-    width: 100%;
-    overflow: hidden;
-}
-
-/* Inner wrapper generated by the GitHub Calendar library */
-.github-contributions-container .github-calendar > div {
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
-}
-
-/* Scale SVG/table chart to fit the container at any width */
-.github-contributions-container .github-calendar svg,
-.github-contributions-container .github-calendar table {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-}
-
-.github-contributions-container .ContributionCalendar-grid {
-    margin: 0;
-}
-
-.github-contributions-container .ContributionCalendar-grid td {
-    color: var(--text-muted);
-}
-
-.github-contributions-container .ContributionCalendar-label span[aria-hidden="true"] {
-    color: var(--text-muted);
-    font-size: 0.72rem;
-}
-
-/* Hide unwanted GitHub Calendar UI elements */
-.github-contributions-container .contrib-column,
-.github-contributions-container .contrib-footer,
-.github-contributions-container .width-full.f6.px-0.tmp-px-md-5.py-1,
-.github-contributions-container .position-relative>h2.f4 {
-    display: none !important;
-}
-
-.github-contributions-container .text-muted {
-    color: var(--text-secondary) !important;
-}
-
-.github-contributions-container svg text {
-    fill: var(--text-muted);
-}
-
-.github-contributions-container .ContributionCalendar-day,
-.github-contributions-container rect[data-date] {
-    shape-rendering: geometricPrecision;
-}
-
-.github-contributions-container .ContributionCalendar-day[data-level="0"],
-.github-contributions-container rect.ContributionCalendar-day[data-level="0"],
-.github-contributions-container rect[data-date][data-level="0"] {
-    background-color: var(--color-calendar-graph-day-bg) !important;
-    fill: var(--color-calendar-graph-day-bg) !important;
-}
-
-.github-contributions-container .ContributionCalendar-day[data-level="1"],
-.github-contributions-container rect.ContributionCalendar-day[data-level="1"],
-.github-contributions-container rect[data-date][data-level="1"] {
-    background-color: var(--color-calendar-graph-day-L1-bg) !important;
-    fill: var(--color-calendar-graph-day-L1-bg) !important;
-}
-
-.github-contributions-container .ContributionCalendar-day[data-level="2"],
-.github-contributions-container rect.ContributionCalendar-day[data-level="2"],
-.github-contributions-container rect[data-date][data-level="2"] {
-    background-color: var(--color-calendar-graph-day-L2-bg) !important;
-    fill: var(--color-calendar-graph-day-L2-bg) !important;
-}
-
-.github-contributions-container .ContributionCalendar-day[data-level="3"],
-.github-contributions-container rect.ContributionCalendar-day[data-level="3"],
-.github-contributions-container rect[data-date][data-level="3"] {
-    background-color: var(--color-calendar-graph-day-L3-bg) !important;
-    fill: var(--color-calendar-graph-day-L3-bg) !important;
-}
-
-.github-contributions-container .ContributionCalendar-day[data-level="4"],
-.github-contributions-container rect.ContributionCalendar-day[data-level="4"],
-.github-contributions-container rect[data-date][data-level="4"] {
-    background-color: var(--color-calendar-graph-day-L4-bg) !important;
-    fill: var(--color-calendar-graph-day-L4-bg) !important;
+.github-contrib-link {
+    margin-top: 1rem;
 }
 
 /* =========================================
@@ -3081,10 +3106,6 @@ footer {
         font-size: 1.95rem;
     }
 
-    .github-contributions-container {
-        margin-top: 4rem !important;
-    }
-
     .stats-grid {
         gap: 1.5rem;
     }
@@ -3094,8 +3115,7 @@ footer {
     }
 
     /* ---- Grid Overlap Fixes for Tablet ---- */
-    .about-grid,
-    .contact-page-grid {
+    .about-grid {
         grid-template-columns: 1fr;
     }
 
@@ -3110,8 +3130,7 @@ footer {
         grid-template-columns: 1fr;
     }
 
-    .about-grid,
-    .contact-page-grid {
+    .about-grid {
         gap: 2.5rem;
     }
 
@@ -3328,10 +3347,6 @@ footer {
         width: auto;
     }
 
-    .github-card {
-        padding: 0.75rem;
-    }
-
     /* ---- Grid Overlap Fixes for Mobile ---- */
     .projects-featured {
         grid-template-columns: 1fr;
@@ -3354,10 +3369,6 @@ footer {
         gap: 1rem;
     }
 
-    .contact-page-grid {
-        grid-template-columns: 1fr;
-        gap: 2.5rem;
-    }
 }
 
 /* =========================================
@@ -3392,14 +3403,6 @@ footer {
         justify-content: center;
     }
 
-    .contact-panel,
-    .contact-form-wrapper {
-        padding: 1.1rem;
-    }
-
-    .turnstile-wrap {
-        padding: 0.8rem;
-    }
 }
 
 /* =========================================

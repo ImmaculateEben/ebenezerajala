@@ -461,7 +461,6 @@ function githubContribProxy(username) {
   });
 }
 
-/* Read the current accent hex from CSS variables (no # prefix) */
 function getThemeAccentHex() {
   return getComputedStyle(document.documentElement)
     .getPropertyValue("--accent")
@@ -469,7 +468,6 @@ function getThemeAccentHex() {
     .replace(/^#/, "") || "3b82f6";
 }
 
-/* Render a static ghchart.rshah.org PNG/SVG as a last-resort live fallback */
 async function renderGitHubPngFallback(calendar, username) {
   return new Promise((resolve) => {
     const hex = getThemeAccentHex();
@@ -493,7 +491,6 @@ async function renderGitHubPngFallback(calendar, username) {
   });
 }
 
-/* Re-colour the PNG chart when the theme changes */
 function updateGitHubPngTheme(container) {
   const img = container && container.querySelector("img[data-gh-png]");
   if (!img) return;
@@ -505,21 +502,16 @@ function updateGitHubPngTheme(container) {
 
 async function renderGitHubCalendarFallback(calendar, username) {
   const body = await githubContribProxy(username);
-
-  if (!body) {
-    throw new Error("Empty response from GitHub calendar proxy");
-  }
+  if (!body) throw new Error("Empty response from GitHub calendar proxy");
 
   const parser = new DOMParser();
   const doc = parser.parseFromString(body, "text/html");
   const yearly = doc.querySelector(".js-yearly-contributions");
-  if (!yearly) {
-    return false;
-  }
+  if (!yearly) return false;
 
   yearly
     .querySelectorAll(".position-relative h2, .contrib-column, .contrib-footer, .width-full.f6.px-0.tmp-px-md-5.py-1")
-    .forEach((element) => element.remove());
+    .forEach((el) => el.remove());
 
   yearly.querySelectorAll("a").forEach((link) => {
     if (String(link.textContent || "").includes("View your contributions in 3D, VR and IRL!")) {
@@ -532,35 +524,26 @@ async function renderGitHubCalendarFallback(calendar, username) {
 }
 
 async function waitForGitHubCalendar(timeoutMs = 4500) {
-  if (typeof window.GitHubCalendar === "function") {
-    return true;
-  }
+  if (typeof window.GitHubCalendar === "function") return true;
 
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
     await new Promise((resolve) => window.setTimeout(resolve, 120));
-    if (typeof window.GitHubCalendar === "function") {
-      return true;
-    }
+    if (typeof window.GitHubCalendar === "function") return true;
   }
-
   return false;
 }
 
 async function initGitHubContributions(siteContent) {
   const container = document.getElementById("github-contributions");
-  if (!container) {
-    return;
-  }
+  if (!container) return;
 
-  const calendar = container.querySelector(".github-calendar");
+  const calendar = container.querySelector(".gh-cal");
   const profileLink = container.querySelector("[data-github-profile-link]");
   const username = resolveGitHubUsername(siteContent);
   const safeProfileUrl = sanitizeUrl(siteContent?.profile?.github || "");
 
-  if (!calendar) {
-    return;
-  }
+  if (!calendar) return;
 
   if (profileLink) {
     profileLink.href = username
@@ -587,7 +570,7 @@ async function initGitHubContributions(siteContent) {
       });
       await Promise.resolve(maybePromise);
       rendered = hasGitHubContributionCells(calendar);
-    } catch (error) {
+    } catch (_e) {
       rendered = false;
     }
   }
@@ -595,7 +578,7 @@ async function initGitHubContributions(siteContent) {
   if (!rendered) {
     try {
       rendered = await renderGitHubCalendarFallback(calendar, username);
-    } catch (error) {
+    } catch (_e) {
       rendered = false;
     }
   }
@@ -612,7 +595,6 @@ async function initGitHubContributions(siteContent) {
     setGitHubUnavailable(calendar, username);
   }
 
-  /* Watch for theme changes and update PNG chart colour */
   const ghThemeObserver = new MutationObserver(() => updateGitHubPngTheme(container));
   ghThemeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 }
