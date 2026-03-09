@@ -2867,6 +2867,29 @@ footer {
     border-radius: var(--radius-sm);
 }
 
+/* Scroll hint */
+.gh-scroll-hint {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    opacity: 0.7;
+    transition: opacity 0.4s;
+}
+
+.gh-scroll-hint i {
+    font-size: 0.65rem;
+}
+
+@media (max-width: 600px) {
+    .gh-scroll-hint {
+        display: flex;
+    }
+}
+
 /* Contribution level legend */
 .gh-legend {
     display: flex;
@@ -3434,6 +3457,20 @@ footer {
 
     .github-contrib {
         margin-top: 2rem;
+    }
+
+    /* Scrollable GitHub calendar on mobile */
+    .github-contrib-card .gh-cal {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .github-contrib-card .gh-cal svg,
+    .github-contrib-card .gh-cal table {
+        width: auto;
+        min-width: 720px;
+        max-width: none;
     }
 
     /* Collapse project grids to 1 col on small phones */

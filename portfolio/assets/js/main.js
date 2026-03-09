@@ -595,6 +595,23 @@ async function initGitHubContributions(siteContent) {
     setGitHubUnavailable(calendar, username);
   }
 
+  /* On mobile, scroll the calendar to the right to show recent contributions */
+  if (rendered && calendar.scrollWidth > calendar.clientWidth) {
+    requestAnimationFrame(() => {
+      calendar.scrollLeft = calendar.scrollWidth - calendar.clientWidth;
+    });
+  }
+
+  /* Watch for late-rendered content (library may inject SVG/table async) */
+  const scrollObserver = new MutationObserver(() => {
+    if (calendar.scrollWidth > calendar.clientWidth) {
+      calendar.scrollLeft = calendar.scrollWidth - calendar.clientWidth;
+      scrollObserver.disconnect();
+    }
+  });
+  scrollObserver.observe(calendar, { childList: true, subtree: true });
+  setTimeout(() => scrollObserver.disconnect(), 12000);
+
   const ghThemeObserver = new MutationObserver(() => updateGitHubPngTheme(container));
   ghThemeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 }
