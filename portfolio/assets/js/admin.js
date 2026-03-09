@@ -3014,14 +3014,89 @@ function prepareAiWriterForField(field, options = {}) {
   promptInput?.setSelectionRange?.(promptInput.value.length, promptInput.value.length);
 }
 
+function getInlineAiRequest(field, options = {}) {
+  const config = getAiFieldConfig(field);
+  const currentText = String(field.value || "");
+  const task = options.task || (currentText.trim() ? "improve" : "generate");
+
+  return {
+    task,
+    prompt: options.prompt || buildAiFieldPrompt(field, task, config),
+    currentText,
+    fieldContext: config.fieldContext,
+    fieldLabel: getFieldLabel(field),
+    sectionContext: getAiSectionLabel(field),
+    fieldType: config.fieldType,
+    contextNotes: options.contextNotes || "",
+    relatedFields: collectAiRelatedFields(field),
+    tone: options.tone || config.tone || "professional",
+    length: options.length || config.length || "medium"
+  };
+}
+
+function getNearestStatusId(field) {
+  const form = field?.closest?.("form");
+  const sameCard = form?.closest?.(".admin-card");
+  const sameSection = field?.closest?.(".admin-section");
+  const statusEl = sameCard?.querySelector?.(".admin-status[id]") || sameSection?.querySelector?.(".admin-status[id]");
+  return statusEl?.id || "";
+}
+
+function flashInlineAiStatus(field, message, isError = false) {
+  const statusId = getNearestStatusId(field);
+  if (statusId) {
+    flash(statusId, message, isError);
+    return;
+  }
+
+  if ($("#ai-status")) {
+    flash("ai-status", message, isError);
+  }
+}
+
+async function runInlineAiAssist(field, button, options = {}) {
+  if (!isAiEditableField(field)) {
+    throw new Error("Select a supported content field first.");
+  }
+
+  const request = getInlineAiRequest(field, options);
+  setAiTargetField(field);
+  updateAiTargetHint();
+
+  const originalHtml = button?.innerHTML || "";
+  if (button) {
+    button.disabled = true;
+    button.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+  }
+
+  try {
+    const result = await requestAiResult(request);
+    applyAiTextToField(field, result.text);
+    flashInlineAiStatus(
+      field,
+      `${request.task === "generate" ? "Generated" : "Updated"} ${getFieldLabel(field)} with AI.`,
+      false
+    );
+    return result;
+  } catch (error) {
+    flashInlineAiStatus(field, "AI assist failed: " + (error.message || "Unknown error."), true);
+    throw error;
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = originalHtml;
+    }
+  }
+}
+
 function installAiFieldTriggers() {
   $$(".btn-ai-assist").forEach((button) => {
     const target = document.getElementById(button.dataset.target || "");
     if (target && isAiEditableField(target) && button.dataset.ctx && !target.dataset.aiContext) {
       target.dataset.aiContext = button.dataset.ctx;
     }
-    button.setAttribute("title", "Open AI assistant");
-    button.setAttribute("aria-label", `Open AI assistant for ${target ? getFieldLabel(target) : "this field"}`);
+    button.setAttribute("title", "Improve with AI");
+    button.setAttribute("aria-label", `Improve ${target ? getFieldLabel(target) : "this field"} with AI`);
   });
 
   $$("#admin-shell .admin-section form textarea, #admin-shell .admin-section form input[type='text']").forEach((field) => {
@@ -3041,7 +3116,7 @@ function installAiFieldTriggers() {
     button.type = "button";
     button.className = "btn-ai-field-launch";
     button.dataset.target = field.id;
-    button.setAttribute("aria-label", `Open AI assistant for ${getFieldLabel(field)}`);
+    button.setAttribute("aria-label", `Improve ${getFieldLabel(field)} with AI`);
     button.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i><span>AI</span>';
 
     actionRow.appendChild(button);
@@ -3219,12 +3294,7 @@ function setupAIWriter() {
       field.dataset.aiContext = btn.dataset.ctx;
     }
 
-    try {
-      prepareAiWriterForField(field);
-      flash("ai-status", `AI is ready for ${getFieldLabel(field)}. Add any extra instructions, then run it.`, false);
-    } catch (err) {
-      flash("ai-status", err.message || "Unable to open the AI assistant.", true);
-    }
+    runInlineAiAssist(field, btn).catch(() => undefined);
   });
 }
 /* ================================================================
