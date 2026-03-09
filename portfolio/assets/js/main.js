@@ -581,7 +581,7 @@ async function initGitHubContributions(siteContent) {
     try {
       const maybePromise = window.GitHubCalendar(calendar, username, {
         global_stats: false,
-        responsive: false,
+        responsive: true,
         tooltips: false,
         proxy: githubContribProxy
       });
