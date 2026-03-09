@@ -53,9 +53,11 @@ function buildGitHubEndpoint(username: string) {
   return `https://github.com/users/${encodeURIComponent(username)}/contributions?from=${toIsoDate(from)}&to=${toIsoDate(today)}`;
 }
 
-function looksLikeContributionSvg(markup: string) {
+function looksLikeContributionMarkup(markup: string) {
   const source = String(markup || "");
-  return source.includes("<svg") && source.includes("data-date");
+  const hasContributionCells = source.includes("data-date")
+    && (source.includes("ContributionCalendar-day") || source.includes("rect"));
+  return hasContributionCells && (source.includes("<svg") || source.includes("<table") || source.includes("js-yearly-contributions"));
 }
 
 Deno.serve(async (request) => {
@@ -136,7 +138,7 @@ Deno.serve(async (request) => {
     });
 
     const markup = await response.text();
-    if (!response.ok || !looksLikeContributionSvg(markup)) {
+    if (!response.ok || !looksLikeContributionMarkup(markup)) {
       throw new Error(`GitHub returned ${response.status}.`);
     }
 
