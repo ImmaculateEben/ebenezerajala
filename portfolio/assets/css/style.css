@@ -2867,6 +2867,34 @@ footer {
     border-radius: var(--radius-sm);
 }
 
+/* Contribution level legend */
+.gh-legend {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.3rem;
+    margin-top: 0.75rem;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.gh-legend-label {
+    padding: 0 0.15rem;
+}
+
+.gh-legend-box {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    display: inline-block;
+}
+
+.gh-legend-box[data-level="0"] { background: var(--gh-calendar-level-0); }
+.gh-legend-box[data-level="1"] { background: var(--gh-calendar-level-1); }
+.gh-legend-box[data-level="2"] { background: var(--gh-calendar-level-2); }
+.gh-legend-box[data-level="3"] { background: var(--gh-calendar-level-3); }
+.gh-legend-box[data-level="4"] { background: var(--gh-calendar-level-4); }
+
 /* Unavailable state */
 .gh-unavailable {
     display: flex;
