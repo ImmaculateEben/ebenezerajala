@@ -2828,6 +2828,30 @@ footer {
     min-width: 100%;
 }
 
+@media (min-width: 769px) {
+    .gh-cal {
+        overflow-x: hidden;
+    }
+
+    .gh-cal > *,
+    .gh-cal > div,
+    .gh-cal .js-yearly-contributions,
+    .gh-cal .position-relative {
+        width: auto;
+        min-width: 0;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .gh-cal .js-calendar-graph > div {
+        width: max-content !important;
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+        overflow-x: visible !important;
+    }
+}
+
 .gh-cal svg text {
     fill: var(--text-muted);
 }
@@ -3493,6 +3517,19 @@ footer {
     .edu-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
+    }
+
+    .gh-cal a.show-on-focus:focus,
+    .gh-cal a.show-on-focus:active {
+        position: fixed !important;
+        left: 50% !important;
+        top: calc(env(safe-area-inset-top, 0px) + 0.9rem) !important;
+        transform: translateX(-50%) !important;
+        width: max-content;
+        max-width: calc(100vw - 2rem);
+        text-align: center;
+        z-index: 1200;
+        white-space: normal;
     }
 
 }

@@ -486,16 +486,31 @@ async function initGitHubContributions(siteContent) {
 
   /* ── Scroll position preference ───────────────────────────────── */
   const scrollPref = String(siteContent?.settings?.githubChartScrollPosition || "right").trim().toLowerCase();
+  const isMobileViewport = window.matchMedia("(max-width: 768px)").matches;
 
   function applyScrollPosition() {
     const overflows = calendar.scrollWidth > calendar.clientWidth + 4;
 
     /* Show/hide the swipe hint only when the chart actually overflows */
     if (scrollHint) {
-      scrollHint.style.display = overflows ? "flex" : "none";
+      scrollHint.style.display = overflows && isMobileViewport ? "flex" : "none";
     }
 
-    if (!overflows || scrollPref === "default") return;
+    if (!overflows) {
+      calendar.scrollLeft = 0;
+      return;
+    }
+
+    if (!isMobileViewport) {
+      calendar.style.scrollBehavior = "auto";
+      calendar.scrollLeft = 0;
+      requestAnimationFrame(() => {
+        calendar.style.scrollBehavior = "";
+      });
+      return;
+    }
+
+    if (scrollPref === "default") return;
 
     /* Disable smooth scroll for the initial jump, then re-enable */
     calendar.style.scrollBehavior = "auto";
