@@ -202,6 +202,7 @@ export const DEFAULT_SITE_CONTENT = {
     siteUrl: "https://immaculatedesigns.com.ng",
     analyticsMeasurementId: "",
     adminContactLabel: "Primary inbox",
+    githubChartScrollPosition: "right",
     searchConsole: {
       verificationTags: "",
       sitemapUrl: "",

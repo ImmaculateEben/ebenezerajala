@@ -2734,6 +2734,9 @@ footer {
     margin-bottom: 1.75rem;
 }
 
+/* =========================================
+   GITHUB CONTRIBUTIONS
+   ========================================= */
 .github-contrib {
     width: 100%;
     margin-top: 3.5rem;
@@ -2752,37 +2755,58 @@ footer {
     margin: 0 auto 1.4rem;
 }
 
+/* Card: never clip the chart—let it scroll internally */
 .github-contrib-card {
-    --gh-chart-min-width: 720px;
     position: relative;
     max-width: 920px;
     margin: 0 auto;
     padding: clamp(0.75rem, 2vw, 1.5rem);
-    overflow: hidden;
+    overflow: visible;
     border-color: var(--border-hover);
     height: fit-content;
 }
 
-/* The calendar wrapper stays full-width while the chart inside can scroll horizontally */
-.github-contrib-card .gh-cal {
+/* ── Scrollable calendar wrapper ── */
+.gh-cal {
     width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
+    scrollbar-color: var(--border-hover) transparent;
+    /* Smooth programmatic scrolls */
+    scroll-behavior: smooth;
+}
+
+.gh-cal::-webkit-scrollbar {
+    height: 4px;
+}
+
+.gh-cal::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.gh-cal::-webkit-scrollbar-thumb {
+    background-color: var(--border-hover);
+    border-radius: 99px;
+}
+
+/* Inner content: never shrink below its natural width */
+.gh-cal > * {
+    min-width: max-content;
 }
 
 /* SVG / table / img emitted by the library or fallback */
-.github-contrib-card .gh-cal svg,
-.github-contrib-card .gh-cal table,
-.github-contrib-card .gh-cal img {
+.gh-cal svg,
+.gh-cal table,
+.gh-cal img {
     display: block;
     width: auto;
     height: auto;
     max-width: none;
 }
 
-/* Calendar colour theming — sets CSS variables used by GitHub's own markup */
+/* Calendar colour theming — maps to GitHub's own CSS custom properties */
 .gh-cal,
 .gh-cal .calendar,
 .gh-cal .github-calendar {
@@ -2795,7 +2819,7 @@ footer {
     font-family: var(--font-main);
 }
 
-/* Inner wrappers */
+/* Inner wrappers from GitHub's HTML */
 .gh-cal > div,
 .gh-cal .js-yearly-contributions,
 .gh-cal .position-relative {
@@ -2807,7 +2831,7 @@ footer {
     fill: var(--text-muted);
 }
 
-/* ---- Raw GitHub HTML table structure (style attributes are stripped by sanitizer) ---- */
+/* ── Raw GitHub HTML table structure ── */
 .gh-cal table.ContributionCalendar-grid {
     border-spacing: 3px;
     border-collapse: separate;
@@ -2820,7 +2844,6 @@ footer {
     height: 16px;
 }
 
-/* All cells (contribution boxes + label column) */
 .gh-cal .ContributionCalendar-grid td {
     width: 10px;
     height: 10px;
@@ -2830,12 +2853,10 @@ footer {
     font-size: 0.7rem;
 }
 
-/* First td in thead is the day-of-week label column */
 .gh-cal .ContributionCalendar-grid thead td:first-child {
     width: 29px;
 }
 
-/* Month label cells */
 .gh-cal .ContributionCalendar-label {
     position: relative;
     width: auto;
@@ -2850,14 +2871,13 @@ footer {
     white-space: nowrap;
 }
 
-/* The contribution day cells — need both background-color (td) and fill (rect/svg) */
 .gh-cal .ContributionCalendar-day,
 .gh-cal rect[data-date] {
     shape-rendering: geometricPrecision;
     border-radius: 2px;
 }
 
-/* Hide heading, totals box, tooltips, and other GitHub-only chrome */
+/* Hide GitHub-only chrome, totals, tooltips */
 .gh-cal .contrib-column,
 .gh-cal .contrib-footer,
 .gh-cal .width-full.f6.px-0.tmp-px-md-5.py-1,
@@ -2871,7 +2891,7 @@ footer {
     color: var(--text-secondary) !important;
 }
 
-/* Level colour overrides — background-color for <td>, fill for <rect> */
+/* ── Level colour overrides — td (background-color) + rect (fill) ── */
 .gh-cal .ContributionCalendar-day[data-level="0"],
 .gh-cal rect[data-date][data-level="0"] {
     background-color: var(--color-calendar-graph-day-bg) !important;
@@ -2902,7 +2922,7 @@ footer {
     fill: var(--color-calendar-graph-day-L4-bg) !important;
 }
 
-/* PNG fallback image */
+/* PNG fallback */
 .gh-cal .gh-png-fallback {
     display: block;
     width: 100%;
@@ -2911,7 +2931,7 @@ footer {
     border-radius: var(--radius-sm);
 }
 
-/* Scroll hint */
+/* ── Scroll hint (shown on mobile via JS when chart overflows) ── */
 .gh-scroll-hint {
     display: none;
     align-items: center;
@@ -2920,21 +2940,34 @@ footer {
     font-size: 0.72rem;
     color: var(--text-muted);
     margin-top: 0.5rem;
-    opacity: 0.7;
-    transition: opacity 0.4s;
+    opacity: 0.8;
+    pointer-events: none;
+    user-select: none;
 }
 
 .gh-scroll-hint i {
     font-size: 0.65rem;
+    animation: gh-hint-bounce 1.4s ease-in-out infinite alternate;
 }
 
-@media (max-width: 600px) {
-    .gh-scroll-hint {
-        display: flex;
-    }
+.gh-scroll-hint i:first-child {
+    animation-delay: 0s;
 }
 
-/* Contribution level legend */
+.gh-scroll-hint i:last-child {
+    animation-delay: 0.7s;
+}
+
+@keyframes gh-hint-bounce {
+    from { transform: translateX(0); }
+    to   { transform: translateX(3px); }
+}
+
+.gh-scroll-hint i:first-child {
+    animation-direction: alternate-reverse;
+}
+
+/* ── Contribution level legend ── */
 .gh-legend {
     display: flex;
     align-items: center;
@@ -2962,7 +2995,7 @@ footer {
 .gh-legend-box[data-level="3"] { background: var(--gh-calendar-level-3); }
 .gh-legend-box[data-level="4"] { background: var(--gh-calendar-level-4); }
 
-/* Unavailable state */
+/* ── Unavailable state ── */
 .gh-unavailable {
     display: flex;
     flex-direction: column;
@@ -3501,10 +3534,6 @@ footer {
 
     .github-contrib {
         margin-top: 2rem;
-    }
-
-    .gh-scroll-hint {
-        display: flex;
     }
 
     /* Collapse project grids to 1 col on small phones */

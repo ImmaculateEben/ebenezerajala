@@ -83,6 +83,10 @@
 .has-ai textarea{padding-right:2.4rem}
 .has-ai .btn-ai-assist{position:absolute;right:.45rem;top:1.85rem;background:none;border:none;color:var(--accent);cursor:pointer;font-size:.92rem;padding:.3rem;min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center;border-radius:4px;transition:background .18s}
 .has-ai .btn-ai-assist:hover{background:var(--bg-secondary)}
+.ai-field-actions{display:flex;justify-content:flex-end;margin-top:.45rem}
+.btn-ai-field-launch{display:inline-flex;align-items:center;gap:.4rem;min-height:34px;padding:.35rem .7rem;border:1px solid var(--border-color);border-radius:var(--rad);background:transparent;color:var(--accent);font-size:.78rem;cursor:pointer;transition:background .18s,border-color .18s,color .18s}
+.btn-ai-field-launch:hover{background:var(--bg-secondary);border-color:var(--border-hover);color:var(--text-primary)}
+.btn-ai-field-launch i{font-size:.85rem}
 
 /* Input styling */
 .admin-body input[type="text"],
@@ -160,6 +164,7 @@
 .ai-output-box{margin-top:1.25rem;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--rad);padding:1.25rem}
 .ai-result{white-space:pre-wrap;line-height:1.7;font-size:.88rem;color:var(--text-primary)}
 .ai-meta{margin:0;color:var(--text-muted);font-size:.78rem;line-height:1.5}
+#ai-related-context{font-size:.82rem;line-height:1.55}
 
 /* ================================================================
    ICON PICKER
@@ -272,6 +277,7 @@
   .has-ai textarea{padding-right:.85rem}
   .has-ai .btn-ai-assist{position:static;display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;padding:.35rem .7rem;border:1px solid var(--border-color);border-radius:var(--rad);width:auto;margin-top:.35rem;height:auto;color:var(--accent)}
   .has-ai .btn-ai-assist::after{content:"AI Assist"}
+  .ai-field-actions{justify-content:flex-start}
 
   /* Soft skill nested card */
   .admin-card .admin-card{padding:.65rem}

@@ -59,9 +59,53 @@ function getTaskInstruction(task: string) {
 
 function getMaxOutputTokens(length: string) {
   const value = normalizeText(length, 24).toLowerCase();
-  if (value === "short") return 512;
-  if (value === "long") return 2048;
-  return 1024;
+  if (value === "short") return 1536;
+  if (value === "long") return 6144;
+  return 3072;
+}
+
+function getFieldTypeInstruction(fieldType: string) {
+  const value = normalizeText(fieldType, 32).toLowerCase();
+  if (value === "single-line") {
+    return "Return concise plain text suitable for a short single-line field.";
+  }
+  if (value === "list") {
+    return "Return plain text lines for a multiline list field. Do not use markdown bullets unless the request clearly asks for them.";
+  }
+  if (value === "multi-paragraph") {
+    return "Return multiple polished paragraphs separated by blank lines.";
+  }
+  if (value === "html") {
+    return "Return clean HTML only, using simple tags like <p>, <ul>, and <li> when useful. Do not return markdown.";
+  }
+  return "Return polished plain text that fits naturally into the target field.";
+}
+
+function normalizeRelatedFields(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((entry) => {
+      const item = entry && typeof entry === "object" ? entry as Record<string, unknown> : {};
+      return {
+        label: normalizeText(item.label, 120),
+        value: normalizeText(item.value, 1200)
+      };
+    })
+    .filter((entry) => entry.label && entry.value)
+    .slice(0, 20);
+}
+
+function formatRelatedFields(fields: Array<{ label: string; value: string }>) {
+  if (!fields.length) {
+    return "";
+  }
+
+  return fields
+    .map((entry) => `- ${entry.label}: ${entry.value}`)
+    .join("\n");
 }
 
 async function requireAdminEmail(
@@ -146,11 +190,17 @@ Deno.serve(async (request) => {
   }
 
   const task = normalizeText(payload.task, 24).toLowerCase() || "generate";
-  const prompt = normalizeText(payload.prompt, 3000);
-  const currentText = normalizeText(payload.currentText, 6000);
-  const fieldContext = normalizeText(payload.fieldContext, 240) || "portfolio copy";
+  const prompt = normalizeText(payload.prompt, 9000);
+  const currentText = normalizeText(payload.currentText, 18000);
+  const fieldContext = normalizeText(payload.fieldContext, 400) || "portfolio copy";
+  const fieldLabel = normalizeText(payload.fieldLabel, 160) || "content field";
+  const sectionContext = normalizeText(payload.sectionContext, 160) || "portfolio admin form";
+  const fieldType = normalizeText(payload.fieldType, 32) || "plain-text";
   const tone = normalizeText(payload.tone, 40).toLowerCase() || "professional";
   const length = normalizeText(payload.length, 24).toLowerCase() || "medium";
+  const contextNotes = normalizeText(payload.contextNotes, 6000);
+  const relatedFields = normalizeRelatedFields(payload.relatedFields);
+  const relatedFieldText = formatRelatedFields(relatedFields);
 
   if (!prompt && !currentText) {
     return jsonResponse({ error: "A prompt or current text is required." }, 400, corsHeaders);
@@ -159,12 +209,18 @@ Deno.serve(async (request) => {
   const instruction = [
     "You are an expert copy assistant for a professional web developer portfolio.",
     getTaskInstruction(task),
+    "Use any related form values to keep the result consistent with the rest of the content and avoid contradictions.",
+    `Section: ${sectionContext}.`,
+    `Target field: ${fieldLabel}.`,
     `Field context: ${fieldContext}.`,
+    getFieldTypeInstruction(fieldType),
     `Tone: ${tone}.`,
     getLengthInstruction(length),
+    relatedFieldText ? `Related form inputs:\n${relatedFieldText}` : "",
+    contextNotes ? `Additional user instructions:\n${contextNotes}` : "",
     currentText ? `Current text:\n${currentText}` : "",
-    prompt ? `User request:\n${prompt}` : "",
-    "Return only the final copy. Do not add headings, explanations, markdown fences, or labels."
+    prompt ? `Primary request:\n${prompt}` : "",
+    "Return only the final copy for the target field. Do not add headings, explanations, markdown fences, or labels."
   ]
     .filter(Boolean)
     .join("\n\n");

@@ -452,6 +452,7 @@ async function initGitHubContributions(siteContent) {
   if (!container) return;
 
   const calendar = container.querySelector(".gh-cal");
+  const scrollHint = container.querySelector(".gh-scroll-hint");
   const profileLink = container.querySelector("[data-github-profile-link]");
   const username = resolveGitHubUsername(siteContent);
   const safeProfileUrl = sanitizeUrl(siteContent?.profile?.github || "");
@@ -470,36 +471,62 @@ async function initGitHubContributions(siteContent) {
   }
 
   calendar.setAttribute("data-github-username", username);
-  let rendered = false;
 
-  if (!rendered) {
-    try {
-      rendered = await renderGitHubCalendar(calendar, username);
-    } catch (_e) {
-      rendered = false;
-    }
+  let rendered = false;
+  try {
+    rendered = await renderGitHubCalendar(calendar, username);
+  } catch (_e) {
+    rendered = false;
   }
 
   if (!rendered) {
     setGitHubUnavailable(calendar, username);
+    return;
   }
 
-  /* On mobile, scroll the calendar to the right to show recent contributions */
-  if (rendered && calendar.scrollWidth > calendar.clientWidth) {
-    requestAnimationFrame(() => {
+  /* ── Scroll position preference ───────────────────────────────── */
+  const scrollPref = String(siteContent?.settings?.githubChartScrollPosition || "right").trim().toLowerCase();
+
+  function applyScrollPosition() {
+    const overflows = calendar.scrollWidth > calendar.clientWidth + 4;
+
+    /* Show/hide the swipe hint only when the chart actually overflows */
+    if (scrollHint) {
+      scrollHint.style.display = overflows ? "flex" : "none";
+    }
+
+    if (!overflows || scrollPref === "default") return;
+
+    /* Disable smooth scroll for the initial jump, then re-enable */
+    calendar.style.scrollBehavior = "auto";
+    if (scrollPref === "right") {
       calendar.scrollLeft = calendar.scrollWidth - calendar.clientWidth;
+    } else if (scrollPref === "left") {
+      calendar.scrollLeft = 0;
+    } else if (scrollPref === "center") {
+      calendar.scrollLeft = Math.round((calendar.scrollWidth - calendar.clientWidth) / 2);
+    }
+    /* Restore smooth scroll for user-initiated touches */
+    requestAnimationFrame(() => {
+      calendar.style.scrollBehavior = "";
     });
   }
 
-  /* Watch for late-rendered content (library may inject SVG/table async) */
-  const scrollObserver = new MutationObserver(() => {
-    if (calendar.scrollWidth > calendar.clientWidth) {
-      calendar.scrollLeft = calendar.scrollWidth - calendar.clientWidth;
-      scrollObserver.disconnect();
+  /* Apply once layout is complete */
+  requestAnimationFrame(() => {
+    applyScrollPosition();
+  });
+
+  /* Also watch for late-rendered content (edge-function HTML may arrive async) */
+  const observer = new MutationObserver(() => {
+    if (calendar.scrollWidth > calendar.clientWidth + 4) {
+      applyScrollPosition();
+      observer.disconnect();
     }
   });
-  scrollObserver.observe(calendar, { childList: true, subtree: true });
-  setTimeout(() => scrollObserver.disconnect(), 12000);
+  observer.observe(calendar, { childList: true, subtree: true });
+  /* Give up watching after 15 s */
+  setTimeout(() => observer.disconnect(), 15000);
 }
 
 function setupTestimonialsMarquee(container) {

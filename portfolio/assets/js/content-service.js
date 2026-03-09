@@ -1690,11 +1690,26 @@ export async function generateAdminAiText(input) {
     throw new Error("Supabase is not configured.");
   }
 
+  const relatedFields = Array.isArray(input?.relatedFields)
+    ? input.relatedFields
+      .map((entry) => ({
+        label: sanitizePlainText(entry?.label || ""),
+        value: sanitizePlainText(entry?.value || "")
+      }))
+      .filter((entry) => entry.label && entry.value)
+      .slice(0, 20)
+    : [];
+
   const payload = {
     task: sanitizePlainText(input?.task || "generate").toLowerCase(),
     prompt: sanitizePlainText(input?.prompt || ""),
     currentText: sanitizePlainText(input?.currentText || ""),
     fieldContext: sanitizePlainText(input?.fieldContext || ""),
+    fieldLabel: sanitizePlainText(input?.fieldLabel || ""),
+    sectionContext: sanitizePlainText(input?.sectionContext || ""),
+    fieldType: sanitizePlainText(input?.fieldType || ""),
+    contextNotes: sanitizePlainText(input?.contextNotes || ""),
+    relatedFields,
     tone: sanitizePlainText(input?.tone || "professional").toLowerCase(),
     length: sanitizePlainText(input?.length || "medium").toLowerCase()
   };

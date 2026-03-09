@@ -519,6 +519,7 @@ let hasLoadedDashboard = false;
 let lastFocusedAdminField = null;
 let lastAiRequest = null;
 let lastAiReplacement = null;
+let currentAiTargetFieldId = "";
 
 const VERSION_SCOPES = [
   { value: "hero", label: "Hero Section", entityType: "site_content", entityId: "main" },
@@ -740,6 +741,13 @@ function setupQuickActions() {
       if (navBtn) navBtn.click();
     });
   });
+}
+
+function openAdminSection(sectionId) {
+  const navBtn = $(`.admin-nav-btn[data-section="${sectionId}"]`);
+  if (navBtn) {
+    navBtn.click();
+  }
 }
 
 /* ================================================================
@@ -1859,6 +1867,7 @@ function populateSettingsForm() {
   setVal("set-site-url", s.siteUrl);
   setVal("set-analytics", s.analyticsMeasurementId);
   setVal("set-label", s.adminContactLabel);
+  setVal("set-gh-scroll", s.githubChartScrollPosition || "right");
   setVal("set-sc-tags", searchConsole.verificationTags);
   setVal("set-sc-sitemap", searchConsole.sitemapUrl);
   setVal("set-sc-notes", searchConsole.indexingNotes);
@@ -1871,6 +1880,7 @@ function populateSettingsForm() {
     siteContent.settings.siteUrl = getVal("set-site-url");
     siteContent.settings.analyticsMeasurementId = getVal("set-analytics");
     siteContent.settings.adminContactLabel = getVal("set-label");
+    siteContent.settings.githubChartScrollPosition = getVal("set-gh-scroll");
     await saveSiteContent(siteContent, {
       section: "settings",
       summary: "Updated site settings"
@@ -2489,17 +2499,170 @@ const AI_PRESETS = {
   }
 };
 
+const AI_SKIPPED_FIELD_IDS = new Set([
+  "hero-name",
+  "hero-years",
+  "hero-clients",
+  "hero-speed",
+  "hero-traffic",
+  "hero-linkedin",
+  "hero-github-url",
+  "hero-github-user",
+  "profile-location",
+  "profile-email",
+  "profile-phone1",
+  "profile-phone2",
+  "proj-url",
+  "proj-github",
+  "proj-tags",
+  "tech-search",
+  "tech-skill-icon",
+  "soft-skill-icon",
+  "exp-date",
+  "exp-type",
+  "exp-badge",
+  "exp-badge-cls",
+  "edu-period",
+  "edu-icon",
+  "cert-date",
+  "cert-icon",
+  "cert-url",
+  "test-name",
+  "set-email",
+  "set-site-url",
+  "set-analytics",
+  "set-sc-tags",
+  "set-sc-sitemap",
+  "set-gh-scroll",
+  "invite-email",
+  "pw-current",
+  "pw-new",
+  "pw-confirm",
+  "version-label"
+]);
+
+const AI_FIELD_OVERRIDES = {
+  "hero-tagline": {
+    preset: "hero-tagline",
+    fieldContext: "homepage hero tagline for a web developer portfolio",
+    tone: "confident",
+    length: "short",
+    fieldType: "single-line"
+  },
+  "profile-bio": {
+    preset: "bio",
+    fieldContext: "professional multi-paragraph bio for a web developer portfolio",
+    length: "long",
+    fieldType: "multi-paragraph"
+  },
+  "proj-title": {
+    fieldContext: "project title for a portfolio case study",
+    tone: "confident",
+    length: "short",
+    fieldType: "single-line"
+  },
+  "proj-short": {
+    preset: "project-short",
+    fieldContext: "short project description for a portfolio card",
+    length: "short",
+    fieldType: "paragraph"
+  },
+  "proj-long": {
+    preset: "project-case-study",
+    fieldContext: "detailed HTML project case study for a portfolio page",
+    length: "long",
+    fieldType: "html"
+  },
+  "soft-skill-desc": {
+    fieldContext: "description of a soft skill on a portfolio page",
+    length: "medium",
+    fieldType: "paragraph"
+  },
+  "exp-summary": {
+    fieldContext: "work experience summary for a portfolio timeline",
+    length: "medium",
+    fieldType: "paragraph"
+  },
+  "exp-bullets": {
+    fieldContext: "achievement bullets for a portfolio experience entry",
+    length: "medium",
+    fieldType: "list"
+  },
+  "test-content": {
+    preset: "testimonial",
+    fieldContext: "client testimonial for a web developer portfolio",
+    length: "medium",
+    fieldType: "paragraph"
+  },
+  "pg-cta-title": {
+    fieldContext: "short call-to-action heading for a portfolio page",
+    tone: "confident",
+    length: "short",
+    fieldType: "single-line"
+  },
+  "pg-cta-body": {
+    preset: "cta",
+    fieldContext: "portfolio call to action paragraph",
+    length: "medium",
+    fieldType: "paragraph"
+  },
+  "pg-about-title": {
+    fieldContext: "about section heading for a portfolio page",
+    length: "short",
+    fieldType: "single-line"
+  },
+  "pg-about-sub": {
+    fieldContext: "about section subtitle for a portfolio page",
+    length: "short",
+    fieldType: "single-line"
+  },
+  "pg-projects-title": {
+    fieldContext: "projects section heading for a portfolio page",
+    length: "short",
+    fieldType: "single-line"
+  },
+  "pg-projects-sub": {
+    fieldContext: "projects section subtitle for a portfolio page",
+    length: "short",
+    fieldType: "single-line"
+  },
+  "pg-feedback-title": {
+    fieldContext: "testimonials section heading for a portfolio page",
+    length: "short",
+    fieldType: "single-line"
+  },
+  "pg-feedback-sub": {
+    fieldContext: "testimonials section subtitle for a portfolio page",
+    length: "short",
+    fieldType: "single-line"
+  },
+  "pg-footer": {
+    fieldContext: "footer copy for a portfolio website",
+    length: "short",
+    fieldType: "single-line"
+  },
+  "set-sc-notes": {
+    fieldContext: "internal Search Console indexing notes",
+    length: "medium",
+    fieldType: "multi-paragraph"
+  }
+};
+
 function isAiEditableField(field) {
   if (!(field instanceof HTMLTextAreaElement || field instanceof HTMLInputElement)) {
     return false;
   }
 
-  if (field.closest("#ai-form") || field.closest("#ai-output")) {
+  if (field.closest("#ai-form") || field.closest("#ai-output") || field.closest("#admin-login-form")) {
+    return false;
+  }
+
+  if (!field.id || field.disabled || field.readOnly || AI_SKIPPED_FIELD_IDS.has(field.id) || field.dataset.aiSkip === "true") {
     return false;
   }
 
   if (field instanceof HTMLInputElement) {
-    return ["text", "email", "url", "search", "tel"].includes(field.type || "text");
+    return (field.type || "text").toLowerCase() === "text";
   }
 
   return true;
@@ -2517,15 +2680,49 @@ function trackLastFocusedAdminField(event) {
 
 function getFieldLabel(field) {
   const label = field?.id ? document.querySelector(`label[for="${field.id}"]`) : null;
-  return label ? label.textContent.replace(/\s+/g, " ").trim() : field?.name || field?.id || "active field";
+  if (label) {
+    return label.textContent.replace(/\s+/g, " ").trim();
+  }
+
+  const wrappedLabel = field?.closest?.("label");
+  if (wrappedLabel) {
+    return wrappedLabel.textContent.replace(/\s+/g, " ").trim();
+  }
+
+  return field?.name || field?.id || "active field";
+}
+
+function getAiSectionLabel(field) {
+  const heading = field?.closest?.(".admin-section")?.querySelector?.(".panel-header h1");
+  return heading?.textContent?.replace(/\s+/g, " ").trim() || "Portfolio Content";
+}
+
+function getAiTargetField() {
+  if (currentAiTargetFieldId) {
+    const target = document.getElementById(currentAiTargetFieldId);
+    if (isAiEditableField(target)) {
+      return target;
+    }
+    currentAiTargetFieldId = "";
+  }
+
+  return isAiEditableField(lastFocusedAdminField) ? lastFocusedAdminField : null;
+}
+
+function setAiTargetField(field) {
+  currentAiTargetFieldId = field?.id || "";
+  if (field) {
+    lastFocusedAdminField = field;
+  }
 }
 
 function updateAiTargetHint() {
   const hint = $("#ai-target-hint");
   if (!hint) return;
 
-  if (lastFocusedAdminField && document.body.contains(lastFocusedAdminField)) {
-    hint.textContent = `Active field: ${getFieldLabel(lastFocusedAdminField)}`;
+  const target = getAiTargetField();
+  if (target && document.body.contains(target)) {
+    hint.textContent = `Target field: ${getFieldLabel(target)} | ${getAiSectionLabel(target)}`;
     hint.hidden = false;
     return;
   }
@@ -2535,6 +2732,152 @@ function updateAiTargetHint() {
 
 function getAiPresetConfig(key) {
   return AI_PRESETS[key] || AI_PRESETS.custom;
+}
+
+function getAiFieldType(field, override = {}) {
+  if (override.fieldType) {
+    return override.fieldType;
+  }
+
+  const id = String(field?.id || "").toLowerCase();
+  if (id === "proj-long") {
+    return "html";
+  }
+  if (field.classList.contains("mono-ta") || /bullets|items/.test(id)) {
+    return "list";
+  }
+  if (field instanceof HTMLTextAreaElement && (field.rows >= 6 || /bio|long|notes/.test(id))) {
+    return "multi-paragraph";
+  }
+  if (field instanceof HTMLTextAreaElement) {
+    return "paragraph";
+  }
+  return "single-line";
+}
+
+function getAiFieldLength(fieldType, overrideLength = "") {
+  if (overrideLength) {
+    return overrideLength;
+  }
+  if (fieldType === "single-line") {
+    return "short";
+  }
+  if (fieldType === "multi-paragraph" || fieldType === "html") {
+    return "long";
+  }
+  return "medium";
+}
+
+function getAiFieldConfig(field) {
+  const override = AI_FIELD_OVERRIDES[field.id] || {};
+  const fieldType = getAiFieldType(field, override);
+  return {
+    preset: override.preset || "custom",
+    fieldContext: override.fieldContext || field.dataset.aiContext || `${getFieldLabel(field)} for the ${getAiSectionLabel(field).toLowerCase()}`,
+    tone: override.tone || "professional",
+    length: getAiFieldLength(fieldType, override.length || ""),
+    fieldType
+  };
+}
+
+function buildAiFieldPrompt(field, task, config) {
+  const label = getFieldLabel(field);
+  const section = getAiSectionLabel(field);
+  if (task === "improve") {
+    return `Improve the ${label} for the ${section}. Keep it aligned with the rest of this form.`;
+  }
+  if (task === "rewrite") {
+    return `Rewrite the ${label} for the ${section} so it is clearer, stronger, and more polished.`;
+  }
+  if (task === "shorten") {
+    return `Shorten the ${label} for the ${section} while keeping the most important points.`;
+  }
+  if (task === "expand") {
+    return `Expand the ${label} for the ${section} with stronger detail and specificity.`;
+  }
+  return `Write ${config.fieldContext} for the ${section}.`;
+}
+
+function normalizeAiContextValue(value) {
+  return String(value || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function collectAiRelatedFields(field) {
+  const form = field?.closest?.("form");
+  if (!form) {
+    return [];
+  }
+
+  const related = [];
+  let totalLength = 0;
+
+  $$("input, textarea, select", form).forEach((input) => {
+    if (input === field || input.closest("#ai-form")) {
+      return;
+    }
+
+    let value = "";
+    if (input instanceof HTMLInputElement) {
+      const type = (input.type || "text").toLowerCase();
+      if (["file", "hidden", "password", "search"].includes(type)) {
+        return;
+      }
+      if (["checkbox", "radio"].includes(type)) {
+        if (!input.checked) {
+          return;
+        }
+        value = "Yes";
+      } else {
+        value = normalizeAiContextValue(input.value);
+      }
+    } else if (input instanceof HTMLTextAreaElement) {
+      value = normalizeAiContextValue(input.value);
+    } else if (input instanceof HTMLSelectElement) {
+      value = normalizeAiContextValue(input.options[input.selectedIndex]?.textContent || input.value);
+    }
+
+    if (!value || (input.id && AI_SKIPPED_FIELD_IDS.has(input.id))) {
+      return;
+    }
+
+    const label = getFieldLabel(input);
+    if (!label) {
+      return;
+    }
+
+    const compactValue = value.length > 420 ? `${value.slice(0, 417)}...` : value;
+    totalLength += label.length + compactValue.length;
+    if (related.length >= 14 || totalLength > 3800) {
+      return;
+    }
+
+    related.push({ label, value: compactValue });
+  });
+
+  return related;
+}
+
+function formatAiRelatedFields(fields) {
+  return fields.map((entry) => `${entry.label}: ${entry.value}`).join("\n\n");
+}
+
+function updateAiRelatedContextPreview(field = getAiTargetField()) {
+  const relatedInput = $("#ai-related-context");
+  if (!relatedInput) {
+    return [];
+  }
+
+  if (!field) {
+    relatedInput.value = "";
+    return [];
+  }
+
+  const relatedFields = collectAiRelatedFields(field);
+  relatedInput.value = formatAiRelatedFields(relatedFields);
+  return relatedFields;
 }
 
 function syncAiPresetFields() {
@@ -2558,6 +2901,7 @@ function setAiResultState(result) {
   const output = $("#ai-output");
   const resultBox = $("#ai-result");
   const meta = $("#ai-meta");
+  const targetField = getAiTargetField();
 
   if (resultBox) {
     resultBox.textContent = result.text;
@@ -2565,6 +2909,7 @@ function setAiResultState(result) {
 
   if (meta) {
     const parts = [];
+    if (targetField) parts.push(`Target: ${getFieldLabel(targetField)}`);
     if (result.provider) parts.push(`Provider: ${result.provider}`);
     if (result.model) parts.push(`Model: ${result.model}`);
     meta.textContent = parts.join(" | ");
@@ -2582,6 +2927,11 @@ async function requestAiResult(request) {
     prompt: request.prompt || "",
     currentText: request.currentText || "",
     fieldContext: request.fieldContext || "portfolio copy",
+    fieldLabel: request.fieldLabel || "",
+    sectionContext: request.sectionContext || "",
+    fieldType: request.fieldType || "",
+    contextNotes: request.contextNotes || "",
+    relatedFields: Array.isArray(request.relatedFields) ? request.relatedFields : [],
     tone: request.tone || "professional",
     length: request.length || "medium"
   };
@@ -2607,8 +2957,7 @@ function applyAiTextToField(field, text) {
   };
 
   field.value = text;
-  lastFocusedAdminField = field;
-  updateAiTargetHint();
+  setAiTargetField(field);
   field.dispatchEvent(new Event("input", { bubbles: true }));
   field.dispatchEvent(new Event("change", { bubbles: true }));
   field.focus();
@@ -2628,10 +2977,98 @@ function undoLastAiReplacement() {
   field.dispatchEvent(new Event("input", { bubbles: true }));
   field.dispatchEvent(new Event("change", { bubbles: true }));
   field.focus();
-  lastFocusedAdminField = field;
+  setAiTargetField(field);
   lastAiReplacement = null;
   updateAiTargetHint();
   return getFieldLabel(field);
+}
+
+function prepareAiWriterForField(field, options = {}) {
+  if (!isAiEditableField(field)) {
+    throw new Error("Select a supported content field first.");
+  }
+
+  const config = getAiFieldConfig(field);
+  const task = options.task || (String(field.value || "").trim() ? "improve" : "generate");
+
+  setAiTargetField(field);
+  setVal("ai-preset", options.preset || config.preset || "custom");
+  syncAiPresetFields();
+  setVal("ai-task", task);
+  setVal("ai-tone", options.tone || config.tone || "professional");
+  setVal("ai-length", options.length || config.length || "medium");
+  setVal("ai-prompt", options.prompt || buildAiFieldPrompt(field, task, config));
+  setVal("ai-current-text", String(field.value || ""));
+  setVal("ai-context-notes", options.contextNotes || "");
+  updateAiRelatedContextPreview(field);
+  updateAiTargetHint();
+
+  const output = $("#ai-output");
+  const status = $("#ai-status");
+  if (output) output.hidden = true;
+  if (status) status.hidden = true;
+
+  openAdminSection("ai-writer");
+  const promptInput = $("#ai-prompt");
+  promptInput?.focus();
+  promptInput?.setSelectionRange?.(promptInput.value.length, promptInput.value.length);
+}
+
+function installAiFieldTriggers() {
+  $$(".btn-ai-assist").forEach((button) => {
+    const target = document.getElementById(button.dataset.target || "");
+    if (target && isAiEditableField(target) && button.dataset.ctx && !target.dataset.aiContext) {
+      target.dataset.aiContext = button.dataset.ctx;
+    }
+    button.setAttribute("title", "Open AI assistant");
+    button.setAttribute("aria-label", `Open AI assistant for ${target ? getFieldLabel(target) : "this field"}`);
+  });
+
+  $$("#admin-shell .admin-section form textarea, #admin-shell .admin-section form input[type='text']").forEach((field) => {
+    if (!isAiEditableField(field)) {
+      return;
+    }
+
+    const group = field.closest(".form-group");
+    if (!group || group.querySelector(`.btn-ai-assist[data-target="${field.id}"]`) || group.querySelector(`.btn-ai-field-launch[data-target="${field.id}"]`)) {
+      return;
+    }
+
+    const actionRow = document.createElement("div");
+    actionRow.className = "ai-field-actions";
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn-ai-field-launch";
+    button.dataset.target = field.id;
+    button.setAttribute("aria-label", `Open AI assistant for ${getFieldLabel(field)}`);
+    button.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i><span>AI</span>';
+
+    actionRow.appendChild(button);
+    field.insertAdjacentElement("afterend", actionRow);
+  });
+}
+
+function buildAiWriterRequest() {
+  const preset = getAiPresetConfig(getVal("ai-preset"));
+  const targetField = getAiTargetField();
+  const targetConfig = targetField ? getAiFieldConfig(targetField) : null;
+  const relatedFields = targetField ? updateAiRelatedContextPreview(targetField) : [];
+  const currentText = getVal("ai-current-text");
+
+  return {
+    task: getVal("ai-task") || (currentText.trim() ? "improve" : "generate"),
+    prompt: getVal("ai-prompt") || preset.prompt,
+    currentText,
+    fieldContext: targetConfig?.fieldContext || preset.fieldContext || "portfolio copy",
+    fieldLabel: targetField ? getFieldLabel(targetField) : "",
+    sectionContext: targetField ? getAiSectionLabel(targetField) : "",
+    fieldType: targetConfig?.fieldType || "paragraph",
+    contextNotes: getVal("ai-context-notes"),
+    relatedFields,
+    tone: getVal("ai-tone") || targetConfig?.tone || "professional",
+    length: getVal("ai-length") || targetConfig?.length || "medium"
+  };
 }
 
 function setupAIWriter() {
@@ -2646,36 +3083,51 @@ function setupAIWriter() {
   const genBtn = $("#ai-gen-btn");
   const presetSelect = $("#ai-preset");
   const currentInput = $("#ai-current-text");
+  const relatedInput = $("#ai-related-context");
 
+  installAiFieldTriggers();
   updateAiTargetHint();
   syncAiPresetFields();
+  if (relatedInput) {
+    relatedInput.value = "";
+  }
 
   presetSelect?.addEventListener("change", () => {
     syncAiPresetFields();
   });
 
   $("#ai-pull-context")?.addEventListener("click", () => {
-    if (!isAiEditableField(lastFocusedAdminField)) {
+    const targetField = getAiTargetField();
+    if (!targetField) {
       flash("ai-status", "Focus a content field first, then pull its text here.", true);
       return;
     }
 
-    currentInput.value = lastFocusedAdminField.value || "";
+    currentInput.value = targetField.value || "";
     updateAiTargetHint();
-    flash("ai-status", `Loaded context from ${getFieldLabel(lastFocusedAdminField)}.`, false);
+    flash("ai-status", `Loaded context from ${getFieldLabel(targetField)}.`, false);
+  });
+
+  $("#ai-pull-related")?.addEventListener("click", () => {
+    const targetField = getAiTargetField();
+    if (!targetField) {
+      flash("ai-status", "Focus a content field first, then load its related form context.", true);
+      return;
+    }
+
+    const relatedFields = updateAiRelatedContextPreview(targetField);
+    flash(
+      "ai-status",
+      relatedFields.length
+        ? `Loaded ${relatedFields.length} related field${relatedFields.length === 1 ? "" : "s"} from ${getAiSectionLabel(targetField)}.`
+        : "No other filled fields were found in that form yet.",
+      false
+    );
   });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const preset = getAiPresetConfig(getVal("ai-preset"));
-    const request = {
-      task: getVal("ai-task") || "generate",
-      prompt: getVal("ai-prompt") || preset.prompt,
-      currentText: getVal("ai-current-text"),
-      fieldContext: preset.fieldContext,
-      tone: getVal("ai-tone"),
-      length: getVal("ai-length")
-    };
+    const request = buildAiWriterRequest();
 
     if (!request.prompt.trim() && !request.currentText.trim()) {
       flash("ai-status", "Add a prompt or current text before generating.", true);
@@ -2683,7 +3135,7 @@ function setupAIWriter() {
     }
 
     genBtn.disabled = true;
-    genBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generating...`;
+    genBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Running AI...`;
     statusBox.hidden = true;
     output.hidden = true;
 
@@ -2695,7 +3147,7 @@ function setupAIWriter() {
       statusBox.hidden = false;
     } finally {
       genBtn.disabled = false;
-      genBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Generate`;
+      genBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Run AI`;
     }
   });
 
@@ -2716,8 +3168,9 @@ function setupAIWriter() {
     }
 
     try {
-      applyAiTextToField(lastFocusedAdminField, text);
-      flash("ai-status", `Inserted AI copy into ${getFieldLabel(lastFocusedAdminField)}.`, false);
+      const targetField = getAiTargetField();
+      applyAiTextToField(targetField, text);
+      flash("ai-status", `Inserted AI copy into ${getFieldLabel(targetField)}.`, false);
     } catch (err) {
       flash("ai-status", err.message || "Unable to apply AI copy.", true);
     }
@@ -2750,41 +3203,27 @@ function setupAIWriter() {
       statusBox.hidden = false;
     } finally {
       genBtn.disabled = false;
-      genBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Generate`;
+      genBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Run AI`;
     }
   });
 
-  document.addEventListener("click", async (e) => {
-    const btn = e.target.closest(".btn-ai-assist");
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".btn-ai-assist, .btn-ai-field-launch");
     if (!btn) return;
 
     const targetId = btn.dataset.target;
-    const ctx = btn.dataset.ctx || "professional portfolio copy";
-    const textarea = document.getElementById(targetId);
-    if (!textarea || !("value" in textarea)) return;
+    const field = document.getElementById(targetId);
+    if (!isAiEditableField(field)) return;
 
-    btn.disabled = true;
-    const origHTML = btn.innerHTML;
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+    if (btn.dataset.ctx && !field.dataset.aiContext) {
+      field.dataset.aiContext = btn.dataset.ctx;
+    }
 
     try {
-      const existing = textarea.value.trim();
-      const result = await requestAiResult({
-        task: existing ? "improve" : "generate",
-        prompt: existing ? `Improve this copy for ${ctx}.` : `Write ${ctx}.`,
-        currentText: existing,
-        fieldContext: ctx,
-        tone: "professional",
-        length: existing.length > 280 ? "long" : "medium"
-      });
-      applyAiTextToField(textarea, result.text);
-      flash("ai-status", `Updated ${getFieldLabel(textarea)}. Use Undo Last Replace if needed.`, false);
+      prepareAiWriterForField(field);
+      flash("ai-status", `AI is ready for ${getFieldLabel(field)}. Add any extra instructions, then run it.`, false);
     } catch (err) {
-      console.warn("AI assist failed:", err);
-      flash("ai-status", "AI assist failed: " + (err.message || "Unknown error."), true);
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = origHTML;
+      flash("ai-status", err.message || "Unable to open the AI assistant.", true);
     }
   });
 }

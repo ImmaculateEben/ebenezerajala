@@ -529,6 +529,15 @@
             </div>
             <div class="form-row-2">
               <div class="form-group"><label for="set-label">Inbox Label</label><input type="text" id="set-label"></div>
+              <div class="form-group">
+                <label for="set-gh-scroll">GitHub chart scroll on load <small>(mobile)</small></label>
+                <select id="set-gh-scroll">
+                  <option value="right">Right — show most recent contributions</option>
+                  <option value="left">Left — show oldest contributions first</option>
+                  <option value="center">Center — scroll to mid-point</option>
+                  <option value="default">Default — browser scroll position</option>
+                </select>
+              </div>
             </div>
             <button type="submit" class="btn btn-primary">Save Settings</button>
           </form>
@@ -755,8 +764,19 @@
               </div>
               <textarea id="ai-current-text" rows="4" placeholder="Paste existing copy here, or pull it from the last focused field."></textarea>
             </div>
+            <div class="form-group">
+              <label for="ai-context-notes">Extra Context / Instructions <small>(optional)</small></label>
+              <textarea id="ai-context-notes" rows="3" placeholder="Add specifics the AI should follow, such as audience, key selling points, wording to avoid, or details it must mention."></textarea>
+            </div>
+            <div class="form-group">
+              <div class="admin-inline-between">
+                <label for="ai-related-context">Related Form Context</label>
+                <button type="button" id="ai-pull-related" class="btn btn-outline btn-sm">Use Active Form</button>
+              </div>
+              <textarea id="ai-related-context" rows="6" placeholder="Other filled fields from the selected form will appear here so the output stays aligned." readonly></textarea>
+            </div>
             <p id="ai-target-hint" class="ai-meta" hidden></p>
-            <button type="submit" class="btn btn-primary" id="ai-gen-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate</button>
+            <button type="submit" class="btn btn-primary" id="ai-gen-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Run AI</button>
           </form>
           <div id="ai-output" class="ai-output-box" hidden>
             <div class="admin-inline-between">
