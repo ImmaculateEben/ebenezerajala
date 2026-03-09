@@ -2308,6 +2308,7 @@ select:focus-visible {
     border-radius: var(--radius-sm);
     background: var(--accent-bg);
     transition: var(--transition);
+    min-width: 0;
 }
 
 .contact-detail-item:hover {
@@ -2349,6 +2350,13 @@ select:focus-visible {
     font-size: 0.95rem;
     color: var(--text-primary);
     overflow-wrap: anywhere;
+    word-break: break-word;
+    min-width: 0;
+}
+
+.contact-detail-item > div:last-child {
+    min-width: 0;
+    flex: 1;
 }
 
 .contact-detail-item a:hover {
@@ -2689,7 +2697,14 @@ footer {
 
 .github-card {
     border-color: var(--border-hover);
-    overflow: visible;
+    overflow: hidden;
+}
+
+@media (max-width: 900px) {
+    .github-card {
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
 }
 
 .github-scroll-hint {
@@ -2754,6 +2769,12 @@ footer {
     width: max-content;
     max-width: none;
     overflow: visible;
+}
+
+@media (max-width: 900px) {
+    .github-contributions-container .github-calendar>div {
+        margin: 0;
+    }
 }
 
 .github-contributions-container .ContributionCalendar-grid {
