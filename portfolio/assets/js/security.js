@@ -5,6 +5,21 @@ const ALLOWED_ATTRS = {
 };
 
 const SAFE_PROTOCOLS = ["http:", "https:", "mailto:"];
+const BLOCKED_IMPORTED_TAGS = new Set([
+  "BASE",
+  "BUTTON",
+  "EMBED",
+  "FORM",
+  "FRAME",
+  "IFRAME",
+  "INPUT",
+  "LINK",
+  "META",
+  "OBJECT",
+  "SCRIPT",
+  "STYLE",
+  "TEXTAREA"
+]);
 
 export function sanitizePlainText(value) {
   return String(value || "").replace(/\u0000/g, "").trim();
@@ -147,6 +162,59 @@ export function safeSetHtml(element, html) {
     return;
   }
   element.innerHTML = sanitizeRichHtml(html);
+}
+
+export function sanitizeImportedHtmlFragment(html) {
+  const template = document.createElement("template");
+  template.innerHTML = String(html || "");
+
+  Array.from(template.content.querySelectorAll("*")).forEach((node) => {
+    const tagName = String(node.tagName || "").toUpperCase();
+
+    if (BLOCKED_IMPORTED_TAGS.has(tagName) || tagName === "FOREIGNOBJECT") {
+      node.remove();
+      return;
+    }
+
+    Array.from(node.attributes).forEach((attribute) => {
+      const name = attribute.name.toLowerCase();
+      const value = String(attribute.value || "");
+
+      if (name.startsWith("on") || name === "style" || name === "srcdoc") {
+        node.removeAttribute(attribute.name);
+        return;
+      }
+
+      if (name === "href" || name === "xlink:href") {
+        const safeHref = sanitizeUrl(value);
+        if (!safeHref) {
+          node.removeAttribute(attribute.name);
+          return;
+        }
+
+        node.setAttribute(attribute.name, safeHref);
+        if (tagName === "A" && safeHref.startsWith("http")) {
+          node.setAttribute("target", "_blank");
+          node.setAttribute("rel", "noopener noreferrer");
+        }
+        return;
+      }
+
+      if (name === "src") {
+        const safeSrc = tagName === "IMG"
+          ? (sanitizeImageUrl(value) || sanitizeUrl(value))
+          : sanitizeUrl(value);
+        if (!safeSrc) {
+          node.removeAttribute(attribute.name);
+          return;
+        }
+
+        node.setAttribute(attribute.name, safeSrc);
+      }
+    });
+  });
+
+  return template.content;
 }
 
 export function applyExternalLinkSafety(scope = document) {

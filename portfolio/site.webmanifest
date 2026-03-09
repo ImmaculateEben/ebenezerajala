@@ -1,7 +1,10 @@
 {
+  "id": "/",
   "name": "Ebenezer Ajala Portfolio",
   "short_name": "EA Portfolio",
+  "description": "Portfolio site for Ebenezer Ajala covering WordPress development, design, SEO, and web performance work.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0a0a0c",
   "theme_color": "#0a0a0c",

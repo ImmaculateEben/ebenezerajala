@@ -1,6 +1,6 @@
 import { loadSiteContent, submitContactMessage } from "./content-service.js";
 import { getRuntimeConfig, isSupabaseReady } from "./supabase-config.js";
-import { applyExternalLinkSafety, escapeHtml, sanitizeUrl } from "./security.js";
+import { applyExternalLinkSafety, sanitizeUrl } from "./security.js";
 
 let turnstileLoaderPromise = null;
 let turnstileWidgetId = null;
@@ -16,7 +16,8 @@ function setStatus(element, message, variant) {
 
   element.classList.remove("is-error", "is-success");
   element.classList.add(variant === "error" ? "is-error" : "is-success");
-  element.innerHTML = message;
+  element.textContent = String(message || "");
+  element.hidden = false;
 }
 
 function getTurnstileSiteKey() {
@@ -131,7 +132,7 @@ async function ensureTurnstile(status) {
     window.requestAnimationFrame(syncTurnstileWidgetLayout);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Cloudflare Turnstile could not be loaded.";
-    setStatus(status, escapeHtml(message), "error");
+    setStatus(status, message, "error");
   }
 }
 
@@ -261,7 +262,7 @@ export function initContactForm() {
     } catch (error) {
       resetTurnstile();
       const message = error instanceof Error ? error.message : "Your message could not be sent right now.";
-      setStatus(status, escapeHtml(message), "error");
+      setStatus(status, message, "error");
     } finally {
       submitButton.disabled = false;
       submitButton.innerHTML = 'Send Message <i class="fa-solid fa-paper-plane"></i>';

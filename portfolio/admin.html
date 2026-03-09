@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard | Ebenezer Ajala</title>
   <meta name="description" content="Admin dashboard for managing portfolio content, messages, settings, and media.">
-  <link rel="canonical" href="/admin">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <link rel="canonical" href="https://immaculatedesigns.com.ng/admin">
   <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
   <link rel="manifest" href="site.webmanifest">
   <script>
@@ -85,6 +86,7 @@
         <button class="admin-nav-btn" data-section="pages"><i class="fa-solid fa-file-lines"></i><span>Page Text</span></button>
         <button class="admin-nav-btn" data-section="media"><i class="fa-solid fa-images"></i><span>Media</span></button>
         <button class="admin-nav-btn" data-section="settings"><i class="fa-solid fa-gear"></i><span>Settings</span></button>
+        <button class="admin-nav-btn" data-section="history"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></button>
         <button class="admin-nav-btn" data-section="ai-writer"><i class="fa-solid fa-wand-magic-sparkles"></i><span>AI Writer</span></button>
       </nav>
       <div class="admin-sidebar-footer"><button type="button" id="admin-logout-btn" class="btn btn-outline btn-sm"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button></div>
@@ -165,7 +167,7 @@
         <div class="panel-split">
           <div class="admin-card">
             <form id="profile-form" class="admin-form-grid">
-              <div class="form-group"><label for="profile-img-file">Profile Image</label><input type="file" id="profile-img-file" accept="image/*"></div>
+              <div class="form-group"><label for="profile-img-file">Profile Image</label><input type="file" id="profile-img-file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif"></div>
               <img id="profile-img-preview" class="admin-img-preview" src="assets/images/profile-placeholder.svg" alt="Profile">
               <div class="form-group has-ai">
                 <label for="profile-bio">Bio <small style="font-weight:400;opacity:.7">&mdash; press Enter twice to start a new paragraph</small></label>
@@ -208,12 +210,12 @@
               <div class="form-row-2">
                 <div class="form-group">
                   <label for="proj-feat-file">Featured Image <small>shown on cards &amp; project hero</small></label>
-                  <input type="file" id="proj-feat-file" accept="image/*">
+                  <input type="file" id="proj-feat-file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif">
                   <img id="proj-feat-preview" class="admin-img-preview" src="assets/images/project-placeholder.svg" alt="Featured" style="margin-top:.5rem">
                 </div>
                 <div class="form-group">
                   <label for="proj-gallery-files">Gallery Images <small>additional screenshots (multi-select)</small></label>
-                  <input type="file" id="proj-gallery-files" accept="image/*" multiple>
+                  <input type="file" id="proj-gallery-files" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" multiple>
                   <div id="proj-gallery-preview" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem"></div>
                 </div>
               </div>
@@ -445,7 +447,7 @@
                 <div class="form-group"><label for="test-role">Role / Company</label><input type="text" id="test-role"></div>
               </div>
               <div class="form-group has-ai"><label for="test-content">Testimonial</label><textarea id="test-content" rows="5"></textarea><button type="button" class="btn-ai-assist" data-target="test-content" data-ctx="client testimonial for a web developer"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div>
-              <div class="form-group"><label for="test-img-file">Avatar</label><input type="file" id="test-img-file" accept="image/*"></div>
+              <div class="form-group"><label for="test-img-file">Avatar</label><input type="file" id="test-img-file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif"></div>
               <img id="test-img-preview" class="admin-img-preview" src="assets/images/profile-placeholder.svg" alt="">
               <label class="check-label"><input type="checkbox" id="test-published" checked> Publish</label>
               <div class="admin-actions-row">
@@ -498,7 +500,7 @@
             <div>
               <h4>Profile Image</h4>
               <img id="media-profile-img" class="admin-img-preview" src="assets/images/profile-placeholder.svg" alt="Profile">
-              <input type="file" id="media-profile-file" accept="image/*" style="margin-top:0.75rem">
+              <input type="file" id="media-profile-file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" style="margin-top:0.75rem">
               <button type="button" id="media-profile-save" class="btn btn-primary btn-sm" style="margin-top:0.5rem">Upload</button>
             </div>
             <div>
@@ -514,7 +516,7 @@
 
       <!-- ===== SETTINGS ===== -->
       <section class="admin-section" data-panel="settings" hidden>
-        <div class="panel-header"><h1><i class="fa-solid fa-gear"></i> Settings</h1><p>Contact delivery, analytics, backup &amp; restore.</p></div>
+        <div class="panel-header"><h1><i class="fa-solid fa-gear"></i> Settings</h1><p>Contact delivery, analytics, Search Console, backup &amp; restore.</p></div>
         <div class="admin-card">
           <form id="settings-form" class="admin-form-grid">
             <div class="form-row-2">
@@ -522,7 +524,10 @@
               <div class="form-group"><label for="set-sender">Sender Name</label><input type="text" id="set-sender"></div>
             </div>
             <div class="form-row-2">
-              <div class="form-group"><label for="set-analytics">Analytics ID</label><input type="text" id="set-analytics" placeholder="G-XXXXXXXXXX"></div>
+              <div class="form-group"><label for="set-site-url">Site URL</label><input type="url" id="set-site-url" placeholder="https://immaculatedesigns.com.ng"></div>
+              <div class="form-group"><label for="set-analytics">Google Analytics 4 ID</label><input type="text" id="set-analytics" placeholder="G-XXXXXXXXXX"></div>
+            </div>
+            <div class="form-row-2">
               <div class="form-group"><label for="set-label">Inbox Label</label><input type="text" id="set-label"></div>
             </div>
             <button type="submit" class="btn btn-primary">Save Settings</button>
@@ -534,6 +539,33 @@
             <button type="button" id="seed-btn" class="btn btn-outline btn-sm"><i class="fa-solid fa-rotate-left"></i> Restore Defaults</button>
           </div>
           <div id="settings-status" class="admin-status is-success" hidden></div>
+        </div>
+
+        <div class="admin-card" style="margin-top:1.25rem">
+          <h3><i class="fa-solid fa-magnifying-glass-chart"></i> Search Console</h3>
+          <p class="admin-helper-copy">Store verification meta tags, keep indexing notes, and run a sitemap submission check.</p>
+          <form id="search-console-form" class="admin-form-grid" style="margin-top:1rem">
+            <div class="form-group">
+              <label for="set-sc-tags">Verification Tags</label>
+              <textarea id="set-sc-tags" rows="5" placeholder='Paste one or more meta tags, for example: &lt;meta name="google-site-verification" content="..."&gt;'></textarea>
+            </div>
+            <div class="form-group">
+              <label for="set-sc-sitemap">Sitemap URL</label>
+              <input type="url" id="set-sc-sitemap" placeholder="https://immaculatedesigns.com.ng/sitemap.xml">
+            </div>
+            <div class="form-group">
+              <label for="set-sc-notes">Indexing Notes</label>
+              <textarea id="set-sc-notes" rows="5" placeholder="Keep notes about indexing coverage, excluded URLs, or pages you want to submit next."></textarea>
+            </div>
+            <div class="admin-inline-between">
+              <p class="muted-copy" id="search-console-last-ping" style="margin:0">No sitemap submission has been checked yet.</p>
+              <div class="admin-actions-row">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk"></i> Save Search Console</button>
+                <button type="button" id="search-console-ping-btn" class="btn btn-outline btn-sm"><i class="fa-solid fa-sitemap"></i> Ping Sitemap</button>
+              </div>
+            </div>
+          </form>
+          <div id="search-console-status" class="admin-status is-success" hidden></div>
         </div>
 
         <!-- Change Password -->
@@ -608,6 +640,74 @@
                   </tr>
                 </thead>
                 <tbody id="admin-users-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-section" data-panel="history" hidden>
+        <div class="panel-header"><h1><i class="fa-solid fa-clock-rotate-left"></i> Activity &amp; History</h1><p>Restore points, manual drafts, and recent admin actions.</p></div>
+        <div class="panel-split">
+          <div class="admin-card">
+            <div class="admin-inline-between">
+              <h3 style="margin-bottom:0">Version History</h3>
+              <button type="button" id="versions-refresh-btn" class="btn btn-outline btn-sm"><i class="fa-solid fa-rotate"></i> Refresh</button>
+            </div>
+            <p class="admin-helper-copy">Each content save creates a restore point before the new change is written. Use manual drafts when you want a named checkpoint.</p>
+            <form id="version-tools-form" class="admin-form-grid" style="margin-top:1rem">
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="version-scope">Section</label>
+                  <select id="version-scope"></select>
+                </div>
+                <div class="form-group">
+                  <label for="version-entity">Item</label>
+                  <select id="version-entity" disabled></select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="version-label">Draft Label</label>
+                <input type="text" id="version-label" placeholder="e.g. Before homepage rewrite">
+              </div>
+              <div class="admin-actions-row">
+                <button type="button" id="version-save-draft-btn" class="btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk"></i> Save Draft</button>
+              </div>
+            </form>
+            <div id="version-status" class="admin-status is-success" hidden></div>
+            <div class="table-wrap" style="margin-top:1.25rem">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Section</th>
+                    <th>Type</th>
+                    <th>Label</th>
+                    <th>Saved</th>
+                    <th>By</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="versions-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="admin-card">
+            <div class="admin-inline-between">
+              <h3 style="margin-bottom:0">Audit Log</h3>
+              <button type="button" id="audit-refresh-btn" class="btn btn-outline btn-sm"><i class="fa-solid fa-rotate"></i> Refresh</button>
+            </div>
+            <p class="admin-helper-copy">Content edits, settings changes, uploads, restores, and access updates are recorded here.</p>
+            <div class="table-wrap" style="margin-top:1rem">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Actor</th>
+                    <th>Action</th>
+                    <th>Target</th>
+                    <th>When</th>
+                  </tr>
+                </thead>
+                <tbody id="audit-tbody"></tbody>
               </table>
             </div>
           </div>

@@ -199,8 +199,17 @@ export const DEFAULT_SITE_CONTENT = {
   settings: {
     contactRecipientEmail: "ebenezerajala1305@gmail.com",
     notificationSenderName: "Ebenezer Ajala Portfolio",
+    siteUrl: "https://immaculatedesigns.com.ng",
     analyticsMeasurementId: "",
-    adminContactLabel: "Primary inbox"
+    adminContactLabel: "Primary inbox",
+    searchConsole: {
+      verificationTags: "",
+      sitemapUrl: "",
+      lastPingAt: "",
+      lastPingStatus: "",
+      lastPingMessage: "",
+      indexingNotes: ""
+    }
   },
   projectCategories: ["WordPress", "UI/UX Design", "Graphic Design", "HTML/CSS", "Web App", "SEO"]
 };
@@ -284,6 +293,8 @@ export const DEFAULT_TESTIMONIALS = [
 ];
 
 export const DEFAULT_MESSAGES = [];
+export const DEFAULT_AUDIT_LOG = [];
+export const DEFAULT_CONTENT_VERSIONS = [];
 
 export function getDefaultState() {
   return JSON.parse(
@@ -291,7 +302,9 @@ export function getDefaultState() {
       siteContent: DEFAULT_SITE_CONTENT,
       projects: DEFAULT_PROJECTS,
       testimonials: DEFAULT_TESTIMONIALS,
-      messages: DEFAULT_MESSAGES
+      messages: DEFAULT_MESSAGES,
+      auditLog: DEFAULT_AUDIT_LOG,
+      contentVersions: DEFAULT_CONTENT_VERSIONS
     })
   );
 }

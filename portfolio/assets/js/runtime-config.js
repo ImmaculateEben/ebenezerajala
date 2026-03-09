@@ -5,5 +5,6 @@ window.EA_RUNTIME_CONFIG = {
   },
   "adminEmail": "ebenezerajala1305@gmail.com",
   "storageBucket": "portfolio-assets",
-  "turnstileSiteKey": "0x4AAAAAACoTvDWAYFrQY6-L"
+  "turnstileSiteKey": "0x4AAAAAACoTvDWAYFrQY6-L",
+  "siteUrl": "https://immaculatedesigns.com.ng"
 };

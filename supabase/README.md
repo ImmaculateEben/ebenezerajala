@@ -5,7 +5,7 @@ This repo now uses Supabase for:
 - Auth (email/password)
 - Database (Postgres with RLS)
 - Storage (public bucket for uploaded assets)
-- Edge Functions (`submit-contact`, `admin-ai`, `admin-invite`)
+- Edge Functions (`submit-contact`, `admin-ai`, `admin-invite`, `github-activity`, `admin-search-console`)
 
 ## Required runtime values
 
@@ -14,12 +14,14 @@ Fill these in `portfolio/assets/js/runtime-config.js`:
 - `supabase.url`
 - `supabase.anonKey`
 - `adminEmail` (optional frontend-only restriction)
+- `siteUrl` (used for canonical URLs, social metadata, and sitemap alignment)
 - `storageBucket` (defaults to `portfolio-assets`)
 
 If you generate this file from environment variables, use:
 
 - `NEXT_PUBLIC_SUPABASE_URL` (or `SUPABASE_URL`)
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` (or `SUPABASE_ANON_KEY`)
+- `NEXT_PUBLIC_SITE_URL` (or `SITE_URL`)
 
 ## Database setup
 
@@ -27,6 +29,8 @@ If you generate this file from environment variables, use:
 2. Apply the migrations in `supabase/migrations/` in order:
    - `20260304170000_portfolio_init.sql`
    - `20260304182000_portfolio_seed.sql`
+   - `20260309120000_security_refresh.sql`
+   - `20260309193000_admin_history_assets_search_console.sql`
 3. The second migration seeds the default site content, projects, and testimonials automatically.
 4. Insert your admin email into `public.admin_users`:
 
@@ -55,8 +59,13 @@ Set these secrets in Supabase:
 - `GEMINI_MODEL` (optional, defaults to `gemini-2.5-flash`)
 - `RESEND_API_KEY`
 - `RESEND_FROM_EMAIL`
+- `GITHUB_ACTIVITY_CACHE_TTL_SECONDS` (optional, defaults to `21600`)
+- `SEARCH_CONSOLE_SERVICE_ACCOUNT_EMAIL` (optional, needed only for automatic Google sitemap submission)
+- `SEARCH_CONSOLE_SERVICE_ACCOUNT_PRIVATE_KEY` (optional, same note as above)
 
 Local example values are in `supabase/.env.example`.
+
+If you use the Search Console submission helper, add that service-account email as an owner on the Search Console property first.
 
 ## Edge Function deployment
 
@@ -80,6 +89,8 @@ Deploy the functions:
 supabase functions deploy submit-contact --no-verify-jwt
 supabase functions deploy admin-ai --no-verify-jwt
 supabase functions deploy admin-invite --no-verify-jwt
+supabase functions deploy github-activity --no-verify-jwt
+supabase functions deploy admin-search-console --no-verify-jwt
 ```
 
 If you prefer the SQL editor instead of `supabase db push`, run both migration files manually in order, then deploy the function with the command above.
@@ -90,4 +101,6 @@ If you prefer the SQL editor instead of `supabase db push`, run both migration f
 - All writes are protected by RLS and require an authenticated admin in `public.admin_users`.
 - The contact form uses the public `submit-contact` Edge Function with honeypot validation and per-email rate limiting.
 - `admin-ai` and `admin-invite` also require an authenticated admin, but they validate the bearer token inside the function instead of relying on gateway JWT verification.
+- `github-activity` is a public, origin-restricted Edge Function that fetches and caches GitHub contribution SVG markup in `public.github_activity_cache`.
+- `admin-search-console` is an authenticated admin helper. It checks that your sitemap is reachable, and if you provide Search Console service-account credentials it also submits the sitemap through the official Search Console API.
 - The service role key is used only inside the Edge Function, never in frontend code.

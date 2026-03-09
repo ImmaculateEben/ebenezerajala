@@ -24,6 +24,10 @@ ErrorDocument 404 /404.html
   Header always set X-Frame-Options "DENY"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
   Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+
+  <FilesMatch "^(admin|404)\.html$">
+    Header always set X-Robots-Tag "noindex, nofollow, noarchive"
+  </FilesMatch>
 </IfModule>
 
 # Cache static assets

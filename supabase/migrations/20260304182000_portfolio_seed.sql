@@ -130,8 +130,17 @@ values (
     "settings": {
       "contactRecipientEmail": "ebenezerajala1305@gmail.com",
       "notificationSenderName": "Ebenezer Ajala Portfolio",
+      "siteUrl": "https://immaculatedesigns.com.ng",
       "analyticsMeasurementId": "",
-      "adminContactLabel": "Primary inbox"
+      "adminContactLabel": "Primary inbox",
+      "searchConsole": {
+        "verificationTags": "",
+        "sitemapUrl": "",
+        "lastPingAt": "",
+        "lastPingStatus": "",
+        "lastPingMessage": "",
+        "indexingNotes": ""
+      }
     }
   }$$::jsonb
 )

@@ -21,8 +21,13 @@ import {
   getAvailableTechStacks,
   getContentRuntimeMode,
   loadAdminUsers,
+  loadAuditLog,
+  loadContentVersions,
+  createVersionSnapshot,
   inviteAdminUser,
+  pingSearchConsoleSitemap,
   removeAdminUser,
+  restoreContentVersion,
   generateAdminAiText
 } from "./content-service.js";
 
@@ -35,6 +40,7 @@ import {
 } from "./supabase-config.js";
 
 import { escapeHtml, sanitizePlainText } from "./security.js";
+import { applySeo, injectAnalytics } from "./seo.js";
 
 /* ── Icon library (FA 6 Free) ────────────────────────────────────── */
 const FA_ICONS = [
@@ -505,12 +511,28 @@ let siteContent = null;
 let projects = [];
 let testimonials = [];
 let messages = [];
+let auditLog = [];
+let contentVersions = [];
 let techStacks = [];
 let adminUsers = [];
 let hasLoadedDashboard = false;
 let lastFocusedAdminField = null;
 let lastAiRequest = null;
 let lastAiReplacement = null;
+
+const VERSION_SCOPES = [
+  { value: "hero", label: "Hero Section", entityType: "site_content", entityId: "main" },
+  { value: "profile", label: "Profile / About", entityType: "site_content", entityId: "main" },
+  { value: "project-categories", label: "Project Categories", entityType: "site_content", entityId: "main" },
+  { value: "skills", label: "Skills & Tech", entityType: "site_content", entityId: "main" },
+  { value: "experience", label: "Experience", entityType: "site_content", entityId: "main" },
+  { value: "education", label: "Education", entityType: "site_content", entityId: "main" },
+  { value: "certifications", label: "Certifications", entityType: "site_content", entityId: "main" },
+  { value: "pages", label: "Page Text", entityType: "site_content", entityId: "main" },
+  { value: "settings", label: "Settings", entityType: "site_content", entityId: "main" },
+  { value: "projects", label: "Project Item", entityType: "project", requiresEntity: true },
+  { value: "testimonials", label: "Testimonial Item", entityType: "testimonial", requiresEntity: true }
+];
 
 /* ── DOM refs ───────────────────────────────────────────────────── */
 const $ = (s, p) => (p || document).querySelector(s);
@@ -520,6 +542,22 @@ const $$ = (s, p) => [...(p || document).querySelectorAll(s)];
 document.addEventListener("DOMContentLoaded", () => {
   techStacks = getAvailableTechStacks();
   document.addEventListener("focusin", trackLastFocusedAdminField);
+  applySeo({
+    title: document.title,
+    description: getCurrentAdminDescription(),
+    robots: "noindex,nofollow,noarchive"
+  });
+  loadSiteContent()
+    .then((content) => {
+      applySeo({
+        siteUrl: content?.settings?.siteUrl,
+        title: document.title,
+        description: getCurrentAdminDescription(),
+        robots: "noindex,nofollow,noarchive"
+      });
+      injectAnalytics(content?.settings?.analyticsMeasurementId);
+    })
+    .catch(() => undefined);
   setupAuth();
   setupNavigation();
   setupMobileMenu();
@@ -632,11 +670,13 @@ function showRuntimeBanner() {
    ================================================================ */
 async function loadAll() {
   try {
-    [siteContent, projects, testimonials, messages] = await Promise.all([
+    [siteContent, projects, testimonials, messages, auditLog, contentVersions] = await Promise.all([
       loadSiteContent(),
       loadProjects(),
       loadTestimonials(),
-      loadMessages()
+      loadMessages(),
+      loadAuditLog(60),
+      loadContentVersions({ limit: 80 })
     ]);
   } catch (e) {
     console.error("loadAll error:", e);
@@ -655,8 +695,16 @@ async function loadAll() {
   populatePagesForm();
   renderMediaPanel();
   populateSettingsForm();
+  setupHistoryPanel();
   await setupAdminUsers();
   setupImportExport();
+  applySeo({
+    siteUrl: siteContent?.settings?.siteUrl,
+    title: document.title,
+    description: getCurrentAdminDescription(),
+    robots: "noindex,nofollow,noarchive"
+  });
+  injectAnalytics(siteContent?.settings?.analyticsMeasurementId);
 }
 
 /* ================================================================
@@ -676,6 +724,9 @@ function setupNavigation() {
         s.hidden = s.dataset.panel !== target;
       });
       if (topTitle) topTitle.textContent = btn.querySelector("span")?.textContent || "Dashboard";
+      if (target === "history") {
+        refreshHistoryPanel().catch((error) => console.warn("History refresh failed:", error));
+      }
       closeMobileMenu();
     });
   });
@@ -832,7 +883,10 @@ function populateHeroForm() {
     siteContent.profile.linkedin = getVal("hero-linkedin");
     siteContent.profile.github = getVal("hero-github-url");
     siteContent.profile.githubUsername = getVal("hero-github-user");
-    await saveSiteContent(siteContent);
+    await saveSiteContent(siteContent, {
+      section: "hero",
+      summary: "Updated hero section"
+    });
     flash("hero-status", "Hero saved!");
     updateHeroPreview();
     renderOverview();
@@ -875,7 +929,12 @@ function populateProfileForm() {
     const file = $("#profile-img-file")?.files[0];
     if (file) {
       try {
-        siteContent.profile.profileImage = await uploadProfileImage(file);
+        const imageAsset = await uploadProfileImage(file, {
+          section: "profile",
+          summary: "Uploaded profile image from profile editor"
+        });
+        siteContent.profile.profileImage = imageAsset?.url || "";
+        siteContent.profile.profileImageAsset = imageAsset;
       } catch (err) {
         flash("profile-status", "Image upload failed: " + err.message, true);
       }
@@ -887,7 +946,10 @@ function populateProfileForm() {
     siteContent.profile.email = getVal("profile-email");
     siteContent.profile.phone1 = getVal("profile-phone1");
     siteContent.profile.phone2 = getVal("profile-phone2");
-    await saveSiteContent(siteContent);
+    await saveSiteContent(siteContent, {
+      section: "profile",
+      summary: "Updated profile section"
+    });
     flash("profile-status", "Profile saved!");
     setImgPreview("profile-preview-img", siteContent.profile.profileImage);
     renderOverview();
@@ -971,9 +1033,13 @@ function setupProjectForm() {
     // Featured image
     const featFile = $("#proj-feat-file")?.files[0];
     let featuredImage = existing.featuredImage || existing.image || "";
+    let featuredImageAsset = existing.featuredImageAsset || existing.imageAsset || null;
     if (featFile) {
       try {
-        featuredImage = await uploadProjectImage(id, featFile);
+        featuredImageAsset = await uploadProjectImage(id, featFile, {
+          summary: `Uploaded featured image for ${getVal("proj-title") || id}`
+        });
+        featuredImage = featuredImageAsset?.url || "";
       } catch (err) {
         flash("proj-status", "Featured image upload failed: " + err.message, true);
         return;
@@ -982,13 +1048,13 @@ function setupProjectForm() {
 
     // Gallery images
     const galleryFiles = Array.from($("#proj-gallery-files")?.files || []);
-    let gallery = existing.gallery || [];
+    let galleryAssets = Array.isArray(existing.galleryAssets) ? [...existing.galleryAssets] : [];
     if (galleryFiles.length) {
       try {
         const uploads = await Promise.all(
-          galleryFiles.map((f) => uploadProjectImage(id, f))
+          galleryFiles.map((f) => uploadProjectImage(id, f, { summary: `Uploaded gallery image for ${getVal("proj-title") || id}` }))
         );
-        gallery = [...gallery, ...uploads];
+        galleryAssets = [...galleryAssets, ...uploads];
       } catch (err) {
         flash("proj-status", "Gallery upload failed: " + err.message, true);
         return;
@@ -1005,8 +1071,10 @@ function setupProjectForm() {
       url: getVal("proj-url"),
       github: getVal("proj-github"),
       featuredImage,
+      featuredImageAsset,
       image: featuredImage,   // keep legacy field in sync
-      gallery,
+      gallery: galleryAssets.map((asset) => asset?.url).filter(Boolean),
+      galleryAssets,
       featured: getChecked("proj-featured")
     };
 
@@ -1087,7 +1155,10 @@ function renderFilterCategories() {
       const idx = Number(btn.dataset.index);
       if (!siteContent.projectCategories) siteContent.projectCategories = [];
       siteContent.projectCategories.splice(idx, 1);
-      await saveSiteContent(siteContent);
+      await saveSiteContent(siteContent, {
+        section: "project-categories",
+        summary: "Updated project categories"
+      });
       renderFilterCategories();
       flash("proj-cat-status", "Category removed.");
     });
@@ -1109,7 +1180,10 @@ function renderFilterCategories() {
         return;
       }
       siteContent.projectCategories.push(val);
-      await saveSiteContent(siteContent);
+      await saveSiteContent(siteContent, {
+        section: "project-categories",
+        summary: "Updated project categories"
+      });
       if (input) input.value = "";
       renderFilterCategories();
       flash("proj-cat-status", "Category added!");
@@ -1137,7 +1211,10 @@ function populateSkillsForm() {
   $("#skills-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     siteContent.techStacks = $$(".tech-chip.selected").map((c) => c.dataset.id);
-    await saveSiteContent(siteContent);
+    await saveSiteContent(siteContent, {
+      section: "skills",
+      summary: "Updated tech stack"
+    });
     flash("skills-status", "Tech Stack saved!");
   });
 }
@@ -1196,7 +1273,10 @@ function renderTechSkillsManager() {
     row.querySelector(".tech-skill-del")?.addEventListener("click", async () => {
       if (!confirm(`Delete "${techSkills[idx].category}"?`)) return;
       siteContent.skills.technical.splice(idx, 1);
-      await saveSiteContent(siteContent);
+      await saveSiteContent(siteContent, {
+        section: "skills",
+        summary: "Updated technical skills"
+      });
       renderTechSkillsManager();
       flash("tech-skill-status", "Group deleted.");
     });
@@ -1220,7 +1300,10 @@ function renderTechSkillsManager() {
     } else {
       siteContent.skills.technical.push(entry);
     }
-    await saveSiteContent(siteContent);
+    await saveSiteContent(siteContent, {
+      section: "skills",
+      summary: "Updated technical skills"
+    });
     resetTechSkillForm();
     renderTechSkillsManager();
     flash("tech-skill-status", "Skill group saved!");
@@ -1274,7 +1357,10 @@ function renderSoftSkillsManager() {
     row.querySelector(".soft-skill-del")?.addEventListener("click", async () => {
       if (!confirm(`Delete "${skills[idx].title}"?`)) return;
       siteContent.skills.soft.splice(idx, 1);
-      await saveSiteContent(siteContent);
+      await saveSiteContent(siteContent, {
+        section: "skills",
+        summary: "Updated soft skills"
+      });
       renderSoftSkillsManager();
       flash("soft-skill-status", "Skill deleted.");
     });
@@ -1297,7 +1383,10 @@ function renderSoftSkillsManager() {
     } else {
       siteContent.skills.soft.push(entry);
     }
-    await saveSiteContent(siteContent);
+    await saveSiteContent(siteContent, {
+      section: "skills",
+      summary: "Updated soft skills"
+    });
     resetSoftSkillForm();
     renderSoftSkillsManager();
     flash("soft-skill-status", "Skill saved!");
@@ -1356,7 +1445,10 @@ function renderExpTable() {
     row.querySelector(".exp-del")?.addEventListener("click", async () => {
       if (!confirm("Delete this entry?")) return;
       siteContent.experience.splice(idx, 1);
-      await saveSiteContent(siteContent);
+      await saveSiteContent(siteContent, {
+        section: "experience",
+        summary: "Updated experience section"
+      });
       renderExpTable();
     });
   });
@@ -1383,7 +1475,10 @@ function renderExpTable() {
     } else {
       siteContent.experience.push(entry);
     }
-    await saveSiteContent(siteContent);
+    await saveSiteContent(siteContent, {
+      section: "experience",
+      summary: "Updated experience section"
+    });
     renderExpTable();
     resetExpForm();
     flash("exp-status", "Experience saved!");
@@ -1439,7 +1534,10 @@ function renderEduTable() {
     row.querySelector(".edu-del")?.addEventListener("click", async () => {
       if (!confirm("Delete this entry?")) return;
       siteContent.education.splice(idx, 1);
-      await saveSiteContent(siteContent);
+      await saveSiteContent(siteContent, {
+        section: "education",
+        summary: "Updated education section"
+      });
       renderEduTable();
     });
   });
@@ -1459,7 +1557,10 @@ function renderEduTable() {
     } else {
       siteContent.education.push(entry);
     }
-    await saveSiteContent(siteContent);
+    await saveSiteContent(siteContent, {
+      section: "education",
+      summary: "Updated education section"
+    });
     renderEduTable();
     resetEduForm();
     flash("edu-status", "Education saved!");
@@ -1516,7 +1617,10 @@ function renderCertTable() {
     row.querySelector(".cert-del")?.addEventListener("click", async () => {
       if (!confirm("Delete this certification?")) return;
       siteContent.certifications.splice(idx, 1);
-      await saveSiteContent(siteContent);
+      await saveSiteContent(siteContent, {
+        section: "certifications",
+        summary: "Updated certifications section"
+      });
       renderCertTable();
     });
   });
@@ -1538,7 +1642,10 @@ function renderCertTable() {
     } else {
       siteContent.certifications.push(entry);
     }
-    await saveSiteContent(siteContent);
+    await saveSiteContent(siteContent, {
+      section: "certifications",
+      summary: "Updated certifications section"
+    });
     renderCertTable();
     resetCertForm();
     flash("cert-status", "Certification saved!");
@@ -1615,9 +1722,13 @@ function renderTestimonialsTable() {
     const id = existingId || `testimonial-${Date.now()}`;
     const file = $("#test-img-file")?.files[0];
     let image = testimonials.find((t) => t.id === existingId)?.image || "";
+    let imageAsset = testimonials.find((t) => t.id === existingId)?.imageAsset || null;
     if (file) {
       try {
-        image = await uploadTestimonialImage(id, file);
+        imageAsset = await uploadTestimonialImage(id, file, {
+          summary: `Uploaded testimonial image for ${getVal("test-name") || id}`
+        });
+        image = imageAsset?.url || "";
       } catch (err) {
         flash("test-status", "Image upload failed: " + err.message, true);
       }
@@ -1628,6 +1739,7 @@ function renderTestimonialsTable() {
       role: getVal("test-role"),
       content: getVal("test-content"),
       image,
+      imageAsset,
       published: getChecked("test-published")
     };
     await saveTestimonial(item);
@@ -1695,7 +1807,10 @@ function populatePagesForm() {
       feedbackSub: getVal("pg-feedback-sub"),
       footerCopy: getVal("pg-footer")
     };
-    await saveSiteContent(siteContent);
+    await saveSiteContent(siteContent, {
+      section: "pages",
+      summary: "Updated page text"
+    });
     flash("pages-status", "Page text saved!");
   });
 }
@@ -1715,8 +1830,16 @@ function renderMediaPanel() {
     const file = $("#media-profile-file")?.files[0];
     if (!file) return flash("media-status", "No file selected.", true);
     try {
-      siteContent.profile.profileImage = await uploadProfileImage(file);
-      await saveSiteContent(siteContent);
+      const imageAsset = await uploadProfileImage(file, {
+        section: "profile",
+        summary: "Uploaded profile image from media panel"
+      });
+      siteContent.profile.profileImage = imageAsset?.url || "";
+      siteContent.profile.profileImageAsset = imageAsset;
+      await saveSiteContent(siteContent, {
+        section: "profile",
+        summary: "Updated profile image"
+      });
       setImgPreview("media-profile-img", siteContent.profile.profileImage);
       flash("media-status", "Profile image updated!");
     } catch (err) {
@@ -1730,20 +1853,94 @@ function renderMediaPanel() {
    ================================================================ */
 function populateSettingsForm() {
   const s = siteContent?.settings || {};
+  const searchConsole = s.searchConsole || {};
   setVal("set-email", s.contactRecipientEmail);
   setVal("set-sender", s.notificationSenderName);
+  setVal("set-site-url", s.siteUrl);
   setVal("set-analytics", s.analyticsMeasurementId);
   setVal("set-label", s.adminContactLabel);
+  setVal("set-sc-tags", searchConsole.verificationTags);
+  setVal("set-sc-sitemap", searchConsole.sitemapUrl);
+  setVal("set-sc-notes", searchConsole.indexingNotes);
+  updateSearchConsoleSummary(searchConsole);
 
   $("#settings-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     siteContent.settings.contactRecipientEmail = getVal("set-email");
     siteContent.settings.notificationSenderName = getVal("set-sender");
+    siteContent.settings.siteUrl = getVal("set-site-url");
     siteContent.settings.analyticsMeasurementId = getVal("set-analytics");
     siteContent.settings.adminContactLabel = getVal("set-label");
-    await saveSiteContent(siteContent);
+    await saveSiteContent(siteContent, {
+      section: "settings",
+      summary: "Updated site settings"
+    });
+    applySeo({
+      siteUrl: siteContent.settings.siteUrl,
+      title: document.title,
+      description: getCurrentAdminDescription(),
+      robots: "noindex,nofollow,noarchive"
+    });
+    injectAnalytics(siteContent.settings.analyticsMeasurementId);
     flash("settings-status", "Settings saved!");
   });
+
+  const searchConsoleForm = $("#search-console-form");
+  if (searchConsoleForm && searchConsoleForm.dataset.bound !== "true") {
+    searchConsoleForm.dataset.bound = "true";
+    searchConsoleForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!siteContent.settings.searchConsole) {
+        siteContent.settings.searchConsole = {};
+      }
+      siteContent.settings.searchConsole.verificationTags = getVal("set-sc-tags");
+      siteContent.settings.searchConsole.sitemapUrl = getVal("set-sc-sitemap");
+      siteContent.settings.searchConsole.indexingNotes = getVal("set-sc-notes");
+      await saveSiteContent(siteContent, {
+        section: "settings",
+        summary: "Updated Search Console settings"
+      });
+      updateSearchConsoleSummary(siteContent.settings.searchConsole);
+      flash("search-console-status", "Search Console settings saved!");
+    });
+  }
+
+  const pingBtn = $("#search-console-ping-btn");
+  if (pingBtn && pingBtn.dataset.bound !== "true") {
+    pingBtn.dataset.bound = "true";
+    pingBtn.addEventListener("click", async () => {
+      const originalHtml = pingBtn.innerHTML;
+      pingBtn.disabled = true;
+      pingBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Checking`;
+
+      try {
+        const result = await pingSearchConsoleSitemap({
+          siteUrl: getVal("set-site-url") || siteContent?.settings?.siteUrl,
+          sitemapUrl: getVal("set-sc-sitemap") || siteContent?.settings?.searchConsole?.sitemapUrl
+        });
+
+        if (!siteContent.settings.searchConsole) {
+          siteContent.settings.searchConsole = {};
+        }
+        siteContent.settings.searchConsole.sitemapUrl = result.sitemapUrl || getVal("set-sc-sitemap");
+        siteContent.settings.searchConsole.lastPingAt = result.checkedAt;
+        siteContent.settings.searchConsole.lastPingStatus = result.status || (result.submitted ? "submitted" : "checked");
+        siteContent.settings.searchConsole.lastPingMessage = result.message;
+        setVal("set-sc-sitemap", siteContent.settings.searchConsole.sitemapUrl);
+        updateSearchConsoleSummary(siteContent.settings.searchConsole);
+        await saveSiteContent(siteContent, {
+          section: "settings",
+          summary: "Updated sitemap submission status"
+        });
+        flash("search-console-status", result.message || "Sitemap check completed.");
+      } catch (error) {
+        flash("search-console-status", error.message || "Unable to ping the sitemap.", true);
+      } finally {
+        pingBtn.disabled = false;
+        pingBtn.innerHTML = originalHtml;
+      }
+    });
+  }
 }
 
 /* ================================================================
@@ -1963,6 +2160,285 @@ function setupImportExport() {
     flash("settings-status", "Defaults restored — reloading…");
     setTimeout(() => window.location.reload(), 800);
   });
+}
+
+function cloneJson(value) {
+  return JSON.parse(JSON.stringify(value ?? null));
+}
+
+function getVersionScopeConfig(value) {
+  return VERSION_SCOPES.find((entry) => entry.value === value) || VERSION_SCOPES[0];
+}
+
+function getVersionEntityOptions(scope) {
+  if (scope.entityType === "project") {
+    return projects.map((item) => ({ value: item.id, label: item.title }));
+  }
+
+  if (scope.entityType === "testimonial") {
+    return testimonials.map((item) => ({ value: item.id, label: item.name }));
+  }
+
+  return [];
+}
+
+function humanizeHistoryScope(value) {
+  return VERSION_SCOPES.find((entry) => entry.value === value)?.label || value || "Site Content";
+}
+
+function buildHistorySnapshotPayload(scopeValue, entityId) {
+  const profile = siteContent?.profile || {};
+  switch (scopeValue) {
+    case "hero":
+      return cloneJson({
+        name: profile.name,
+        animatedTitles: profile.animatedTitles || [],
+        tagline: profile.tagline,
+        yearsExperience: profile.yearsExperience,
+        clientsServed: profile.clientsServed,
+        avgSpeedImprovement: profile.avgSpeedImprovement,
+        avgTrafficIncrease: profile.avgTrafficIncrease,
+        availableForFreelance: profile.availableForFreelance,
+        linkedin: profile.linkedin,
+        github: profile.github,
+        githubUsername: profile.githubUsername
+      });
+    case "profile":
+      return cloneJson({
+        bio: profile.bio,
+        bio2: profile.bio2,
+        bio3: profile.bio3,
+        location: profile.location,
+        email: profile.email,
+        phone1: profile.phone1,
+        phone2: profile.phone2,
+        profileImage: profile.profileImage,
+        profileImageAsset: profile.profileImageAsset || null
+      });
+    case "project-categories":
+      return cloneJson(siteContent?.projectCategories || []);
+    case "skills":
+      return cloneJson({
+        techStacks: siteContent?.techStacks || [],
+        skills: siteContent?.skills || { technical: [], soft: [] }
+      });
+    case "experience":
+      return cloneJson(siteContent?.experience || []);
+    case "education":
+      return cloneJson(siteContent?.education || []);
+    case "certifications":
+      return cloneJson(siteContent?.certifications || []);
+    case "pages":
+      return cloneJson(siteContent?.pageText || {});
+    case "settings":
+      return cloneJson(siteContent?.settings || {});
+    case "projects":
+      return cloneJson(projects.find((item) => item.id === entityId) || null);
+    case "testimonials":
+      return cloneJson(testimonials.find((item) => item.id === entityId) || null);
+    default:
+      return cloneJson(siteContent || {});
+  }
+}
+
+function updateSearchConsoleSummary(searchConsole) {
+  const summary = $("#search-console-last-ping");
+  if (!summary) return;
+
+  const lastAt = searchConsole?.lastPingAt ? formatDateTime(searchConsole.lastPingAt) : "";
+  const status = searchConsole?.lastPingStatus || "";
+  const message = searchConsole?.lastPingMessage || "";
+
+  if (!lastAt) {
+    summary.textContent = "No sitemap submission has been checked yet.";
+    return;
+  }
+
+  summary.textContent = `Last sitemap check: ${lastAt}${status ? ` | ${status}` : ""}${message ? ` | ${message}` : ""}`;
+}
+
+function renderVersionEntitySelect() {
+  const scope = getVersionScopeConfig(getVal("version-scope"));
+  const entitySelect = $("#version-entity");
+  if (!entitySelect) return;
+
+  if (!scope.requiresEntity) {
+    entitySelect.innerHTML = `<option value="">Not required for this section</option>`;
+    entitySelect.disabled = true;
+    return;
+  }
+
+  const options = getVersionEntityOptions(scope);
+  entitySelect.disabled = options.length === 0;
+  entitySelect.innerHTML = options.length
+    ? options.map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join("")
+    : `<option value="">No items available</option>`;
+}
+
+function renderVersionsTable() {
+  const tbody = $("#versions-tbody");
+  if (!tbody) return;
+
+  const scope = getVersionScopeConfig(getVal("version-scope"));
+  const entityId = getVal("version-entity");
+  const filtered = contentVersions.filter((entry) => {
+    if (entry.section !== scope.value) {
+      return false;
+    }
+    if (scope.requiresEntity && entityId && entry.entityId !== entityId) {
+      return false;
+    }
+    return true;
+  });
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:1.25rem">No versions recorded for this selection yet.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered
+    .map((entry) => `
+      <tr data-version-id="${escapeHtml(entry.id)}">
+        <td data-label="Section">${escapeHtml(humanizeHistoryScope(entry.section))}</td>
+        <td data-label="Type"><span class="badge-sm ${entry.snapshotType === "draft" ? "badge-draft" : entry.snapshotType === "restore" ? "badge-featured" : "badge-read"}">${escapeHtml(entry.snapshotType)}</span></td>
+        <td data-label="Label">${escapeHtml(entry.label || entry.summary || "Restore point")}</td>
+        <td data-label="Saved">${escapeHtml(formatDateTime(entry.createdAt))}</td>
+        <td data-label="By">${escapeHtml(entry.createdBy || "Admin")}</td>
+        <td class="row-actions" data-label="">
+          <button type="button" class="version-restore-btn" title="Restore this version"><i class="fa-solid fa-rotate-left"></i></button>
+        </td>
+      </tr>
+    `)
+    .join("");
+
+  tbody.querySelectorAll(".version-restore-btn").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const row = button.closest("tr");
+      const versionId = row?.dataset.versionId;
+      if (!versionId) return;
+      if (!confirm("Restore this version? The current state will be saved as a restore point first.")) return;
+
+      const originalHtml = button.innerHTML;
+      button.disabled = true;
+      button.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+
+      try {
+        await restoreContentVersion(versionId);
+        flash("version-status", "Version restored. Reloading the dashboard…");
+        setTimeout(() => window.location.reload(), 500);
+      } catch (error) {
+        flash("version-status", error.message || "Unable to restore this version.", true);
+      } finally {
+        button.disabled = false;
+        button.innerHTML = originalHtml;
+      }
+    });
+  });
+}
+
+function renderAuditTable() {
+  const tbody = $("#audit-tbody");
+  if (!tbody) return;
+
+  if (!auditLog.length) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:1.25rem">No audit entries yet.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = auditLog
+    .map((entry) => `
+      <tr>
+        <td data-label="Actor">${escapeHtml(entry.actorEmail || "admin")}</td>
+        <td data-label="Action">${escapeHtml(entry.summary || entry.action)}</td>
+        <td data-label="Target">${escapeHtml(`${humanizeHistoryScope(entry.section || entry.entityType)}${entry.entityId && entry.entityId !== "main" ? ` (${entry.entityId})` : ""}`)}</td>
+        <td data-label="When">${escapeHtml(formatDateTime(entry.createdAt))}</td>
+      </tr>
+    `)
+    .join("");
+}
+
+async function refreshHistoryPanel() {
+  auditLog = await loadAuditLog(60);
+  contentVersions = await loadContentVersions({ limit: 80 });
+  renderVersionEntitySelect();
+  renderVersionsTable();
+  renderAuditTable();
+}
+
+function setupHistoryPanel() {
+  const scopeSelect = $("#version-scope");
+  const entitySelect = $("#version-entity");
+  const saveDraftBtn = $("#version-save-draft-btn");
+  const refreshVersionsBtn = $("#versions-refresh-btn");
+  const refreshAuditBtn = $("#audit-refresh-btn");
+
+  if (scopeSelect && scopeSelect.dataset.bound !== "true") {
+    scopeSelect.dataset.bound = "true";
+    scopeSelect.innerHTML = VERSION_SCOPES
+      .map((entry) => `<option value="${escapeHtml(entry.value)}">${escapeHtml(entry.label)}</option>`)
+      .join("");
+
+    scopeSelect.addEventListener("change", () => {
+      renderVersionEntitySelect();
+      renderVersionsTable();
+    });
+  }
+
+  if (entitySelect && entitySelect.dataset.bound !== "true") {
+    entitySelect.dataset.bound = "true";
+    entitySelect.addEventListener("change", renderVersionsTable);
+  }
+
+  if (saveDraftBtn && saveDraftBtn.dataset.bound !== "true") {
+    saveDraftBtn.dataset.bound = "true";
+    saveDraftBtn.addEventListener("click", async () => {
+      const scope = getVersionScopeConfig(getVal("version-scope"));
+      const entityId = scope.requiresEntity ? getVal("version-entity") : (scope.entityId || "main");
+      const payload = buildHistorySnapshotPayload(scope.value, entityId);
+      const label = getVal("version-label");
+
+      if (!payload) {
+        flash("version-status", "Select a valid section or item before saving a draft.", true);
+        return;
+      }
+
+      try {
+        await createVersionSnapshot({
+          section: scope.value,
+          entityType: scope.entityType,
+          entityId,
+          snapshotType: "draft",
+          label,
+          summary: `Draft snapshot for ${scope.label}`,
+          auditSummary: `Saved manual draft for ${scope.label}`,
+          payload
+        });
+        setVal("version-label", "");
+        await refreshHistoryPanel();
+        flash("version-status", "Draft snapshot saved.");
+      } catch (error) {
+        flash("version-status", error.message || "Unable to save the draft.", true);
+      }
+    });
+  }
+
+  if (refreshVersionsBtn && refreshVersionsBtn.dataset.bound !== "true") {
+    refreshVersionsBtn.dataset.bound = "true";
+    refreshVersionsBtn.addEventListener("click", () => {
+      refreshHistoryPanel().catch((error) => flash("version-status", error.message || "Unable to refresh versions.", true));
+    });
+  }
+
+  if (refreshAuditBtn && refreshAuditBtn.dataset.bound !== "true") {
+    refreshAuditBtn.dataset.bound = "true";
+    refreshAuditBtn.addEventListener("click", () => {
+      refreshHistoryPanel().catch((error) => flash("version-status", error.message || "Unable to refresh history.", true));
+    });
+  }
+
+  renderVersionEntitySelect();
+  renderVersionsTable();
+  renderAuditTable();
 }
 
 /* ================================================================
@@ -2434,10 +2910,51 @@ function flash(id, msg, isError = false) {
   el._timer = setTimeout(() => (el.hidden = true), 4000);
 }
 
-function formatDate(iso) {
+function getCurrentAdminDescription() {
+  return String(document.querySelector('meta[name="description"]')?.content || "").trim();
+}
+
+function formatDateLegacy(iso) {
   if (!iso) return "—";
   try {
     return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  } catch {
+    return iso;
+  }
+}
+function formatDateTimeLegacy(iso) {
+  if (!iso) return "â€”";
+  try {
+    return new Date(iso).toLocaleString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  } catch {
+    return iso;
+  }
+}
+function formatDate(iso) {
+  if (!iso) return "--";
+  try {
+    return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  } catch {
+    return iso;
+  }
+}
+
+function formatDateTime(iso) {
+  if (!iso) return "--";
+  try {
+    return new Date(iso).toLocaleString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
   } catch {
     return iso;
   }

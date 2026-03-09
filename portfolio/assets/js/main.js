@@ -1,5 +1,6 @@
 import {
   getAvailableTechStacks,
+  loadGitHubActivityMarkup,
   loadProject,
   loadProjects,
   loadProjectsSync,
@@ -14,14 +15,17 @@ import {
   attachImageFallbacks,
   escapeHtml,
   safeSetHtml,
+  sanitizeImportedHtmlFragment,
   sanitizeUrl
 } from "./security.js";
+import { applySeo, injectAnalytics } from "./seo.js";
 
 function $(selector) {
   return document.querySelector(selector);
 }
 
 const PROJECT_IMAGE_FALLBACK = "assets/images/project-placeholder.svg";
+const DEFAULT_SEO_IMAGE = "assets/images/profile-placeholder.svg";
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -43,46 +47,27 @@ function resolveTechStack(definitions, value) {
   );
 }
 
-function setMetaDescription(content) {
-  let meta = document.querySelector('meta[name="description"]');
-  if (!meta) {
-    meta = document.createElement("meta");
-    meta.name = "description";
-    document.head.appendChild(meta);
-  }
-  meta.content = content;
+function getCurrentMetaDescription() {
+  return String(document.querySelector('meta[name="description"]')?.content || "").trim();
 }
 
-function setCanonical() {
-  let canonical = document.querySelector('link[rel="canonical"]');
-  if (!canonical) {
-    canonical = document.createElement("link");
-    canonical.rel = "canonical";
-    document.head.appendChild(canonical);
-  }
-  canonical.href = window.location.href;
-}
+function syncSiteSeo(siteContent, overrides = {}) {
+  const settings = siteContent?.settings || {};
+  const profile = siteContent?.profile || {};
 
-function injectAnalytics(measurementId) {
-  if (!measurementId || document.querySelector('[data-analytics="ea-ga"]')) {
-    return;
-  }
-
-  window.dataLayer = window.dataLayer || [];
-  window.gtag = window.gtag || function gtag() {
-    window.dataLayer.push(arguments);
-  };
-  window.gtag("js", new Date());
-
-  const loader = document.createElement("script");
-  loader.async = true;
-  loader.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
-  loader.dataset.analytics = "ea-ga";
-  loader.addEventListener("load", () => {
-    window.gtag("config", measurementId);
+  applySeo({
+    siteUrl: settings.siteUrl,
+    title: overrides.title || document.title,
+    description: overrides.description || getCurrentMetaDescription(),
+    image: overrides.image || profile.profileImage || DEFAULT_SEO_IMAGE,
+    url: overrides.url,
+    canonicalUrl: overrides.canonicalUrl,
+    robots: overrides.robots,
+    type: overrides.type || "website",
+    verificationTags: settings.searchConsole?.verificationTags || ""
   });
 
-  document.head.appendChild(loader);
+  injectAnalytics(settings.analyticsMeasurementId);
 }
 
 function initNav() {
@@ -437,7 +422,7 @@ function resolveGitHubUsername(siteContent) {
 }
 
 function hasGitHubContributionCells(scope) {
-  return Boolean(scope?.querySelector?.(".ContributionCalendar-day[data-level]"));
+  return Boolean(scope?.querySelector?.(".ContributionCalendar-day[data-level], rect[data-date][data-level]"));
 }
 
 function setGitHubUnavailable(calendar, username) {
@@ -451,87 +436,15 @@ function setGitHubUnavailable(calendar, username) {
     </div>`;
 }
 
-function githubContribProxy(username) {
-  const endpoint = `https://api.bloggify.net/gh-calendar/?username=${encodeURIComponent(username)}`;
-  return fetch(endpoint, { method: "GET" }).then((response) => {
-    if (!response.ok) {
-      throw new Error(`GitHub calendar proxy failed with status ${response.status}`);
-    }
-    return response.text();
-  });
-}
-
-function getThemeAccentHex() {
-  return getComputedStyle(document.documentElement)
-    .getPropertyValue("--accent")
-    .trim()
-    .replace(/^#/, "") || "3b82f6";
-}
-
-async function renderGitHubPngFallback(calendar, username) {
-  return new Promise((resolve) => {
-    const hex = getThemeAccentHex();
-    const src = `https://ghchart.rshah.org/${hex}/${encodeURIComponent(username)}`;
-    const img = document.createElement("img");
-    img.className = "gh-png-fallback";
-    img.alt = `${username}'s GitHub contribution chart`;
-    img.setAttribute("data-gh-png", username);
-    img.src = src;
-    const done = (ok) => {
-      clearTimeout(timer);
-      if (ok) {
-        calendar.innerHTML = "";
-        calendar.appendChild(img);
-      }
-      resolve(ok);
-    };
-    const timer = setTimeout(() => done(false), 9000);
-    img.onload = () => done(true);
-    img.onerror = () => done(false);
-  });
-}
-
-function updateGitHubPngTheme(container) {
-  const img = container && container.querySelector("img[data-gh-png]");
-  if (!img) return;
-  const username = img.getAttribute("data-gh-png");
-  if (!username) return;
-  const hex = getThemeAccentHex();
-  img.src = `https://ghchart.rshah.org/${hex}/${encodeURIComponent(username)}`;
-}
-
-async function renderGitHubCalendarFallback(calendar, username) {
-  const body = await githubContribProxy(username);
-  if (!body) throw new Error("Empty response from GitHub calendar proxy");
-
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(body, "text/html");
-  const yearly = doc.querySelector(".js-yearly-contributions");
-  if (!yearly) return false;
-
-  yearly
-    .querySelectorAll(".position-relative h2, .contrib-column, .contrib-footer, .width-full.f6.px-0.tmp-px-md-5.py-1")
-    .forEach((el) => el.remove());
-
-  yearly.querySelectorAll("a").forEach((link) => {
-    if (String(link.textContent || "").includes("View your contributions in 3D, VR and IRL!")) {
-      link.parentElement?.remove();
-    }
-  });
-
-  calendar.innerHTML = yearly.innerHTML;
-  return hasGitHubContributionCells(calendar);
-}
-
-async function waitForGitHubCalendar(timeoutMs = 4500) {
-  if (typeof window.GitHubCalendar === "function") return true;
-
-  const startedAt = Date.now();
-  while (Date.now() - startedAt < timeoutMs) {
-    await new Promise((resolve) => window.setTimeout(resolve, 120));
-    if (typeof window.GitHubCalendar === "function") return true;
+async function renderGitHubCalendar(calendar, username) {
+  const markup = await loadGitHubActivityMarkup(username);
+  if (!markup) {
+    return false;
   }
-  return false;
+
+  calendar.replaceChildren(sanitizeImportedHtmlFragment(markup));
+  applyExternalLinkSafety(calendar);
+  return hasGitHubContributionCells(calendar);
 }
 
 async function initGitHubContributions(siteContent) {
@@ -559,33 +472,9 @@ async function initGitHubContributions(siteContent) {
   calendar.setAttribute("data-github-username", username);
   let rendered = false;
 
-  const ready = await waitForGitHubCalendar();
-  if (ready && typeof window.GitHubCalendar === "function") {
-    try {
-      const maybePromise = window.GitHubCalendar(calendar, username, {
-        global_stats: false,
-        responsive: true,
-        tooltips: false,
-        proxy: githubContribProxy
-      });
-      await Promise.resolve(maybePromise);
-      rendered = hasGitHubContributionCells(calendar);
-    } catch (_e) {
-      rendered = false;
-    }
-  }
-
   if (!rendered) {
     try {
-      rendered = await renderGitHubCalendarFallback(calendar, username);
-    } catch (_e) {
-      rendered = false;
-    }
-  }
-
-  if (!rendered) {
-    try {
-      rendered = await renderGitHubPngFallback(calendar, username);
+      rendered = await renderGitHubCalendar(calendar, username);
     } catch (_e) {
       rendered = false;
     }
@@ -611,9 +500,6 @@ async function initGitHubContributions(siteContent) {
   });
   scrollObserver.observe(calendar, { childList: true, subtree: true });
   setTimeout(() => scrollObserver.disconnect(), 12000);
-
-  const ghThemeObserver = new MutationObserver(() => updateGitHubPngTheme(container));
-  ghThemeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 }
 
 function setupTestimonialsMarquee(container) {
@@ -988,7 +874,7 @@ function renderProjectsPage(projects, siteContent) {
   renderCards();
 }
 
-async function renderProjectDetailPage() {
+async function renderProjectDetailPage(siteContentForSeo) {
   const container = document.getElementById("project-detail");
   if (!container) {
     return;
@@ -999,6 +885,11 @@ async function renderProjectDetailPage() {
   const project = allProjects.find((p) => p.id === id) || (await loadProject(id));
 
   if (!project) {
+    syncSiteSeo(siteContentForSeo, {
+      title: "Project Not Found | Ebenezer Ajala",
+      description: "The requested project could not be loaded.",
+      robots: "noindex,follow"
+    });
     container.innerHTML = `
       <section class="section" style="padding-top:calc(var(--nav-height) + 4rem)">
         <div class="container card-glass" style="text-align:center;padding:3rem 2rem">
@@ -1012,10 +903,13 @@ async function renderProjectDetailPage() {
     return;
   }
 
-  document.title = `${project.title} | Ebenezer Ajala`;
-  setMetaDescription(project.shortDesc);
-
   const imageSrc = project.featuredImage || project.image || PROJECT_IMAGE_FALLBACK;
+  syncSiteSeo(siteContentForSeo, {
+    title: `${project.title} | Ebenezer Ajala`,
+    description: project.shortDesc,
+    image: imageSrc,
+    url: `/project?id=${encodeURIComponent(project.id)}`
+  });
 
   container.innerHTML = `
     <div class="project-detail-hero">
@@ -1197,7 +1091,6 @@ function highlightTitle(text) {
 
 async function initPage() {
   initNav();
-  setCanonical();
 
   // ── Phase 1: instant render from localStorage cache (synchronous, < 1 ms) ──
   // This makes every section visible immediately without waiting for the network.
@@ -1206,7 +1099,7 @@ async function initPage() {
   const cachedTestimonials = loadTestimonialsSync();
 
   function renderAll(siteContent, projects, testimonials) {
-    injectAnalytics(siteContent.settings.analyticsMeasurementId);
+    syncSiteSeo(siteContent);
     renderProfileBlocks(siteContent);
     renderPageText(siteContent);
     renderHomeAndAboutEducation(siteContent);
@@ -1226,7 +1119,7 @@ async function initPage() {
     initContactForm();
   }
 
-  await renderProjectDetailPage();
+  await renderProjectDetailPage(cachedContent);
 
   // Run reveal + safety on the first-painted DOM so sections animate in
   initRevealObserver();
