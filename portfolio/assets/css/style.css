@@ -2759,6 +2759,7 @@ footer {
     padding: clamp(0.75rem, 2vw, 1.5rem);
     overflow: hidden;
     border-color: var(--border-hover);
+    height: fit-content;
 }
 
 /* The calendar wrapper - force everything to scale down */
@@ -3030,10 +3031,6 @@ footer {
 
     .cta-strip h2 {
         font-size: 1.95rem;
-    }
-
-    .github-contributions-container {
-        margin-top: 4rem !important;
     }
 }
 
@@ -3382,6 +3379,35 @@ footer {
         grid-template-columns: 1fr;
     }
 
+    /* 3-column tech stack on mobile */
+    .tech-stack-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+    }
+
+    .tech-stack-item {
+        padding: 0.8rem 0.5rem;
+    }
+
+    .tech-stack-icon-wrapper {
+        width: 40px;
+        height: 40px;
+        font-size: 1.6rem;
+    }
+
+    .tech-stack-item span {
+        font-size: 0.75rem;
+    }
+
+    /* Tighten GitHub contributions card on mobile */
+    .github-contrib-card.card-glass {
+        padding: 0.6rem;
+    }
+
+    .github-contrib {
+        margin-top: 2rem;
+    }
+
     /* Collapse project grids to 1 col on small phones */
     .projects-grid,
     #projects-container,
@@ -3482,11 +3508,6 @@ footer {
         left: 6px;
     }
 
-    .contact-detail-item {
-        gap: 0.85rem;
-        align-items: flex-start;
-    }
-
     .footer-content {
         justify-content: center;
         text-align: center;
@@ -3503,9 +3524,8 @@ footer {
 
 /* Reusable grid wrapper (skills page + anywhere else) */
 .tech-stack-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
     gap: 1rem;
     margin-top: 1.5rem;
 }
@@ -3519,7 +3539,6 @@ footer {
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 1.2rem;
-    min-width: 110px;
     transition: var(--transition);
 }
 
