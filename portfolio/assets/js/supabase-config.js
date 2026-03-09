@@ -6,7 +6,8 @@ const defaultRuntimeConfig = {
     anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYXd3Ym1nYmNrbnVxcHVlaW9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2NDYwMzgsImV4cCI6MjA4ODIyMjAzOH0.lQXtlu-krAEureNpjMLWuaTSe5nIQfQOnZP5TCdIRsI"
   },
   adminEmail: "ebenezerajala1305@gmail.com",
-  storageBucket: "portfolio-assets"
+  storageBucket: "portfolio-assets",
+  turnstileSiteKey: ""
 };
 
 const runtimeConfig = {
@@ -96,6 +97,19 @@ export async function signOutAdmin() {
     }
     return;
   }
+}
+
+export async function changeAdminPassword(newPassword) {
+  if (ready && client) {
+    const { data, error } = await client.auth.updateUser({
+      password: String(newPassword || "")
+    });
+    if (error) {
+      throw new Error(error.message || "Unable to update password.");
+    }
+    return data;
+  }
+  throw new Error("Supabase is not configured.");
 }
 
 export function onAdminAuthChanged(callback) {

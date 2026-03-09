@@ -9,3 +9,9 @@ port = 54322
 
 [functions.submit-contact]
 verify_jwt = false
+
+[functions.admin-ai]
+verify_jwt = true
+
+[functions.admin-invite]
+verify_jwt = true

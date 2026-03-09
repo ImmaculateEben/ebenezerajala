@@ -130,6 +130,11 @@
                 <label for="form-message">Message</label>
                 <textarea id="form-message" name="message" rows="6" required placeholder="Tell me about the project, timeline, and what you need."></textarea>
               </div>
+              <div id="turnstile-container" class="turnstile-wrap" hidden>
+                <label class="form-turnstile-label">Spam Protection</label>
+                <div id="turnstile-widget"></div>
+                <p class="turnstile-note">This quick check helps protect the contact form from abuse.</p>
+              </div>
               <button type="submit" id="submit-btn" class="btn btn-primary" style="width:100%;justify-content:center;">
                 Send Message <i class="fa-solid fa-paper-plane"></i>
               </button>

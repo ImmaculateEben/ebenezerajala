@@ -1,5 +1,9 @@
 import { loadSiteContent, submitContactMessage } from "./content-service.js";
-import { applyExternalLinkSafety, escapeHtml } from "./security.js";
+import { getRuntimeConfig, isSupabaseReady } from "./supabase-config.js";
+import { applyExternalLinkSafety, escapeHtml, sanitizeUrl } from "./security.js";
+
+let turnstileLoaderPromise = null;
+let turnstileWidgetId = null;
 
 function setStatus(element, message, variant) {
   if (!element) {
@@ -10,6 +14,93 @@ function setStatus(element, message, variant) {
   element.classList.add(variant === "error" ? "is-error" : "is-success");
   element.innerHTML = message;
   element.hidden = false;
+}
+
+function getTurnstileSiteKey() {
+  return String(getRuntimeConfig().turnstileSiteKey || "").trim();
+}
+
+function loadTurnstileScript() {
+  if (window.turnstile) {
+    return Promise.resolve(window.turnstile);
+  }
+
+  if (turnstileLoaderPromise) {
+    return turnstileLoaderPromise;
+  }
+
+  turnstileLoaderPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      if (window.turnstile) {
+        resolve(window.turnstile);
+        return;
+      }
+
+      reject(new Error("Cloudflare Turnstile failed to initialize."));
+    };
+    script.onerror = () => reject(new Error("Cloudflare Turnstile could not be loaded."));
+    document.head.appendChild(script);
+  });
+
+  return turnstileLoaderPromise;
+}
+
+async function ensureTurnstile(status) {
+  const siteKey = getTurnstileSiteKey();
+  const container = document.getElementById("turnstile-container");
+  if (!container) {
+    return;
+  }
+
+  if (!siteKey) {
+    container.hidden = true;
+    return;
+  }
+
+  if (turnstileWidgetId !== null) {
+    container.hidden = false;
+    return;
+  }
+
+  try {
+    const turnstile = await loadTurnstileScript();
+    container.hidden = false;
+    turnstileWidgetId = turnstile.render("#turnstile-widget", {
+      sitekey: siteKey,
+      theme: "auto"
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Cloudflare Turnstile could not be loaded.";
+    setStatus(status, escapeHtml(message), "error");
+  }
+}
+
+function getTurnstileToken() {
+  if (!getTurnstileSiteKey() || !window.turnstile || turnstileWidgetId === null) {
+    return "";
+  }
+
+  try {
+    return String(window.turnstile.getResponse(turnstileWidgetId) || "").trim();
+  } catch (_error) {
+    return "";
+  }
+}
+
+function resetTurnstile() {
+  if (!window.turnstile || turnstileWidgetId === null) {
+    return;
+  }
+
+  try {
+    window.turnstile.reset(turnstileWidgetId);
+  } catch (_error) {
+    // Ignore Turnstile reset issues after submit attempts.
+  }
 }
 
 export async function hydrateContactDetails() {
@@ -38,8 +129,11 @@ export async function hydrateContactDetails() {
   }
 
   if (linkedInLink) {
-    linkedInLink.href = profile.linkedin;
-    linkedInLink.textContent = profile.linkedin.replace(/^https?:\/\/(www\.)?/, "");
+    const safeLinkedIn = sanitizeUrl(profile.linkedin);
+    if (safeLinkedIn) {
+      linkedInLink.href = safeLinkedIn;
+      linkedInLink.textContent = safeLinkedIn.replace(/^https?:\/\/(www\.)?/, "");
+    }
   }
 
   if (locationLabel) {
@@ -51,12 +145,16 @@ export async function hydrateContactDetails() {
 
 export function initContactForm() {
   const form = document.getElementById("contactForm");
-  if (!form) {
+  if (!form || form.dataset.bound === "true") {
     return;
   }
 
+  form.dataset.bound = "true";
+
   const submitButton = document.getElementById("submit-btn");
   const status = document.getElementById("contact-form-status");
+
+  void ensureTurnstile(status);
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -66,7 +164,8 @@ export function initContactForm() {
       email: form.email.value,
       subject: form.subject.value,
       message: form.message.value,
-      website: form.website.value
+      website: form.website.value,
+      turnstileToken: ""
     };
 
     if (!String(payload.name || "").trim() || !String(payload.email || "").trim() || !String(payload.message || "").trim()) {
@@ -79,6 +178,17 @@ export function initContactForm() {
       return;
     }
 
+    if (getTurnstileSiteKey()) {
+      payload.turnstileToken = getTurnstileToken();
+      if (!payload.turnstileToken) {
+        setStatus(status, "Please complete the spam-protection check before sending.", "error");
+        return;
+      }
+    } else if (isSupabaseReady()) {
+      setStatus(status, "Contact form protection is not configured yet. Please use the email address above for now.", "error");
+      return;
+    }
+
     status.hidden = true;
     submitButton.disabled = true;
     submitButton.innerHTML = 'Sending <i class="fa-solid fa-spinner fa-spin"></i>';
@@ -86,6 +196,7 @@ export function initContactForm() {
     try {
       const result = await submitContactMessage(payload);
       form.reset();
+      resetTurnstile();
       const deliveredTo = escapeHtml(result?.deliveredTo || "the configured inbox");
       setStatus(
         status,
@@ -93,6 +204,7 @@ export function initContactForm() {
         "success"
       );
     } catch (error) {
+      resetTurnstile();
       const message = error instanceof Error ? error.message : "Your message could not be sent right now.";
       setStatus(status, escapeHtml(message), "error");
     } finally {

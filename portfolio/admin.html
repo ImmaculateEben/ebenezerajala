@@ -365,7 +365,7 @@
         <div class="panel-header"><h1><i class="fa-solid fa-graduation-cap"></i> Education</h1><p>Degrees, certs, schools shown on the About page.</p></div>
         <div class="panel-split">
           <div class="admin-card table-wrap">
-            <table class="admin-table"><thead><tr><th>Degree</th><th>School</th><th>Period</th><th>Actions</th></tr></thead><tbody id="edu-tbody"></tbody></table>
+            <table class="admin-table"><thead><tr><th>Degree</th><th>School</th><th>Period</th><th>Icon</th><th>Actions</th></tr></thead><tbody id="edu-tbody"></tbody></table>
             <button type="button" id="edu-add" class="btn btn-outline btn-sm" style="margin-top:1rem"><i class="fa-solid fa-plus"></i> Add</button>
           </div>
           <div class="admin-card">
@@ -376,7 +376,14 @@
               <div class="form-group"><label for="edu-school">School / Institution</label><input type="text" id="edu-school" required></div>
               <div class="form-row-2">
                 <div class="form-group"><label for="edu-period">Period</label><input type="text" id="edu-period" placeholder="2020 &ndash; 2024"></div>
-                <div class="form-group"><label for="edu-icon">Icon</label><input type="text" id="edu-icon" placeholder="fa-solid fa-graduation-cap"></div>
+                <div class="form-group">
+                  <label>Icon</label>
+                  <div class="icon-pick-row">
+                    <span class="icon-pick-preview"><i id="edu-icon-preview" class="fa-solid fa-graduation-cap"></i></span>
+                    <input type="hidden" id="edu-icon" value="fa-solid fa-graduation-cap">
+                    <button type="button" class="btn btn-outline btn-sm icon-pick-trigger" data-target="edu-icon" data-preview="edu-icon-preview">Pick Icon</button>
+                  </div>
+                </div>
               </div>
               <div class="admin-actions-row">
                 <button type="submit" class="btn btn-primary">Save</button>
@@ -393,7 +400,7 @@
         <div class="panel-header"><h1><i class="fa-solid fa-certificate"></i> Certifications</h1><p>Professional certifications and credentials shown on the About page.</p></div>
         <div class="panel-split">
           <div class="admin-card table-wrap">
-            <table class="admin-table"><thead><tr><th>Title</th><th>Issuer</th><th>Date</th><th>Actions</th></tr></thead><tbody id="cert-tbody"></tbody></table>
+            <table class="admin-table"><thead><tr><th>Title</th><th>Issuer</th><th>Date</th><th>Icon</th><th>Actions</th></tr></thead><tbody id="cert-tbody"></tbody></table>
             <button type="button" id="cert-add" class="btn btn-outline btn-sm" style="margin-top:1rem"><i class="fa-solid fa-plus"></i> Add</button>
           </div>
           <div class="admin-card">
@@ -404,7 +411,14 @@
               <div class="form-group"><label for="cert-issuer">Issuing Organization</label><input type="text" id="cert-issuer" required></div>
               <div class="form-row-2">
                 <div class="form-group"><label for="cert-date">Date Earned</label><input type="text" id="cert-date" placeholder="Jan 2025"></div>
-                <div class="form-group"><label for="cert-icon">Icon</label><input type="text" id="cert-icon" placeholder="fa-solid fa-certificate"></div>
+                <div class="form-group">
+                  <label>Icon</label>
+                  <div class="icon-pick-row">
+                    <span class="icon-pick-preview"><i id="cert-icon-preview" class="fa-solid fa-certificate"></i></span>
+                    <input type="hidden" id="cert-icon" value="fa-solid fa-certificate">
+                    <button type="button" class="btn btn-outline btn-sm icon-pick-trigger" data-target="cert-icon" data-preview="cert-icon-preview">Pick Icon</button>
+                  </div>
+                </div>
               </div>
               <div class="form-group"><label for="cert-url">Credential URL <small>(optional)</small></label><input type="url" id="cert-url" placeholder="https://..."></div>
               <div class="admin-actions-row">
@@ -522,10 +536,44 @@
           <div id="settings-status" class="admin-status is-success" hidden></div>
         </div>
 
+        <!-- Change Password -->
+        <div class="admin-card" style="margin-top:1.25rem">
+          <h3><i class="fa-solid fa-key"></i> Change Password</h3>
+          <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:1rem">Update your admin account password.</p>
+          <form id="change-pw-form" class="admin-form-grid" style="max-width:480px">
+            <div class="form-group">
+              <label for="pw-current">Current Password</label>
+              <div class="input-icon-wrap">
+                <i class="fa-solid fa-lock input-icon"></i>
+                <input type="password" id="pw-current" required placeholder="Enter current password">
+                <button type="button" class="input-icon-end pw-toggle" data-target="pw-current" aria-label="Toggle visibility"><i class="fa-solid fa-eye"></i></button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="pw-new">New Password</label>
+              <div class="input-icon-wrap">
+                <i class="fa-solid fa-lock input-icon"></i>
+                <input type="password" id="pw-new" required placeholder="Enter new password" minlength="6">
+                <button type="button" class="input-icon-end pw-toggle" data-target="pw-new" aria-label="Toggle visibility"><i class="fa-solid fa-eye"></i></button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="pw-confirm">Confirm New Password</label>
+              <div class="input-icon-wrap">
+                <i class="fa-solid fa-lock input-icon"></i>
+                <input type="password" id="pw-confirm" required placeholder="Re-enter new password" minlength="6">
+                <button type="button" class="input-icon-end pw-toggle" data-target="pw-confirm" aria-label="Toggle visibility"><i class="fa-solid fa-eye"></i></button>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-key"></i> Update Password</button>
+          </form>
+          <div id="change-pw-status" class="admin-status is-success" hidden></div>
+        </div>
+
         <!-- Team & Access -->
         <div class="admin-card" style="margin-top:1.25rem">
           <h3><i class="fa-solid fa-users-gear"></i> Team &amp; Access</h3>
-          <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:1rem">Add people who can access this admin dashboard and set their permission level.</p>
+          <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:1rem">Add approved emails to the real admin allowlist. New users receive an invite email and create their own password.</p>
           <form id="invite-admin-form" class="admin-form-grid">
             <div class="form-row-2">
               <div class="form-group">
@@ -541,8 +589,9 @@
                 </select>
               </div>
             </div>
+            <p class="admin-helper-copy">Passwords are no longer created in the browser. This form uses the secure invite flow backed by Supabase and the <code>admin_users</code> table.</p>
             <div>
-              <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-user-plus"></i> Add Admin</button>
+              <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-user-plus"></i> Send Invite</button>
             </div>
           </form>
           <div id="invite-status" class="admin-status is-success" hidden></div>
@@ -570,18 +619,55 @@
         <div class="panel-header"><h1><i class="fa-solid fa-wand-magic-sparkles"></i> AI Writing Assistant</h1><p>Generate professional portfolio copy with AI.</p></div>
         <div class="admin-card">
           <form id="ai-form" class="admin-form-grid">
-            <div class="form-group"><label for="ai-prompt">What do you need written?</label><textarea id="ai-prompt" rows="4" placeholder="e.g. Write a professional bio for a web developer with 4+ years experience&hellip;"></textarea></div>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="ai-preset">Preset</label>
+                <select id="ai-preset">
+                  <option value="custom" selected>Custom Request</option>
+                  <option value="bio">Professional Bio</option>
+                  <option value="hero-tagline">Hero Tagline</option>
+                  <option value="project-short">Project Short Description</option>
+                  <option value="project-case-study">Project Case Study</option>
+                  <option value="testimonial">Client Testimonial</option>
+                  <option value="cta">Call To Action</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="ai-task">Action</label>
+                <select id="ai-task">
+                  <option value="generate" selected>Generate</option>
+                  <option value="improve">Improve</option>
+                  <option value="rewrite">Rewrite</option>
+                  <option value="shorten">Shorten</option>
+                  <option value="expand">Expand</option>
+                </select>
+              </div>
+            </div>
             <div class="form-row-2">
               <div class="form-group"><label for="ai-tone">Tone</label><select id="ai-tone"><option value="professional" selected>Professional</option><option value="friendly">Friendly</option><option value="confident">Confident</option><option value="creative">Creative</option><option value="formal">Formal</option></select></div>
               <div class="form-group"><label for="ai-length">Length</label><select id="ai-length"><option value="short">Short (1-2 sentences)</option><option value="medium" selected>Medium (paragraph)</option><option value="long">Long (multi-paragraph)</option></select></div>
             </div>
+            <div class="form-group"><label for="ai-prompt">What do you need written?</label><textarea id="ai-prompt" rows="4" placeholder="e.g. Write a professional bio for a web developer with 4+ years experience&hellip;"></textarea></div>
+            <div class="form-group">
+              <div class="admin-inline-between">
+                <label for="ai-current-text">Current text <small>(optional context)</small></label>
+                <button type="button" id="ai-pull-context" class="btn btn-outline btn-sm">Use Active Field</button>
+              </div>
+              <textarea id="ai-current-text" rows="4" placeholder="Paste existing copy here, or pull it from the last focused field."></textarea>
+            </div>
+            <p id="ai-target-hint" class="ai-meta" hidden></p>
             <button type="submit" class="btn btn-primary" id="ai-gen-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate</button>
           </form>
           <div id="ai-output" class="ai-output-box" hidden>
-            <h4>Generated Content</h4>
+            <div class="admin-inline-between">
+              <h4>Generated Content</h4>
+              <p id="ai-meta" class="ai-meta" hidden></p>
+            </div>
             <div id="ai-result" class="ai-result"></div>
             <div class="admin-actions-row" style="margin-top:0.75rem">
               <button type="button" id="ai-copy" class="btn btn-outline btn-sm"><i class="fa-solid fa-copy"></i> Copy</button>
+              <button type="button" id="ai-apply" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-down"></i> Use In Active Field</button>
+              <button type="button" id="ai-undo" class="btn btn-outline btn-sm"><i class="fa-solid fa-rotate-left"></i> Undo Last Replace</button>
               <button type="button" id="ai-regen" class="btn btn-outline btn-sm"><i class="fa-solid fa-rotate"></i> Regenerate</button>
             </div>
           </div>
@@ -613,4 +699,3 @@
   <script type="module" src="assets/js/admin.js"></script>
 </body>
 </html>
-

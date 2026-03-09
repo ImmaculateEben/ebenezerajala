@@ -19,12 +19,17 @@ import {
   importStateSnapshot,
   seedRemoteContent,
   getAvailableTechStacks,
-  getContentRuntimeMode
+  getContentRuntimeMode,
+  loadAdminUsers,
+  inviteAdminUser,
+  removeAdminUser,
+  generateAdminAiText
 } from "./content-service.js";
 
 import {
   signInAdmin,
   signOutAdmin,
+  changeAdminPassword,
   onAdminAuthChanged,
   isSupabaseReady
 } from "./supabase-config.js";
@@ -501,6 +506,11 @@ let projects = [];
 let testimonials = [];
 let messages = [];
 let techStacks = [];
+let adminUsers = [];
+let hasLoadedDashboard = false;
+let lastFocusedAdminField = null;
+let lastAiRequest = null;
+let lastAiReplacement = null;
 
 /* ── DOM refs ───────────────────────────────────────────────────── */
 const $ = (s, p) => (p || document).querySelector(s);
@@ -509,10 +519,12 @@ const $$ = (s, p) => [...(p || document).querySelectorAll(s)];
 /* ── Init ───────────────────────────────────────────────────────── */
 document.addEventListener("DOMContentLoaded", () => {
   techStacks = getAvailableTechStacks();
+  document.addEventListener("focusin", trackLastFocusedAdminField);
   setupAuth();
   setupNavigation();
   setupMobileMenu();
   setupQuickActions();
+  setupAIWriter();
   setupIconPicker();
 });
 
@@ -584,12 +596,17 @@ function setupAuth() {
   });
 
   onAdminAuthChanged((user) => {
+    const prevEmail = currentUser?.email || "";
     currentUser = user;
     if (user) {
       setAuthVisibility(true);
       showRuntimeBanner();
-      loadAll();
+      if (!hasLoadedDashboard || prevEmail !== (user.email || "")) {
+        hasLoadedDashboard = true;
+        loadAll();
+      }
     } else {
+      hasLoadedDashboard = false;
       setAuthVisibility(false);
     }
   });
@@ -638,7 +655,7 @@ async function loadAll() {
   populatePagesForm();
   renderMediaPanel();
   populateSettingsForm();
-  setupAdminUsers();
+  await setupAdminUsers();
   setupImportExport();
 }
 
@@ -1409,6 +1426,7 @@ function renderEduTable() {
       <td data-label="Degree">${escapeHtml(x.degree)}</td>
       <td data-label="School">${escapeHtml(x.school)}</td>
       <td data-label="Period">${escapeHtml(x.period)}</td>
+      <td data-label="Icon"><i class="${escapeHtml(x.icon || 'fa-solid fa-graduation-cap')}"></i></td>
       <td class="row-actions">
         <button title="Edit" class="edu-edit"><i class="fa-solid fa-pen"></i></button>
         <button title="Delete" class="edu-del danger"><i class="fa-solid fa-trash"></i></button>
@@ -1458,13 +1476,18 @@ function editEdu(idx) {
   setVal("edu-degree", x.degree);
   setVal("edu-school", x.school);
   setVal("edu-period", x.period);
-  setVal("edu-icon", x.icon);
+  setVal("edu-icon", x.icon || "fa-solid fa-graduation-cap");
+  const eduPrev = $("#edu-icon-preview");
+  if (eduPrev) eduPrev.className = x.icon || "fa-solid fa-graduation-cap";
   $("#edu-form-title").textContent = "Edit Entry";
 }
 
 function resetEduForm() {
   $("#edu-form")?.reset();
   setVal("edu-idx", "-1");
+  setVal("edu-icon", "fa-solid fa-graduation-cap");
+  const eduPrev = $("#edu-icon-preview");
+  if (eduPrev) eduPrev.className = "fa-solid fa-graduation-cap";
   $("#edu-form-title").textContent = "New Entry";
 }
 
@@ -1480,6 +1503,7 @@ function renderCertTable() {
       <td data-label="Title">${escapeHtml(x.title)}</td>
       <td data-label="Issuer">${escapeHtml(x.issuer)}</td>
       <td data-label="Date">${escapeHtml(x.date)}</td>
+      <td data-label="Icon"><i class="${escapeHtml(x.icon || 'fa-solid fa-certificate')}"></i></td>
       <td class="row-actions">
         <button title="Edit" class="cert-edit"><i class="fa-solid fa-pen"></i></button>
         <button title="Delete" class="cert-del danger"><i class="fa-solid fa-trash"></i></button>
@@ -1531,7 +1555,9 @@ function editCert(idx) {
   setVal("cert-title", x.title);
   setVal("cert-issuer", x.issuer);
   setVal("cert-date", x.date);
-  setVal("cert-icon", x.icon);
+  setVal("cert-icon", x.icon || "fa-solid fa-certificate");
+  const certPrev = $("#cert-icon-preview");
+  if (certPrev) certPrev.className = x.icon || "fa-solid fa-certificate";
   setVal("cert-url", x.url || "");
   $("#cert-form-title").textContent = "Edit Certification";
 }
@@ -1539,6 +1565,9 @@ function editCert(idx) {
 function resetCertForm() {
   $("#cert-form")?.reset();
   setVal("cert-idx", "-1");
+  setVal("cert-icon", "fa-solid fa-certificate");
+  const certPrev = $("#cert-icon-preview");
+  if (certPrev) certPrev.className = "fa-solid fa-certificate";
   $("#cert-form-title").textContent = "New Certification";
 }
 
@@ -1720,32 +1749,48 @@ function populateSettingsForm() {
 /* ================================================================
    TEAM & ACCESS — Admin user management
    ================================================================ */
-function setupAdminUsers() {
+async function setupAdminUsers() {
   const form = $("#invite-admin-form");
   if (!form) return;
 
+  try {
+    adminUsers = await loadAdminUsers();
+  } catch (err) {
+    adminUsers = [];
+    flash("invite-status", "Unable to load admin access list: " + (err.message || "Unknown error."), true);
+  }
+
   renderAdminUsersTable();
+
+  if (form.dataset.bound === "true") {
+    return;
+  }
+
+  form.dataset.bound = "true";
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const email = getVal("invite-email").trim();
+    const email = getVal("invite-email").trim().toLowerCase();
     const role = document.getElementById("invite-role")?.value || "editor";
     if (!email) return;
 
-    if (!siteContent.settings) siteContent.settings = {};
-    const users = siteContent.settings.adminUsers || [];
+    const existing = adminUsers.find((item) => item.email === email);
 
-    if (users.find((u) => u.email === email)) {
-      flash("invite-status", "This email is already in the list.", true);
-      return;
+    try {
+      const result = await inviteAdminUser({ email, role });
+      adminUsers = await loadAdminUsers();
+      renderAdminUsersTable();
+      const baseMessage = existing
+        ? `${email} access was updated to ${capitalize(role)}.`
+        : `${email} invited as ${capitalize(role)}.`;
+      const suffix = result.existingUser ? " Existing account detected, so access was refreshed." : " Invite email sent.";
+      flash("invite-status", baseMessage + suffix);
+      form.reset();
+      const roleSelect = $("#invite-role");
+      if (roleSelect) roleSelect.value = "editor";
+    } catch (err) {
+      flash("invite-status", "Failed to send invite: " + (err.message || "Unknown error."), true);
     }
-
-    users.push({ email, role, addedAt: new Date().toISOString() });
-    siteContent.settings.adminUsers = users;
-    await saveSiteContent(siteContent);
-    renderAdminUsersTable();
-    flash("invite-status", `${email} added as ${capitalize(role)}.`);
-    form.reset();
   });
 }
 
@@ -1758,38 +1803,135 @@ function renderAdminUsersTable() {
   const wrap = document.getElementById("admin-users-wrap");
   if (!tbody || !wrap) return;
 
-  const users = (siteContent?.settings?.adminUsers) || [];
-  wrap.hidden = users.length === 0;
-  if (users.length === 0) { tbody.innerHTML = ""; return; }
+  wrap.hidden = adminUsers.length === 0;
+  if (adminUsers.length === 0) {
+    tbody.innerHTML = "";
+    return;
+  }
 
   const ROLE_BADGE = {
     viewer: '<span class="badge-sm badge-read">Viewer</span>',
     editor: '<span class="badge-sm badge-published">Editor</span>',
-    admin: '<span class="badge-sm badge-featured">Admin</span>',
+    admin: '<span class="badge-sm badge-featured">Admin</span>'
   };
 
-  tbody.innerHTML = users.map((u, i) => `
+  const currentEmail = String(currentUser?.email || "").trim().toLowerCase();
+  tbody.innerHTML = adminUsers.map((u) => {
+    const isSelf = currentEmail && u.email === currentEmail;
+    return `
     <tr>
-      <td data-label="Email">${u.email}</td>
+      <td data-label="Email">${escapeHtml(u.email)}</td>
       <td data-label="Role">${ROLE_BADGE[u.role] || capitalize(u.role)}</td>
-      <td data-label="Added">${u.addedAt ? new Date(u.addedAt).toLocaleDateString() : "&mdash;"}</td>
+      <td data-label="Added">${u.createdAt ? formatDate(u.createdAt) : "&mdash;"}</td>
       <td class="row-actions" data-label="">
-        <button class="danger" title="Remove admin" data-idx="${i}"><i class="fa-solid fa-trash"></i></button>
+        <button class="danger" title="${isSelf ? "You cannot remove your own access here" : "Remove admin"}" data-email="${escapeHtml(u.email)}" ${isSelf ? "disabled" : ""}><i class="fa-solid fa-trash"></i></button>
       </td>
-    </tr>`).join("");
+    </tr>`;
+  }).join("");
 
-  tbody.querySelectorAll("[data-idx]").forEach((btn) => {
+  tbody.querySelectorAll("[data-email]").forEach((btn) => {
     btn.addEventListener("click", async () => {
-      const idx = parseInt(btn.dataset.idx, 10);
-      siteContent.settings.adminUsers.splice(idx, 1);
-      await saveSiteContent(siteContent);
-      renderAdminUsersTable();
-      flash("invite-status", "Admin removed.");
+      const email = String(btn.dataset.email || "").trim().toLowerCase();
+      if (!email) return;
+      if (email === currentEmail) {
+        flash("invite-status", "Use a different admin account if you need to remove your own access.", true);
+        return;
+      }
+      if (adminUsers.length <= 1) {
+        flash("invite-status", "At least one admin must remain on the allowlist.", true);
+        return;
+      }
+      if (!confirm(`Remove admin access for ${email}?`)) return;
+
+      try {
+        await removeAdminUser(email);
+        adminUsers = adminUsers.filter((user) => user.email !== email);
+        renderAdminUsersTable();
+        flash("invite-status", `${email} removed from the allowlist.`);
+      } catch (err) {
+        flash("invite-status", "Failed to remove admin: " + (err.message || "Unknown error."), true);
+      }
     });
   });
 }
 
+/* ================================================================
+   CHANGE PASSWORD
+   ================================================================ */
+function setupChangePassword() {
+  const form = $("#change-pw-form");
+  if (!form || form.dataset.bound === "true") return;
+
+  form.dataset.bound = "true";
+
+  // Password toggle buttons
+  $$(".pw-toggle").forEach((btn) => {
+    if (btn.dataset.bound === "true") return;
+    btn.dataset.bound = "true";
+    btn.addEventListener("click", () => {
+      const targetId = btn.dataset.target;
+      const input = document.getElementById(targetId);
+      const icon = btn.querySelector("i");
+      if (!input) return;
+      if (input.type === "password") {
+        input.type = "text";
+        icon.className = "fa-solid fa-eye-slash";
+      } else {
+        input.type = "password";
+        icon.className = "fa-solid fa-eye";
+      }
+    });
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const currentPw = getVal("pw-current");
+    const newPw = getVal("pw-new");
+    const confirmPw = getVal("pw-confirm");
+
+    if (!currentPw || !newPw || !confirmPw) return;
+
+    if (newPw.length < 6) {
+      flash("change-pw-status", "New password must be at least 6 characters.", true);
+      return;
+    }
+
+    if (newPw !== confirmPw) {
+      flash("change-pw-status", "New passwords do not match.", true);
+      return;
+    }
+
+    // Verify current password by re-authenticating
+    try {
+      const email = currentUser?.email;
+      if (!email) {
+        flash("change-pw-status", "Unable to determine current user.", true);
+        return;
+      }
+      await signInAdmin(email, currentPw);
+    } catch (err) {
+      flash("change-pw-status", "Current password is incorrect.", true);
+      return;
+    }
+
+    // Update to new password
+    try {
+      await changeAdminPassword(newPw);
+      flash("change-pw-status", "Password updated successfully!");
+      form.reset();
+    } catch (err) {
+      flash("change-pw-status", "Failed to update password: " + err.message, true);
+    }
+  });
+}
+
 function setupImportExport() {
+  setupChangePassword();
+  if (document.body.dataset.importExportBound === "true") {
+    return;
+  }
+  document.body.dataset.importExportBound = "true";
+
   $("#export-btn")?.addEventListener("click", () => {
     const data = exportStateSnapshot();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -1826,105 +1968,254 @@ function setupImportExport() {
 /* ================================================================
    AI WRITING ASSISTANT
    ================================================================ */
-const AI_API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3";
+const AI_PRESETS = {
+  custom: {
+    fieldContext: "custom portfolio copy",
+    prompt: "",
+    promptPlaceholder: "Describe what you want written or improved.",
+    currentPlaceholder: "Paste existing copy here, or pull it from the last focused field."
+  },
+  bio: {
+    fieldContext: "professional multi-paragraph bio for a web developer portfolio",
+    prompt: "Write a polished professional bio for a web developer with strong WordPress, frontend, SEO, and performance experience.",
+    promptPlaceholder: "Describe the background, strengths, and outcomes the bio should highlight.",
+    currentPlaceholder: "Paste the current bio to improve, shorten, or expand it."
+  },
+  "hero-tagline": {
+    fieldContext: "homepage hero tagline for a web developer portfolio",
+    prompt: "Write a confident homepage hero tagline for a web developer who builds fast, conversion-focused websites.",
+    promptPlaceholder: "Describe the positioning or audience the tagline should target.",
+    currentPlaceholder: "Paste the current tagline if you want it rewritten."
+  },
+  "project-short": {
+    fieldContext: "short project description for a portfolio card",
+    prompt: "Write a concise project summary that explains the outcome, business value, and technical focus.",
+    promptPlaceholder: "Describe the project, client, and main result.",
+    currentPlaceholder: "Paste the current short description to improve it."
+  },
+  "project-case-study": {
+    fieldContext: "detailed project case study for a portfolio",
+    prompt: "Write a detailed project case study with the problem, approach, and outcome for a portfolio page.",
+    promptPlaceholder: "Describe the project, scope, stack, challenges, and results.",
+    currentPlaceholder: "Paste the current case study to expand, tighten, or rewrite it."
+  },
+  testimonial: {
+    fieldContext: "client testimonial for a web developer portfolio",
+    prompt: "Write a believable client testimonial that highlights communication, delivery quality, and business impact.",
+    promptPlaceholder: "Describe the client relationship, work delivered, and visible result.",
+    currentPlaceholder: "Paste the existing testimonial if you want it refined."
+  },
+  cta: {
+    fieldContext: "portfolio call to action paragraph",
+    prompt: "Write a clear call to action that encourages visitors to get in touch about web projects or collaboration.",
+    promptPlaceholder: "Describe the action you want visitors to take.",
+    currentPlaceholder: "Paste the current call to action to shorten or improve it."
+  }
+};
 
-async function generateAIText(prompt, tone = "professional", length = "medium") {
-  const lengthGuide = { short: "1-2 sentences", medium: "one paragraph (3-5 sentences)", long: "2-3 paragraphs" };
-  const systemPrompt = `You are a professional copywriter for web developer portfolios. Write content that is ${tone} in tone. Target length: ${lengthGuide[length] || lengthGuide.medium}. Only output the final text, no explanations or labels.`;
+function isAiEditableField(field) {
+  if (!(field instanceof HTMLTextAreaElement || field instanceof HTMLInputElement)) {
+    return false;
+  }
 
-  const fullPrompt = `<s>[INST] ${systemPrompt}\n\nUser request: ${prompt} [/INST]`;
+  if (field.closest("#ai-form") || field.closest("#ai-output")) {
+    return false;
+  }
 
-  // Try Hugging Face free inference first
-  try {
-    const res = await fetch(AI_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        inputs: fullPrompt,
-        parameters: {
-          max_new_tokens: length === "long" ? 600 : length === "medium" ? 300 : 120,
-          temperature: 0.7,
-          return_full_text: false
-        }
-      })
-    });
+  if (field instanceof HTMLInputElement) {
+    return ["text", "email", "url", "search", "tel"].includes(field.type || "text");
+  }
 
-    if (!res.ok) {
-      throw new Error(`API responded with ${res.status}`);
+  return true;
+}
+
+function trackLastFocusedAdminField(event) {
+  const target = event.target;
+  if (!isAiEditableField(target)) {
+    return;
+  }
+
+  lastFocusedAdminField = target;
+  updateAiTargetHint();
+}
+
+function getFieldLabel(field) {
+  const label = field?.id ? document.querySelector(`label[for="${field.id}"]`) : null;
+  return label ? label.textContent.replace(/\s+/g, " ").trim() : field?.name || field?.id || "active field";
+}
+
+function updateAiTargetHint() {
+  const hint = $("#ai-target-hint");
+  if (!hint) return;
+
+  if (lastFocusedAdminField && document.body.contains(lastFocusedAdminField)) {
+    hint.textContent = `Active field: ${getFieldLabel(lastFocusedAdminField)}`;
+    hint.hidden = false;
+    return;
+  }
+
+  hint.hidden = true;
+}
+
+function getAiPresetConfig(key) {
+  return AI_PRESETS[key] || AI_PRESETS.custom;
+}
+
+function syncAiPresetFields() {
+  const preset = getAiPresetConfig(getVal("ai-preset"));
+  const promptInput = $("#ai-prompt");
+  const currentInput = $("#ai-current-text");
+
+  if (promptInput) {
+    promptInput.placeholder = preset.promptPlaceholder;
+    if (!promptInput.value.trim() && preset.prompt) {
+      promptInput.value = preset.prompt;
     }
+  }
 
-    const data = await res.json();
-    if (Array.isArray(data) && data[0]?.generated_text) {
-      return data[0].generated_text.trim();
-    }
-    throw new Error("Unexpected API response format.");
-  } catch (err) {
-    // Fallback: generate locally with templates
-    return generateLocalFallback(prompt, tone, length);
+  if (currentInput) {
+    currentInput.placeholder = preset.currentPlaceholder;
   }
 }
 
-function generateLocalFallback(prompt, tone, length) {
-  const templates = {
-    bio: [
-      "A dedicated web developer with a proven track record of delivering high-performance websites that drive results. Combining technical expertise with a keen eye for design, every project is approached with a commitment to excellence and user-centered thinking.",
-      "With years of hands-on experience building websites for diverse clients, the focus has always been on creating solutions that work — fast load times, clean code, and designs that convert visitors into customers.",
-      "Passionate about crafting digital experiences that make an impact. From concept to deployment, every step is guided by best practices, attention to detail, and a genuine desire to help businesses succeed online."
-    ],
-    project: [
-      "This project was built to solve a real business problem — creating a digital presence that communicates trust, drives engagement, and delivers measurable performance improvements.",
-      "A comprehensive web solution designed and developed from the ground up, focusing on user experience, performance optimization, and search engine visibility. The result exceeded client expectations in both speed and conversion metrics."
-    ],
-    testimonial: [
-      "Working with this developer was an excellent experience. The attention to detail, clear communication, and technical skill made the entire project smooth and successful.",
-      "Exceptional work that transformed our online presence. The website is faster, more professional, and has significantly improved our lead generation."
-    ],
-    generic: [
-      "Delivering exceptional digital solutions with a focus on performance, user experience, and measurable business outcomes. Every project is an opportunity to create something meaningful.",
-      "Combining technical expertise with creative problem-solving to build websites that don't just look great — they work hard for the businesses they represent."
-    ]
-  };
+function setAiResultState(result) {
+  const output = $("#ai-output");
+  const resultBox = $("#ai-result");
+  const meta = $("#ai-meta");
 
-  const lower = prompt.toLowerCase();
-  let pool = templates.generic;
-  if (lower.includes("bio") || lower.includes("about")) pool = templates.bio;
-  else if (lower.includes("project") || lower.includes("case study")) pool = templates.project;
-  else if (lower.includes("testimonial") || lower.includes("review") || lower.includes("feedback")) pool = templates.testimonial;
-
-  const idx = Math.floor(Math.random() * pool.length);
-  let result = pool[idx];
-
-  if (length === "long" && pool.length > 1) {
-    const idx2 = (idx + 1) % pool.length;
-    result += "\n\n" + pool[idx2];
+  if (resultBox) {
+    resultBox.textContent = result.text;
   }
 
+  if (meta) {
+    const parts = [];
+    if (result.provider) parts.push(`Provider: ${result.provider}`);
+    if (result.model) parts.push(`Model: ${result.model}`);
+    meta.textContent = parts.join(" | ");
+    meta.hidden = parts.length === 0;
+  }
+
+  if (output) {
+    output.hidden = false;
+  }
+}
+
+async function requestAiResult(request) {
+  const payload = {
+    task: request.task || "generate",
+    prompt: request.prompt || "",
+    currentText: request.currentText || "",
+    fieldContext: request.fieldContext || "portfolio copy",
+    tone: request.tone || "professional",
+    length: request.length || "medium"
+  };
+
+  lastAiRequest = { ...payload };
+  const result = await generateAdminAiText(payload);
+  setAiResultState(result);
   return result;
+}
+
+function applyAiTextToField(field, text) {
+  if (!isAiEditableField(field)) {
+    throw new Error("Focus a content field first.");
+  }
+
+  if (!field.id) {
+    throw new Error("The selected field cannot be updated automatically.");
+  }
+
+  lastAiReplacement = {
+    fieldId: field.id,
+    previousValue: field.value || ""
+  };
+
+  field.value = text;
+  lastFocusedAdminField = field;
+  updateAiTargetHint();
+  field.dispatchEvent(new Event("input", { bubbles: true }));
+  field.dispatchEvent(new Event("change", { bubbles: true }));
+  field.focus();
+}
+
+function undoLastAiReplacement() {
+  if (!lastAiReplacement?.fieldId) {
+    throw new Error("Nothing to undo yet.");
+  }
+
+  const field = document.getElementById(lastAiReplacement.fieldId);
+  if (!field || !isAiEditableField(field)) {
+    throw new Error("The previous field is no longer available.");
+  }
+
+  field.value = lastAiReplacement.previousValue || "";
+  field.dispatchEvent(new Event("input", { bubbles: true }));
+  field.dispatchEvent(new Event("change", { bubbles: true }));
+  field.focus();
+  lastFocusedAdminField = field;
+  lastAiReplacement = null;
+  updateAiTargetHint();
+  return getFieldLabel(field);
 }
 
 function setupAIWriter() {
   const form = $("#ai-form");
+  if (!form || form.dataset.bound === "true") return;
+
+  form.dataset.bound = "true";
+
   const output = $("#ai-output");
   const resultBox = $("#ai-result");
   const statusBox = $("#ai-status");
   const genBtn = $("#ai-gen-btn");
+  const presetSelect = $("#ai-preset");
+  const currentInput = $("#ai-current-text");
 
-  form?.addEventListener("submit", async (e) => {
+  updateAiTargetHint();
+  syncAiPresetFields();
+
+  presetSelect?.addEventListener("change", () => {
+    syncAiPresetFields();
+  });
+
+  $("#ai-pull-context")?.addEventListener("click", () => {
+    if (!isAiEditableField(lastFocusedAdminField)) {
+      flash("ai-status", "Focus a content field first, then pull its text here.", true);
+      return;
+    }
+
+    currentInput.value = lastFocusedAdminField.value || "";
+    updateAiTargetHint();
+    flash("ai-status", `Loaded context from ${getFieldLabel(lastFocusedAdminField)}.`, false);
+  });
+
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const prompt = getVal("ai-prompt");
-    if (!prompt.trim()) return;
+    const preset = getAiPresetConfig(getVal("ai-preset"));
+    const request = {
+      task: getVal("ai-task") || "generate",
+      prompt: getVal("ai-prompt") || preset.prompt,
+      currentText: getVal("ai-current-text"),
+      fieldContext: preset.fieldContext,
+      tone: getVal("ai-tone"),
+      length: getVal("ai-length")
+    };
+
+    if (!request.prompt.trim() && !request.currentText.trim()) {
+      flash("ai-status", "Add a prompt or current text before generating.", true);
+      return;
+    }
 
     genBtn.disabled = true;
-    genBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generating…`;
+    genBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generating...`;
     statusBox.hidden = true;
     output.hidden = true;
 
     try {
-      const text = await generateAIText(prompt, getVal("ai-tone"), getVal("ai-length"));
-      resultBox.textContent = text;
-      output.hidden = false;
+      await requestAiResult(request);
+      flash("ai-status", "AI draft ready.", false);
     } catch (err) {
-      statusBox.textContent = "Generation failed: " + err.message;
+      statusBox.textContent = "Generation failed: " + (err.message || "Unknown error.");
       statusBox.hidden = false;
     } finally {
       genBtn.disabled = false;
@@ -1934,21 +2225,67 @@ function setupAIWriter() {
 
   $("#ai-copy")?.addEventListener("click", () => {
     const text = resultBox?.textContent || "";
-    navigator.clipboard.writeText(text).then(() => flash("ai-status", "Copied!", false));
+    if (!text.trim()) {
+      flash("ai-status", "Nothing to copy yet.", true);
+      return;
+    }
+    navigator.clipboard.writeText(text).then(() => flash("ai-status", "AI draft copied.", false));
   });
 
-  $("#ai-regen")?.addEventListener("click", () => {
-    form?.requestSubmit();
+  $("#ai-apply")?.addEventListener("click", () => {
+    const text = resultBox?.textContent || "";
+    if (!text.trim()) {
+      flash("ai-status", "Generate content before applying it.", true);
+      return;
+    }
+
+    try {
+      applyAiTextToField(lastFocusedAdminField, text);
+      flash("ai-status", `Inserted AI copy into ${getFieldLabel(lastFocusedAdminField)}.`, false);
+    } catch (err) {
+      flash("ai-status", err.message || "Unable to apply AI copy.", true);
+    }
   });
 
-  // Inline AI buttons ( .btn-ai-assist throughout the dashboard )
+  $("#ai-undo")?.addEventListener("click", () => {
+    try {
+      const label = undoLastAiReplacement();
+      flash("ai-status", `Restored the previous content in ${label}.`, false);
+    } catch (err) {
+      flash("ai-status", err.message || "Unable to undo the last AI change.", true);
+    }
+  });
+
+  $("#ai-regen")?.addEventListener("click", async () => {
+    if (!lastAiRequest) {
+      form.requestSubmit();
+      return;
+    }
+
+    genBtn.disabled = true;
+    genBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Regenerating...`;
+    statusBox.hidden = true;
+
+    try {
+      await requestAiResult(lastAiRequest);
+      flash("ai-status", "AI draft refreshed.", false);
+    } catch (err) {
+      statusBox.textContent = "Generation failed: " + (err.message || "Unknown error.");
+      statusBox.hidden = false;
+    } finally {
+      genBtn.disabled = false;
+      genBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Generate`;
+    }
+  });
+
   document.addEventListener("click", async (e) => {
     const btn = e.target.closest(".btn-ai-assist");
     if (!btn) return;
+
     const targetId = btn.dataset.target;
     const ctx = btn.dataset.ctx || "professional portfolio copy";
     const textarea = document.getElementById(targetId);
-    if (!textarea) return;
+    if (!textarea || !("value" in textarea)) return;
 
     btn.disabled = true;
     const origHTML = btn.innerHTML;
@@ -1956,24 +2293,25 @@ function setupAIWriter() {
 
     try {
       const existing = textarea.value.trim();
-      const prompt = existing
-        ? `Improve and rewrite the following text for a ${ctx}: "${existing}"`
-        : `Write ${ctx}`;
-      const text = await generateAIText(prompt, "professional", "medium");
-      textarea.value = text;
-      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      const result = await requestAiResult({
+        task: existing ? "improve" : "generate",
+        prompt: existing ? `Improve this copy for ${ctx}.` : `Write ${ctx}.`,
+        currentText: existing,
+        fieldContext: ctx,
+        tone: "professional",
+        length: existing.length > 280 ? "long" : "medium"
+      });
+      applyAiTextToField(textarea, result.text);
+      flash("ai-status", `Updated ${getFieldLabel(textarea)}. Use Undo Last Replace if needed.`, false);
     } catch (err) {
       console.warn("AI assist failed:", err);
+      flash("ai-status", "AI assist failed: " + (err.message || "Unknown error."), true);
     } finally {
       btn.disabled = false;
       btn.innerHTML = origHTML;
     }
   });
 }
-
-// Initialize AI writer when DOM is ready
-document.addEventListener("DOMContentLoaded", setupAIWriter);
-
 /* ================================================================
    ICON PICKER
    ================================================================ */

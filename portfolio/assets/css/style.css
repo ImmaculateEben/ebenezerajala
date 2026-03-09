@@ -2448,6 +2448,30 @@ select:focus-visible {
     border-radius: var(--radius-sm);
 }
 
+.turnstile-wrap {
+    margin-bottom: 1.3rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.form-turnstile-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.turnstile-note {
+    margin: 0.6rem 0 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
 /* =========================================
    FOOTER
    ========================================= */

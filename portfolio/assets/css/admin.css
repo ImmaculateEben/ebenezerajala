@@ -77,6 +77,8 @@
 .form-group label small{font-weight:400;text-transform:none;letter-spacing:0}
 .form-group.expand{flex:1}
 .form-group-label{display:block;font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--text-muted);margin-bottom:.75rem}
+.admin-inline-between{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.admin-helper-copy{margin:-.2rem 0 0;color:var(--text-muted);font-size:.8rem;line-height:1.5}
 .has-ai{position:relative}
 .has-ai textarea{padding-right:2.4rem}
 .has-ai .btn-ai-assist{position:absolute;right:.45rem;top:1.85rem;background:none;border:none;color:var(--accent);cursor:pointer;font-size:.92rem;padding:.3rem;min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center;border-radius:4px;transition:background .18s}
@@ -157,6 +159,7 @@
 /* --- AI Writer --------------------------------------------------- */
 .ai-output-box{margin-top:1.25rem;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--rad);padding:1.25rem}
 .ai-result{white-space:pre-wrap;line-height:1.7;font-size:.88rem;color:var(--text-primary)}
+.ai-meta{margin:0;color:var(--text-muted);font-size:.78rem;line-height:1.5}
 
 /* ================================================================
    ICON PICKER
@@ -282,4 +285,3 @@
   .panel-header h1{font-size:1.05rem}
   .admin-login-card{padding:1.75rem 1.25rem}
 }
-

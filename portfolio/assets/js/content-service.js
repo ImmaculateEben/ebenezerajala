@@ -192,6 +192,16 @@ function normalizeMessage(item) {
   };
 }
 
+function normalizeAdminUser(row) {
+  const role = sanitizePlainText(row?.role || "admin").toLowerCase();
+  return {
+    email: sanitizePlainText(row?.email || "").toLowerCase(),
+    role: ["viewer", "editor", "admin"].includes(role) ? role : "admin",
+    createdAt: sanitizePlainText(row?.created_at || row?.createdAt || ""),
+    invitedBy: sanitizePlainText(row?.invited_by || row?.invitedBy || "")
+  };
+}
+
 function mapPayloadRow(row, normalizer) {
   if (!row) {
     return null;
@@ -240,6 +250,25 @@ async function withRemote(action, fallback) {
 
 function getClient() {
   return getSupabaseClient();
+}
+
+function parseFunctionError(error, fallbackMessage) {
+  if (error?.context && typeof error.context === "object" && typeof error.context.error === "string") {
+    return error.context.error;
+  }
+
+  if (typeof error?.context === "string") {
+    try {
+      const parsed = JSON.parse(error.context);
+      if (typeof parsed?.error === "string") {
+        return parsed.error;
+      }
+    } catch (_error) {
+      // Ignore invalid JSON and fall through to the generic message.
+    }
+  }
+
+  return error?.message || fallbackMessage;
 }
 
 async function upsertPayloadRow(table, id, payload) {
@@ -564,6 +593,111 @@ export async function uploadTestimonialImage(testimonialId, file) {
   return uploadImage(`testimonials/${safeId}/${Date.now()}-${fileName}`, file);
 }
 
+export async function loadAdminUsers() {
+  if (!isSupabaseReady()) {
+    throw new Error("Supabase is not configured.");
+  }
+
+  const client = getClient();
+  const { data, error } = await client
+    .from("admin_users")
+    .select("email, role, invited_by, created_at")
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message || "Unable to load admin users.");
+  }
+
+  return (data || []).map(normalizeAdminUser).filter((entry) => entry.email);
+}
+
+export async function inviteAdminUser(input) {
+  if (!isSupabaseReady()) {
+    throw new Error("Supabase is not configured.");
+  }
+
+  const email = sanitizePlainText(input?.email || "").toLowerCase();
+  const role = ["viewer", "editor", "admin"].includes(input?.role) ? input.role : "editor";
+
+  if (!email) {
+    throw new Error("Email is required.");
+  }
+
+  const client = getClient();
+  const { data, error } = await client.functions.invoke("admin-invite", {
+    body: { email, role }
+  });
+
+  if (error) {
+    throw new Error(parseFunctionError(error, "Unable to invite the admin user."));
+  }
+
+  return {
+    invited: Boolean(data?.invited),
+    email,
+    role,
+    existingUser: Boolean(data?.existingUser),
+    createdAt: sanitizePlainText(data?.createdAt || ""),
+    invitedBy: sanitizePlainText(data?.invitedBy || "")
+  };
+}
+
+export async function removeAdminUser(email) {
+  if (!isSupabaseReady()) {
+    throw new Error("Supabase is not configured.");
+  }
+
+  const safeEmail = sanitizePlainText(email || "").toLowerCase();
+  if (!safeEmail) {
+    throw new Error("Email is required.");
+  }
+
+  const client = getClient();
+  const { error } = await client.from("admin_users").delete().eq("email", safeEmail);
+  if (error) {
+    throw new Error(error.message || "Unable to remove the admin user.");
+  }
+}
+
+export async function generateAdminAiText(input) {
+  if (!isSupabaseReady()) {
+    throw new Error("Supabase is not configured.");
+  }
+
+  const payload = {
+    task: sanitizePlainText(input?.task || "generate").toLowerCase(),
+    prompt: sanitizePlainText(input?.prompt || ""),
+    currentText: sanitizePlainText(input?.currentText || ""),
+    fieldContext: sanitizePlainText(input?.fieldContext || ""),
+    tone: sanitizePlainText(input?.tone || "professional").toLowerCase(),
+    length: sanitizePlainText(input?.length || "medium").toLowerCase()
+  };
+
+  if (!payload.prompt && !payload.currentText) {
+    throw new Error("A prompt or current text is required.");
+  }
+
+  const client = getClient();
+  const { data, error } = await client.functions.invoke("admin-ai", {
+    body: payload
+  });
+
+  if (error) {
+    throw new Error(parseFunctionError(error, "Unable to generate AI copy."));
+  }
+
+  const text = String(data?.text || "").trim();
+  if (!text) {
+    throw new Error("The AI response was empty.");
+  }
+
+  return {
+    text,
+    provider: sanitizePlainText(data?.provider || "google-gemini"),
+    model: sanitizePlainText(data?.model || "")
+  };
+}
+
 export async function submitContactMessage(input) {
   const siteContent = await loadSiteContent();
   const payload = normalizeMessage({
@@ -604,7 +738,8 @@ export async function submitContactMessage(input) {
       email: payload.email,
       subject: payload.subject,
       message: payload.message,
-      website: honeypot
+      website: honeypot,
+      turnstileToken: sanitizePlainText(input?.turnstileToken || "")
     }
   });
 
