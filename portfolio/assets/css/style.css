@@ -2688,40 +2688,44 @@ footer {
    GITHUB CONTRIBUTIONS
    ========================================= */
 .github-contrib {
-    --gh-level-0: rgba(59, 130, 246, 0.12);
-    --gh-level-1: rgba(59, 130, 246, 0.28);
-    --gh-level-2: #3b82f6;
-    --gh-level-3: #60a5fa;
-    --gh-level-4: #a855f7;
+    --gh-level-0: rgba(96, 165, 250, 0.1);
+    --gh-level-1: rgba(59, 130, 246, 0.22);
+    --gh-level-2: #2563eb;
+    --gh-level-3: #3b82f6;
+    --gh-level-4: #93c5fd;
     margin-top: clamp(2.25rem, 5vw, 3.25rem);
     display: grid;
     gap: 0.95rem;
 }
 
 [data-theme="light"] .github-contrib {
-    --gh-level-0: rgba(37, 99, 235, 0.12);
-    --gh-level-1: #bfdbfe;
-    --gh-level-2: #60a5fa;
-    --gh-level-3: #2563eb;
-    --gh-level-4: #9333ea;
+    --gh-level-0: rgba(37, 99, 235, 0.1);
+    --gh-level-1: #dbeafe;
+    --gh-level-2: #93c5fd;
+    --gh-level-3: #60a5fa;
+    --gh-level-4: #1d4ed8;
 }
 
 [data-theme="gold"] .github-contrib {
     --gh-level-0: rgba(212, 175, 55, 0.14);
-    --gh-level-1: rgba(212, 175, 55, 0.32);
-    --gh-level-2: #d4af37;
-    --gh-level-3: #f4c542;
-    --gh-level-4: #f8dc7d;
+    --gh-level-1: #f3df9b;
+    --gh-level-2: #e7c65a;
+    --gh-level-3: #d4af37;
+    --gh-level-4: #b8860b;
 }
 
 .github-contrib-heading {
     font-size: clamp(1.3rem, 2.8vw, 1.75rem);
     line-height: 1.2;
+    text-align: center;
+    margin-inline: auto;
 }
 
 .github-contrib-sub {
     color: var(--text-secondary);
     max-width: 42rem;
+    text-align: center;
+    margin-inline: auto;
 }
 
 .github-contrib-card {
@@ -2758,10 +2762,15 @@ footer {
 .gh-cal>*,
 .gh-cal .js-yearly-contributions,
 .gh-cal .position-relative,
-.gh-cal .js-calendar-graph,
 .gh-cal .ContributionCalendar-grid,
 .gh-cal svg {
     min-width: max-content;
+}
+
+.gh-cal .js-yearly-contributions,
+.gh-cal .position-relative,
+.gh-cal .js-calendar-graph {
+    width: 100%;
 }
 
 .gh-cal .border,
@@ -2772,7 +2781,7 @@ footer {
 .gh-cal .js-calendar-graph {
     display: flex;
     flex-direction: column;
-    align-items: flex-start !important;
+    align-items: stretch !important;
     gap: 0.9rem;
 }
 
@@ -2783,6 +2792,7 @@ footer {
 }
 
 .gh-cal .js-calendar-graph>div {
+    width: 100%;
     max-width: none !important;
     overflow: visible !important;
 }
@@ -3003,7 +3013,12 @@ footer {
 }
 
 .github-contrib-link {
-    width: fit-content;
+    width: auto;
+    max-width: max-content;
+    margin-inline: auto;
+    justify-self: center;
+    align-self: start;
+    flex: 0 0 auto;
 }
 
 @media (max-width: 900px) {
@@ -3018,8 +3033,9 @@ footer {
 
 @media (max-width: 768px) {
     .gh-cal {
-        overflow: hidden;
-        padding-bottom: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 0.6rem;
     }
 
     .gh-legend {
@@ -3027,12 +3043,18 @@ footer {
     }
 
     .gh-cal .js-calendar-graph {
-        align-items: center !important;
+        align-items: stretch !important;
     }
 
     .gh-cal #js-contribution-activity-description {
         width: 100%;
         text-align: center;
+    }
+
+    .gh-cal .js-yearly-contributions,
+    .gh-cal .ContributionCalendar-grid,
+    .gh-cal svg {
+        min-width: 720px;
     }
 }
 

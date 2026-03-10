@@ -9,6 +9,9 @@ const GITHUB_USERNAME_RE = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
 const BASE_CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+  Pragma: "no-cache",
+  Expires: "0",
   Vary: "Origin",
 };
 
@@ -61,13 +64,6 @@ function validateUsername(raw: unknown): string {
 
 function buildSourceUrl(username: string): string {
   return `${GITHUB_CONTRIBUTIONS_BASE}/users/${encodeURIComponent(username)}/contributions`;
-}
-
-function isFreshCache(cache: CacheRow | null): boolean {
-  if (!cache?.expires_at) {
-    return false;
-  }
-  return new Date(cache.expires_at).getTime() > Date.now();
 }
 
 async function fetchGitHubContributions(username: string): Promise<string> {
@@ -217,21 +213,6 @@ Deno.serve(async (req: Request) => {
     cachedEntry = await getCacheEntry(supabase, username);
   } catch (_error) {
     cachedEntry = null;
-  }
-
-  if (isFreshCache(cachedEntry)) {
-    return jsonResponse(
-      {
-        username,
-        markup: cachedEntry?.markup || "",
-        cached: true,
-        stale: false,
-        fetchedAt: cachedEntry?.fetched_at || "",
-        sourceUrl: cachedEntry?.source_url || buildSourceUrl(username),
-      },
-      200,
-      corsHeaders,
-    );
   }
 
   const now = new Date();

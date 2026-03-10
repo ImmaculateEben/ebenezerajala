@@ -750,14 +750,14 @@ function renderProjectsPage(projects, siteContent) {
   renderCards();
 }
 
-async function renderProjectDetailPage(siteContentForSeo) {
+async function renderProjectDetailPage(siteContentForSeo, prefetchedProjects = null) {
   const container = document.getElementById("project-detail");
   if (!container) {
     return;
   }
 
   const id = new URLSearchParams(window.location.search).get("id");
-  const allProjects = await loadProjects();
+  const allProjects = Array.isArray(prefetchedProjects) ? prefetchedProjects : await loadProjects();
   const project = allProjects.find((p) => p.id === id) || (await loadProject(id));
 
   if (!project) {
@@ -1013,7 +1013,7 @@ function _getGhScaleNodes(cal) {
 
 function _resetGhCalendarScale(cal) {
   const { target, viewport } = _getGhScaleNodes(cal);
-  cal.classList.remove("is-mobile-fitted");
+  cal.classList.remove("is-gh-fitted");
 
   if (viewport) {
     viewport.style.removeProperty("display");
@@ -1030,10 +1030,10 @@ function _resetGhCalendarScale(cal) {
   }
 }
 
-function _fitGhCalendarToMobile(cal) {
+function _fitGhCalendarToDesktop(cal) {
   _resetGhCalendarScale(cal);
 
-  if (!window.matchMedia(_GH_MOBILE_MEDIA_QUERY).matches) {
+  if (window.matchMedia(_GH_MOBILE_MEDIA_QUERY).matches) {
     return { fitted: false, overflow: cal.scrollWidth - cal.clientWidth > _GH_OVERFLOW_TOLERANCE };
   }
 
@@ -1045,13 +1045,13 @@ function _fitGhCalendarToMobile(cal) {
   const intrinsicWidth = Math.ceil(target.scrollWidth || target.getBoundingClientRect().width || 0);
   const intrinsicHeight = Math.ceil(target.scrollHeight || target.getBoundingClientRect().height || 0);
   const availableWidth = Math.floor(cal.clientWidth);
-  const overflow = intrinsicWidth - availableWidth > _GH_OVERFLOW_TOLERANCE;
+  const needsFit = availableWidth - intrinsicWidth > _GH_OVERFLOW_TOLERANCE;
 
-  if (!overflow || !availableWidth || !intrinsicWidth || !intrinsicHeight) {
-    return { fitted: false, overflow };
+  if (!needsFit || !availableWidth || !intrinsicWidth || !intrinsicHeight) {
+    return { fitted: false, overflow: intrinsicWidth - availableWidth > _GH_OVERFLOW_TOLERANCE };
   }
 
-  const scale = Math.max(0.42, Math.min(1, availableWidth / intrinsicWidth));
+  const scale = Math.max(1, Math.min(1.9, availableWidth / intrinsicWidth));
   viewport.style.display = "flex";
   viewport.style.justifyContent = "center";
   viewport.style.alignItems = "flex-start";
@@ -1060,7 +1060,7 @@ function _fitGhCalendarToMobile(cal) {
   target.style.margin = "0 auto";
   target.style.transform = `scale(${scale})`;
   target.style.transformOrigin = "top center";
-  cal.classList.add("is-mobile-fitted");
+  cal.classList.add("is-gh-fitted");
 
   return { fitted: true, overflow: false };
 }
@@ -1091,13 +1091,13 @@ function _applyGhCalendarLayout(section, cal, options = {}) {
 
   const isMobile = window.matchMedia(_GH_MOBILE_MEDIA_QUERY).matches;
   const scrollHint = section.querySelector(".gh-scroll-hint");
-  const mobileFit = _fitGhCalendarToMobile(cal);
+  const fittedLayout = _fitGhCalendarToDesktop(cal);
   const maxScrollLeft = Math.max(0, cal.scrollWidth - cal.clientWidth);
-  const overflow = mobileFit.fitted ? false : maxScrollLeft > _GH_OVERFLOW_TOLERANCE;
+  const overflow = fittedLayout.fitted ? false : maxScrollLeft > _GH_OVERFLOW_TOLERANCE;
 
   section.classList.toggle("is-scrollable", overflow);
 
-  if (mobileFit.fitted) {
+  if (fittedLayout.fitted) {
     cal.scrollLeft = 0;
     if (scrollHint) {
       scrollHint.hidden = true;
@@ -1242,9 +1242,6 @@ async function initGitHubContributions(siteContent) {
 
 async function initPage() {
   initNav();
-
-  // ── Phase 1: instant render from localStorage cache (synchronous, < 1 ms) ──
-  // This makes every section visible immediately without waiting for the network.
   const cachedContent     = loadSiteContentSync();
   const cachedProjects    = loadProjectsSync();
   const cachedTestimonials = loadTestimonialsSync();
@@ -1259,30 +1256,11 @@ async function initPage() {
     renderProjectsPage(projects, siteContent);
   }
 
-  renderAll(cachedContent, cachedProjects, cachedTestimonials);
-
-  if (document.getElementById("home-projects-grid")) {
-    await renderHomePage(cachedContent, cachedProjects, cachedTestimonials);
-  }
-
-  if (document.getElementById("github-contributions")) {
-    initGitHubContributions(cachedContent).catch(() => {});
-  }
-
   if (document.getElementById("contactForm")) {
     await hydrateContactDetails();
     initContactForm();
   }
 
-  await renderProjectDetailPage(cachedContent);
-
-  // Run reveal + safety on the first-painted DOM so sections animate in
-  initRevealObserver();
-  applyExternalLinkSafety();
-  attachImageFallbacks();
-
-  // ── Phase 2: silent background refresh from Supabase ──
-  // Only runs if Supabase is configured; silently re-renders with fresh data.
   const refreshResults = await Promise.allSettled([
     loadSiteContent(),
     loadProjects(),
@@ -1303,6 +1281,8 @@ async function initPage() {
   if (document.getElementById("github-contributions")) {
     initGitHubContributions(siteContent).catch(() => {});
   }
+
+  await renderProjectDetailPage(siteContent, projects);
 
   const status = document.getElementById("page-status");
   if (status) {

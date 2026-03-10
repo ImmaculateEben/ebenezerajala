@@ -1537,6 +1537,7 @@ export async function loadGitHubContributions(username) {
   const endpoint = `${supabaseUrl.replace(/\/+$/, "")}/functions/v1/github-activity?username=${encodeURIComponent(safeUsername)}`;
   const response = await fetch(endpoint, {
     method: "GET",
+    cache: "no-store",
     headers: anonKey
       ? { apikey: anonKey, Authorization: `Bearer ${anonKey}`, Accept: "application/json" }
       : { Accept: "application/json" },
