@@ -5,7 +5,7 @@ This repo now uses Supabase for:
 - Auth (email/password)
 - Database (Postgres with RLS)
 - Storage (public bucket for uploaded assets)
-- Edge Functions (`submit-contact`, `admin-ai`, `admin-invite`, `github-activity`, `admin-search-console`)
+- Edge Functions (`submit-contact`, `admin-ai`, `admin-invite`, `admin-search-console`)
 
 ## Required runtime values
 
@@ -59,7 +59,6 @@ Set these secrets in Supabase:
 - `GEMINI_MODEL` (optional, defaults to `gemini-2.5-flash`)
 - `RESEND_API_KEY`
 - `RESEND_FROM_EMAIL`
-- `GITHUB_ACTIVITY_CACHE_TTL_SECONDS` (optional, defaults to `21600`)
 - `SEARCH_CONSOLE_SERVICE_ACCOUNT_EMAIL` (optional, needed only for automatic Google sitemap submission)
 - `SEARCH_CONSOLE_SERVICE_ACCOUNT_PRIVATE_KEY` (optional, same note as above)
 
@@ -89,7 +88,6 @@ Deploy the functions:
 supabase functions deploy submit-contact --no-verify-jwt
 supabase functions deploy admin-ai --no-verify-jwt
 supabase functions deploy admin-invite --no-verify-jwt
-supabase functions deploy github-activity --no-verify-jwt
 supabase functions deploy admin-search-console --no-verify-jwt
 ```
 
@@ -101,6 +99,5 @@ If you prefer the SQL editor instead of `supabase db push`, run both migration f
 - All writes are protected by RLS and require an authenticated admin in `public.admin_users`.
 - The contact form uses the public `submit-contact` Edge Function with honeypot validation and per-email rate limiting.
 - `admin-ai` and `admin-invite` also require an authenticated admin, but they validate the bearer token inside the function instead of relying on gateway JWT verification.
-- `github-activity` is a public, origin-restricted Edge Function that fetches and caches GitHub contribution SVG markup in `public.github_activity_cache`.
 - `admin-search-console` is an authenticated admin helper. It checks that your sitemap is reachable, and if you provide Search Console service-account credentials it also submits the sitemap through the official Search Console API.
 - The service role key is used only inside the Edge Function, never in frontend code.

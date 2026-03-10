@@ -875,7 +875,6 @@ function populateHeroForm() {
   setChecked("hero-available", p.availableForFreelance);
   setVal("hero-linkedin", p.linkedin);
   setVal("hero-github-url", p.github);
-  setVal("hero-github-user", p.githubUsername);
   updateHeroPreview();
 
   $("#hero-form").addEventListener("submit", async (e) => {
@@ -890,7 +889,6 @@ function populateHeroForm() {
     siteContent.profile.availableForFreelance = getChecked("hero-available");
     siteContent.profile.linkedin = getVal("hero-linkedin");
     siteContent.profile.github = getVal("hero-github-url");
-    siteContent.profile.githubUsername = getVal("hero-github-user");
     await saveSiteContent(siteContent, {
       section: "hero",
       summary: "Updated hero section"
@@ -1867,7 +1865,6 @@ function populateSettingsForm() {
   setVal("set-site-url", s.siteUrl);
   setVal("set-analytics", s.analyticsMeasurementId);
   setVal("set-label", s.adminContactLabel);
-  setVal("set-gh-scroll", s.githubChartScrollPosition || "right");
   setVal("set-sc-tags", searchConsole.verificationTags);
   setVal("set-sc-sitemap", searchConsole.sitemapUrl);
   setVal("set-sc-notes", searchConsole.indexingNotes);
@@ -1880,7 +1877,6 @@ function populateSettingsForm() {
     siteContent.settings.siteUrl = getVal("set-site-url");
     siteContent.settings.analyticsMeasurementId = getVal("set-analytics");
     siteContent.settings.adminContactLabel = getVal("set-label");
-    siteContent.settings.githubChartScrollPosition = getVal("set-gh-scroll");
     await saveSiteContent(siteContent, {
       section: "settings",
       summary: "Updated site settings"
@@ -2210,8 +2206,7 @@ function buildHistorySnapshotPayload(scopeValue, entityId) {
         avgTrafficIncrease: profile.avgTrafficIncrease,
         availableForFreelance: profile.availableForFreelance,
         linkedin: profile.linkedin,
-        github: profile.github,
-        githubUsername: profile.githubUsername
+        github: profile.github
       });
     case "profile":
       return cloneJson({
@@ -2507,7 +2502,6 @@ const AI_SKIPPED_FIELD_IDS = new Set([
   "hero-traffic",
   "hero-linkedin",
   "hero-github-url",
-  "hero-github-user",
   "profile-location",
   "profile-email",
   "profile-phone1",
@@ -2533,7 +2527,6 @@ const AI_SKIPPED_FIELD_IDS = new Set([
   "set-analytics",
   "set-sc-tags",
   "set-sc-sitemap",
-  "set-gh-scroll",
   "invite-email",
   "pw-current",
   "pw-new",

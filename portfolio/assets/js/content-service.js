@@ -29,7 +29,6 @@ const MAIN_IMAGE_MAX_DIMENSION = 2200;
 const THUMB_IMAGE_MAX_DIMENSION = 720;
 const MAIN_IMAGE_QUALITY = 0.84;
 const THUMB_IMAGE_QUALITY = 0.76;
-const GITHUB_USERNAME_PATTERN = /^[A-Za-z0-9-]{1,39}$/;
 
 let localStateCache = null;
 
@@ -426,8 +425,7 @@ function extractSiteContentSectionPayload(siteContent, section) {
         "avgTrafficIncrease",
         "availableForFreelance",
         "linkedin",
-        "github",
-        "githubUsername"
+        "github"
       ]);
     case "profile":
       return pickObject(profile, [
@@ -1518,51 +1516,6 @@ export async function restoreContentVersion(versionId) {
   });
 
   return version;
-}
-
-export async function loadGitHubActivityMarkup(username) {
-  const safeUsername = String(username || "").trim();
-  if (!GITHUB_USERNAME_PATTERN.test(safeUsername) || safeUsername.startsWith("-") || safeUsername.endsWith("-")) {
-    throw new Error("Invalid GitHub username.");
-  }
-
-  const runtime = getRuntimeConfig();
-  const supabaseUrl = sanitizePlainText(runtime?.supabase?.url || "");
-  const anonKey = sanitizePlainText(runtime?.supabase?.anonKey || "");
-  if (!supabaseUrl) {
-    throw new Error("Supabase runtime config is missing.");
-  }
-
-  const endpoint = `${supabaseUrl.replace(/\/+$/, "")}/functions/v1/github-activity?username=${encodeURIComponent(safeUsername)}`;
-  const response = await fetch(endpoint, {
-    method: "GET",
-    headers: anonKey
-      ? { apikey: anonKey, Authorization: `Bearer ${anonKey}`, Accept: "application/json" }
-      : { Accept: "application/json" }
-  });
-
-  if (!response.ok) {
-    const text = String(await response.text()).trim();
-    if (text) {
-      let message = text;
-      try {
-        const parsed = JSON.parse(text);
-        message = parsed?.error || parsed?.message || text;
-      } catch (_error) {
-        // Keep the raw response text.
-      }
-      throw new Error(message);
-    }
-    throw new Error(`GitHub activity request failed with status ${response.status}.`);
-  }
-
-  const data = await response.json();
-  const markup = String(data?.markup || "").trim();
-  if (!markup) {
-    throw new Error("GitHub activity markup was empty.");
-  }
-
-  return markup;
 }
 
 export async function pingSearchConsoleSitemap(input) {

@@ -1,6 +1,5 @@
 import {
   getAvailableTechStacks,
-  loadGitHubActivityMarkup,
   loadProject,
   loadProjects,
   loadProjectsSync,
@@ -15,7 +14,6 @@ import {
   attachImageFallbacks,
   escapeHtml,
   safeSetHtml,
-  sanitizeImportedHtmlFragment,
   sanitizeUrl
 } from "./security.js";
 import { applySeo, injectAnalytics } from "./seo.js";
@@ -380,170 +378,6 @@ function initTitleRotators(titles) {
 
 const titleRotatorTimers = new WeakMap();
 
-const GITHUB_USERNAME_PATTERN = /^[A-Za-z0-9-]{1,39}$/;
-
-function isValidGitHubUsername(value) {
-  const username = String(value || "").trim();
-  return GITHUB_USERNAME_PATTERN.test(username) && !username.startsWith("-") && !username.endsWith("-");
-}
-
-function extractGitHubUsernameFromUrl(value) {
-  const safeUrl = sanitizeUrl(value);
-  if (!safeUrl) {
-    return "";
-  }
-
-  try {
-    const parsed = new URL(safeUrl);
-    const host = parsed.hostname.replace(/^www\./i, "").toLowerCase();
-    if (host !== "github.com") {
-      return "";
-    }
-
-    const [username] = parsed.pathname.split("/").filter(Boolean);
-    return String(username || "").trim();
-  } catch (error) {
-    return "";
-  }
-}
-
-function resolveGitHubUsername(siteContent) {
-  const direct = String(siteContent?.profile?.githubUsername || "").trim();
-  if (isValidGitHubUsername(direct)) {
-    return direct;
-  }
-
-  const fromProfileUrl = extractGitHubUsernameFromUrl(siteContent?.profile?.github || "");
-  if (isValidGitHubUsername(fromProfileUrl)) {
-    return fromProfileUrl;
-  }
-
-  return "";
-}
-
-function hasGitHubContributionCells(scope) {
-  return Boolean(scope?.querySelector?.(".ContributionCalendar-day[data-level], rect[data-date][data-level]"));
-}
-
-function setGitHubUnavailable(calendar, username) {
-  if (!calendar) return;
-  const profileUrl = username ? `https://github.com/${encodeURIComponent(username)}` : "https://github.com";
-  calendar.innerHTML = `
-    <div class="gh-unavailable">
-      <i class="fa-brands fa-github"></i>
-      <p>Contribution data is temporarily unavailable.</p>
-      <a class="btn btn-outline btn-sm" href="${profileUrl}" target="_blank" rel="noopener noreferrer">View on GitHub <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
-    </div>`;
-}
-
-async function renderGitHubCalendar(calendar, username) {
-  const markup = await loadGitHubActivityMarkup(username);
-  if (!markup) {
-    return false;
-  }
-
-  calendar.replaceChildren(sanitizeImportedHtmlFragment(markup));
-  applyExternalLinkSafety(calendar);
-  return hasGitHubContributionCells(calendar);
-}
-
-async function initGitHubContributions(siteContent) {
-  const container = document.getElementById("github-contributions");
-  if (!container) return;
-
-  const calendar = container.querySelector(".gh-cal");
-  const scrollHint = container.querySelector(".gh-scroll-hint");
-  const profileLink = container.querySelector("[data-github-profile-link]");
-  const username = resolveGitHubUsername(siteContent);
-  const safeProfileUrl = sanitizeUrl(siteContent?.profile?.github || "");
-
-  if (!calendar) return;
-
-  if (profileLink) {
-    profileLink.href = username
-      ? `https://github.com/${encodeURIComponent(username)}`
-      : safeProfileUrl || "https://github.com";
-  }
-
-  if (!username) {
-    setGitHubUnavailable(calendar);
-    return;
-  }
-
-  calendar.setAttribute("data-github-username", username);
-
-  let rendered = false;
-  try {
-    rendered = await renderGitHubCalendar(calendar, username);
-  } catch (_e) {
-    rendered = false;
-  }
-
-  if (!rendered) {
-    setGitHubUnavailable(calendar, username);
-    return;
-  }
-
-  /* ── Scroll position preference ───────────────────────────────── */
-  const scrollPref = String(siteContent?.settings?.githubChartScrollPosition || "right").trim().toLowerCase();
-  const isMobileViewport = window.matchMedia("(max-width: 768px)").matches;
-
-  function applyScrollPosition() {
-    const overflows = calendar.scrollWidth > calendar.clientWidth + 4;
-
-    /* Show/hide the swipe hint only when the chart actually overflows */
-    if (scrollHint) {
-      scrollHint.style.display = overflows && isMobileViewport ? "flex" : "none";
-    }
-
-    if (!overflows) {
-      calendar.scrollLeft = 0;
-      return;
-    }
-
-    if (!isMobileViewport) {
-      calendar.style.scrollBehavior = "auto";
-      calendar.scrollLeft = 0;
-      requestAnimationFrame(() => {
-        calendar.style.scrollBehavior = "";
-      });
-      return;
-    }
-
-    if (scrollPref === "default") return;
-
-    /* Disable smooth scroll for the initial jump, then re-enable */
-    calendar.style.scrollBehavior = "auto";
-    if (scrollPref === "right") {
-      calendar.scrollLeft = calendar.scrollWidth - calendar.clientWidth;
-    } else if (scrollPref === "left") {
-      calendar.scrollLeft = 0;
-    } else if (scrollPref === "center") {
-      calendar.scrollLeft = Math.round((calendar.scrollWidth - calendar.clientWidth) / 2);
-    }
-    /* Restore smooth scroll for user-initiated touches */
-    requestAnimationFrame(() => {
-      calendar.style.scrollBehavior = "";
-    });
-  }
-
-  /* Apply once layout is complete */
-  requestAnimationFrame(() => {
-    applyScrollPosition();
-  });
-
-  /* Also watch for late-rendered content (edge-function HTML may arrive async) */
-  const observer = new MutationObserver(() => {
-    if (calendar.scrollWidth > calendar.clientWidth + 4) {
-      applyScrollPosition();
-      observer.disconnect();
-    }
-  });
-  observer.observe(calendar, { childList: true, subtree: true });
-  /* Give up watching after 15 s */
-  setTimeout(() => observer.disconnect(), 15000);
-}
-
 function setupTestimonialsMarquee(container) {
   if (!container) {
     return;
@@ -712,8 +546,6 @@ async function renderHomePage(siteContent, projects, testimonials) {
       });
     setupTestimonialsMarquee(testimonialsGrid);
   }
-
-  await initGitHubContributions(siteContent);
 }
 
 function renderEducation(siteContent) {

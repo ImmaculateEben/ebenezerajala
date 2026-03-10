@@ -37,15 +37,6 @@ begin
   end if;
 end $$;
 
-create table if not exists public.github_activity_cache (
-  username text primary key,
-  markup text not null,
-  fetched_at timestamptz not null default timezone('utc', now()),
-  expires_at timestamptz not null,
-  source_url text not null default '',
-  metadata jsonb not null default '{}'::jsonb
-);
-
 create index if not exists admin_audit_log_created_at_idx
   on public.admin_audit_log (created_at desc);
 
@@ -55,12 +46,8 @@ create index if not exists admin_audit_log_entity_idx
 create index if not exists content_versions_lookup_idx
   on public.content_versions (section, entity_type, entity_id, created_at desc);
 
-create index if not exists github_activity_cache_expires_at_idx
-  on public.github_activity_cache (expires_at);
-
 alter table public.admin_audit_log enable row level security;
 alter table public.content_versions enable row level security;
-alter table public.github_activity_cache enable row level security;
 
 drop policy if exists "Admins can read admin audit log" on public.admin_audit_log;
 create policy "Admins can read admin audit log"
@@ -89,14 +76,6 @@ on public.content_versions
 for insert
 to authenticated
 with check (public.is_admin());
-
-drop policy if exists "No direct access to GitHub activity cache" on public.github_activity_cache;
-create policy "No direct access to GitHub activity cache"
-on public.github_activity_cache
-for all
-to anon, authenticated
-using (false)
-with check (false);
 
 update public.site_content
 set payload = jsonb_set(

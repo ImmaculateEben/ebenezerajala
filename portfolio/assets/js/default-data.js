@@ -50,7 +50,6 @@ export const DEFAULT_SITE_CONTENT = {
     phone2: "+234 912 003 7255",
     linkedin: "https://www.linkedin.com/in/ebenezer-ajala13",
     github: "https://github.com/ImmaculateEben",
-    githubUsername: "ImmaculateEben",
     bio: "I am a WordPress developer and graphics designer with more than four years of hands-on experience building fast, conversion-focused websites for businesses, nonprofits, and growing brands.",
     bio2: "My work spans custom WordPress builds, SEO foundations, hosting management, performance optimization, and visual design systems that help clients look credible and sell clearly.",
     bio3: "I currently support the Institute for Industrial Technology (IIT) as a Website Developer and IT Support professional while continuing to take on freelance client work.",
@@ -202,7 +201,6 @@ export const DEFAULT_SITE_CONTENT = {
     siteUrl: "https://immaculatedesigns.com.ng",
     analyticsMeasurementId: "",
     adminContactLabel: "Primary inbox",
-    githubChartScrollPosition: "right",
     searchConsole: {
       verificationTags: "",
       sitemapUrl: "",
