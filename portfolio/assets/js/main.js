@@ -1,5 +1,6 @@
 import {
   getAvailableTechStacks,
+  loadGitHubContributions,
   loadProject,
   loadProjects,
   loadProjectsSync,
@@ -14,6 +15,7 @@ import {
   attachImageFallbacks,
   escapeHtml,
   safeSetHtml,
+  sanitizeImportedHtmlFragment,
   sanitizeUrl
 } from "./security.js";
 import { applySeo, injectAnalytics } from "./seo.js";
@@ -963,6 +965,87 @@ function highlightTitle(text) {
   );
 }
 
+// ── GitHub Contributions ─────────────────────────────────────────────────────
+
+const _GH_USERNAME_RE = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
+
+function _resolveGitHubUsername(siteContent) {
+  const raw = String(siteContent?.profile?.githubUsername || siteContent?.profile?.github || "").trim();
+  const m = raw.match(/github\.com\/([^/?#\s]+)/);
+  const candidate = m ? m[1] : raw;
+  return _GH_USERNAME_RE.test(candidate) ? candidate : "";
+}
+
+function _setGhUnavailable(cal, msg) {
+  safeSetHtml(
+    cal,
+    `<div class="gh-unavailable"><i class="fa-brands fa-github"></i><p>${escapeHtml(msg)}</p></div>`
+  );
+}
+
+async function _renderGitHubCalendar(cal, username) {
+  const markup = await loadGitHubContributions(username);
+  const safe = sanitizeImportedHtmlFragment(markup);
+  if (!safe || !safe.querySelector(".ContributionCalendar-day, rect[data-date]")) {
+    _setGhUnavailable(cal, "No contribution data available right now.");
+    return false;
+  }
+  cal.innerHTML = "";
+  cal.appendChild(safe);
+  return true;
+}
+
+async function initGitHubContributions(siteContent) {
+  const section = document.getElementById("github-contributions");
+  if (!section) return;
+
+  const username = _resolveGitHubUsername(siteContent);
+  const cal = section.querySelector(".gh-cal");
+  if (!cal) return;
+
+  // Update the profile link href if the admin has set a GitHub URL
+  const profileLink = section.querySelector("[data-github-profile-link]");
+  if (profileLink && siteContent?.profile?.github) {
+    const safe = sanitizeUrl(siteContent.profile.github);
+    if (safe) profileLink.setAttribute("href", safe);
+  }
+
+  if (!username) {
+    _setGhUnavailable(cal, "GitHub username not configured.");
+    return;
+  }
+
+  try {
+    const ok = await _renderGitHubCalendar(cal, username);
+    if (!ok) return;
+
+    // Show scroll hint on mobile/overflow
+    const scrollHint = section.querySelector(".gh-scroll-hint");
+    if (scrollHint) scrollHint.style.display = "flex";
+
+    // Apply configured scroll position
+    const scrollPos = String(siteContent?.settings?.githubChartScrollPosition || "right").trim();
+    requestAnimationFrame(() => {
+      if (scrollPos === "right") {
+        cal.scrollLeft = cal.scrollWidth;
+      } else if (scrollPos === "left") {
+        cal.scrollLeft = 0;
+      } else if (scrollPos === "center") {
+        cal.scrollLeft = Math.max(0, (cal.scrollWidth - cal.clientWidth) / 2);
+      }
+      // "default" → do nothing (browser default, i.e. left)
+
+      // Hide scroll hint after user first scrolls
+      if (scrollHint) {
+        const hideHint = () => { scrollHint.style.display = "none"; cal.removeEventListener("scroll", hideHint); };
+        cal.addEventListener("scroll", hideHint, { once: true, passive: true });
+      }
+    });
+  } catch (_err) {
+    _setGhUnavailable(cal, "Could not load contribution data.");
+  }
+}
+
 async function initPage() {
   initNav();
 
@@ -1012,6 +1095,11 @@ async function initPage() {
 
   if (document.getElementById("home-projects-grid")) {
     await renderHomePage(siteContent, projects, testimonials);
+  }
+
+  // GitHub contributions (home page only, after fresh data is available)
+  if (document.getElementById("github-contributions")) {
+    await initGitHubContributions(siteContent).catch(() => {});
   }
 
   // Re-run observers so any newly rendered elements also animate

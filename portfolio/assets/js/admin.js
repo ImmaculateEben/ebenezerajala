@@ -875,6 +875,7 @@ function populateHeroForm() {
   setChecked("hero-available", p.availableForFreelance);
   setVal("hero-linkedin", p.linkedin);
   setVal("hero-github-url", p.github);
+  setVal("hero-github-user", p.githubUsername);
   updateHeroPreview();
 
   $("#hero-form").addEventListener("submit", async (e) => {
@@ -889,6 +890,7 @@ function populateHeroForm() {
     siteContent.profile.availableForFreelance = getChecked("hero-available");
     siteContent.profile.linkedin = getVal("hero-linkedin");
     siteContent.profile.github = getVal("hero-github-url");
+    siteContent.profile.githubUsername = getVal("hero-github-user").trim();
     await saveSiteContent(siteContent, {
       section: "hero",
       summary: "Updated hero section"

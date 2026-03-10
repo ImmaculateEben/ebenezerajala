@@ -1518,6 +1518,52 @@ export async function restoreContentVersion(versionId) {
   return version;
 }
 
+/* ── GitHub Contributions ─────────────────────────────────────── */
+const GITHUB_USERNAME_RE = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
+
+export async function loadGitHubContributions(username) {
+  const safeUsername = String(username || "").trim();
+  if (!safeUsername || !GITHUB_USERNAME_RE.test(safeUsername)) {
+    throw new Error("Invalid GitHub username.");
+  }
+
+  const runtime = getRuntimeConfig();
+  const supabaseUrl = sanitizePlainText(runtime?.supabase?.url || "");
+  const anonKey = sanitizePlainText(runtime?.supabase?.anonKey || "");
+  if (!supabaseUrl) {
+    throw new Error("Supabase runtime config is missing.");
+  }
+
+  const endpoint = `${supabaseUrl.replace(/\/+$/, "")}/functions/v1/github-activity?username=${encodeURIComponent(safeUsername)}`;
+  const response = await fetch(endpoint, {
+    method: "GET",
+    headers: anonKey
+      ? { apikey: anonKey, Authorization: `Bearer ${anonKey}`, Accept: "application/json" }
+      : { Accept: "application/json" },
+  });
+
+  if (!response.ok) {
+    const text = String(await response.text()).trim();
+    if (text) {
+      let message = text;
+      try {
+        const parsed = JSON.parse(text);
+        message = parsed?.error || parsed?.message || text;
+      } catch (_) {/* keep raw text */}
+      throw new Error(message);
+    }
+    throw new Error(`GitHub activity request failed with status ${response.status}.`);
+  }
+
+  const data = await response.json();
+  const markup = String(data?.markup || "").trim();
+  if (!markup) {
+    throw new Error("GitHub activity markup was empty.");
+  }
+
+  return markup;
+}
+
 export async function pingSearchConsoleSitemap(input) {
   if (!isSupabaseReady()) {
     throw new Error("Supabase is not configured.");
