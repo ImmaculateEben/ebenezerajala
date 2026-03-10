@@ -2688,30 +2688,30 @@ footer {
    GITHUB CONTRIBUTIONS
    ========================================= */
 .github-contrib {
-    --gh-level-0: rgba(148, 163, 184, 0.18);
-    --gh-level-1: #0e4429;
-    --gh-level-2: #006d32;
-    --gh-level-3: #26a641;
-    --gh-level-4: #39d353;
+    --gh-level-0: rgba(59, 130, 246, 0.12);
+    --gh-level-1: rgba(59, 130, 246, 0.28);
+    --gh-level-2: #3b82f6;
+    --gh-level-3: #60a5fa;
+    --gh-level-4: #a855f7;
     margin-top: clamp(2.25rem, 5vw, 3.25rem);
     display: grid;
     gap: 0.95rem;
 }
 
 [data-theme="light"] .github-contrib {
-    --gh-level-0: #ebedf0;
-    --gh-level-1: #9be9a8;
-    --gh-level-2: #40c463;
-    --gh-level-3: #30a14e;
-    --gh-level-4: #216e39;
+    --gh-level-0: rgba(37, 99, 235, 0.12);
+    --gh-level-1: #bfdbfe;
+    --gh-level-2: #60a5fa;
+    --gh-level-3: #2563eb;
+    --gh-level-4: #9333ea;
 }
 
 [data-theme="gold"] .github-contrib {
-    --gh-level-0: rgba(254, 243, 208, 0.12);
-    --gh-level-1: #5f6f27;
-    --gh-level-2: #7c8f2f;
-    --gh-level-3: #a7bf3f;
-    --gh-level-4: #d4e157;
+    --gh-level-0: rgba(212, 175, 55, 0.14);
+    --gh-level-1: rgba(212, 175, 55, 0.32);
+    --gh-level-2: #d4af37;
+    --gh-level-3: #f4c542;
+    --gh-level-4: #f8dc7d;
 }
 
 .github-contrib-heading {
@@ -2774,6 +2774,12 @@ footer {
     flex-direction: column;
     align-items: flex-start !important;
     gap: 0.9rem;
+}
+
+.gh-cal .js-calendar-graph>.width-full,
+.gh-cal .js-calendar-graph .float-left,
+.gh-cal .js-calendar-graph .float-right {
+    display: none !important;
 }
 
 .gh-cal .js-calendar-graph>div {
@@ -3012,17 +3018,21 @@ footer {
 
 @media (max-width: 768px) {
     .gh-cal {
-        padding-bottom: 0.6rem;
-    }
-
-    .gh-cal .js-yearly-contributions,
-    .gh-cal .ContributionCalendar-grid,
-    .gh-cal svg {
-        min-width: 720px;
+        overflow: hidden;
+        padding-bottom: 0;
     }
 
     .gh-legend {
         justify-content: center;
+    }
+
+    .gh-cal .js-calendar-graph {
+        align-items: center !important;
+    }
+
+    .gh-cal #js-contribution-activity-description {
+        width: 100%;
+        text-align: center;
     }
 }
 

@@ -1001,6 +1001,70 @@ function _hideGhScrollHint(section) {
   }
 }
 
+function _getGhScaleNodes(cal) {
+  const target = cal.querySelector(".ContributionCalendar-grid, svg");
+  if (!target) {
+    return { target: null, viewport: null };
+  }
+
+  const viewport = target.parentElement instanceof HTMLElement ? target.parentElement : null;
+  return { target, viewport };
+}
+
+function _resetGhCalendarScale(cal) {
+  const { target, viewport } = _getGhScaleNodes(cal);
+  cal.classList.remove("is-mobile-fitted");
+
+  if (viewport) {
+    viewport.style.removeProperty("display");
+    viewport.style.removeProperty("justify-content");
+    viewport.style.removeProperty("align-items");
+    viewport.style.removeProperty("overflow");
+    viewport.style.removeProperty("height");
+  }
+
+  if (target instanceof HTMLElement || target instanceof SVGElement) {
+    target.style.removeProperty("transform");
+    target.style.removeProperty("transform-origin");
+    target.style.removeProperty("margin");
+  }
+}
+
+function _fitGhCalendarToMobile(cal) {
+  _resetGhCalendarScale(cal);
+
+  if (!window.matchMedia(_GH_MOBILE_MEDIA_QUERY).matches) {
+    return { fitted: false, overflow: cal.scrollWidth - cal.clientWidth > _GH_OVERFLOW_TOLERANCE };
+  }
+
+  const { target, viewport } = _getGhScaleNodes(cal);
+  if (!target || !viewport) {
+    return { fitted: false, overflow: false };
+  }
+
+  const intrinsicWidth = Math.ceil(target.scrollWidth || target.getBoundingClientRect().width || 0);
+  const intrinsicHeight = Math.ceil(target.scrollHeight || target.getBoundingClientRect().height || 0);
+  const availableWidth = Math.floor(cal.clientWidth);
+  const overflow = intrinsicWidth - availableWidth > _GH_OVERFLOW_TOLERANCE;
+
+  if (!overflow || !availableWidth || !intrinsicWidth || !intrinsicHeight) {
+    return { fitted: false, overflow };
+  }
+
+  const scale = Math.max(0.42, Math.min(1, availableWidth / intrinsicWidth));
+  viewport.style.display = "flex";
+  viewport.style.justifyContent = "center";
+  viewport.style.alignItems = "flex-start";
+  viewport.style.overflow = "hidden";
+  viewport.style.height = `${Math.ceil(intrinsicHeight * scale)}px`;
+  target.style.margin = "0 auto";
+  target.style.transform = `scale(${scale})`;
+  target.style.transformOrigin = "top center";
+  cal.classList.add("is-mobile-fitted");
+
+  return { fitted: true, overflow: false };
+}
+
 function _teardownGhCalendar(section, cal) {
   const state = _getGhCalendarState(cal);
   if (state.rafId) {
@@ -1016,6 +1080,7 @@ function _teardownGhCalendar(section, cal) {
     state.scrollHandler = null;
   }
   state.userScrolled = false;
+  _resetGhCalendarScale(cal);
   section.classList.remove("is-scrollable", "is-unavailable");
   _hideGhScrollHint(section);
 }
@@ -1024,12 +1089,21 @@ function _applyGhCalendarLayout(section, cal, options = {}) {
   const state = _getGhCalendarState(cal);
   state.rafId = 0;
 
-  const maxScrollLeft = Math.max(0, cal.scrollWidth - cal.clientWidth);
-  const overflow = maxScrollLeft > _GH_OVERFLOW_TOLERANCE;
   const isMobile = window.matchMedia(_GH_MOBILE_MEDIA_QUERY).matches;
   const scrollHint = section.querySelector(".gh-scroll-hint");
+  const mobileFit = _fitGhCalendarToMobile(cal);
+  const maxScrollLeft = Math.max(0, cal.scrollWidth - cal.clientWidth);
+  const overflow = mobileFit.fitted ? false : maxScrollLeft > _GH_OVERFLOW_TOLERANCE;
 
   section.classList.toggle("is-scrollable", overflow);
+
+  if (mobileFit.fitted) {
+    cal.scrollLeft = 0;
+    if (scrollHint) {
+      scrollHint.hidden = true;
+    }
+    return;
+  }
 
   if (!overflow) {
     cal.scrollLeft = 0;
