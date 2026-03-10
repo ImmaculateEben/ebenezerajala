@@ -530,6 +530,29 @@
             <div class="form-row-2">
               <div class="form-group"><label for="set-label">Inbox Label</label><input type="text" id="set-label"></div>
             </div>
+            <div class="settings-rule-block">
+              <div class="settings-rule-head">
+                <h3><i class="fa-solid fa-wand-magic-sparkles"></i> AI Writing Rules</h3>
+                <p class="admin-helper-copy">These rules are applied automatically to inline AI generation and the dedicated AI Writer.</p>
+              </div>
+              <div class="form-group">
+                <label for="set-ai-voice">Brand Voice Profile</label>
+                <textarea id="set-ai-voice" rows="5" placeholder="Describe the tone, positioning, proof style, pacing, and what the copy should consistently sound like."></textarea>
+                <p class="ai-field-note">Use this to define how your brand should sound across bios, headings, project case studies, testimonials, and CTAs.</p>
+              </div>
+              <div class="form-row-2 settings-rule-grid">
+                <div class="form-group">
+                  <label for="set-ai-blocked">Blocked Phrases</label>
+                  <textarea id="set-ai-blocked" rows="5" placeholder="One phrase per line&#10;passionate about&#10;cutting-edge&#10;results-driven"></textarea>
+                  <p class="ai-field-note">Add generic phrases you never want the AI to use.</p>
+                </div>
+                <div class="form-group">
+                  <label for="set-ai-banned">Banned Claims</label>
+                  <textarea id="set-ai-banned" rows="5" placeholder="One claim per line&#10;guaranteed results&#10;number one&#10;award-winning unless verified"></textarea>
+                  <p class="ai-field-note">Add claims the AI must avoid unless you have direct proof.</p>
+                </div>
+              </div>
+            </div>
             <button type="submit" class="btn btn-primary">Save Settings</button>
           </form>
           <div class="admin-actions-row" style="margin-top:1rem">
@@ -717,13 +740,42 @@
       <!-- ===== AI WRITER ===== -->
       <section class="admin-section" data-panel="ai-writer" hidden>
         <div class="panel-header"><h1><i class="fa-solid fa-wand-magic-sparkles"></i> AI Writing Assistant</h1><p>Generate professional portfolio copy with AI.</p></div>
-        <div class="admin-card">
-          <form id="ai-form" class="admin-form-grid">
+        <div class="admin-card ai-writer-card">
+          <div class="ai-writer-intro">
+            <div>
+              <h3>Smarter Drafting</h3>
+              <p>Describe the result you want and the assistant will automatically reuse the active field text and nearby form context when it helps.</p>
+            </div>
+            <div class="ai-context-badges" aria-hidden="true">
+              <span>Active field text</span>
+              <span>Related form context</span>
+              <span>Brand voice rules</span>
+              <span>3 draft variants</span>
+            </div>
+          </div>
+          <div class="ai-context-grid">
+            <article class="ai-context-card">
+              <p class="ai-context-label">Target Field</p>
+              <h4 id="ai-target-name">No active field selected</h4>
+              <p id="ai-target-detail" class="ai-context-copy">Focus any editable field in the dashboard to personalize the draft automatically, or leave it free to draft standalone copy.</p>
+              <div class="ai-context-actions">
+                <button type="button" id="ai-use-active-target" class="btn btn-outline btn-sm">Use Active Field</button>
+                <button type="button" id="ai-use-standalone" class="btn btn-outline btn-sm">Draft Standalone</button>
+              </div>
+            </article>
+            <article class="ai-context-card">
+              <p class="ai-context-label">Auto Context</p>
+              <h4 id="ai-context-count">Standalone draft mode</h4>
+              <p id="ai-context-detail" class="ai-context-copy">When a target field is active, the assistant will include its current content and other filled values from the same form.</p>
+            </article>
+          </div>
+          <form id="ai-form" class="admin-form-grid ai-writer-form">
             <div class="form-row-2">
               <div class="form-group">
                 <label for="ai-preset">Preset</label>
                 <select id="ai-preset">
                   <option value="custom" selected>Custom Request</option>
+                  <option value="heading">Heading / Title</option>
                   <option value="bio">Professional Bio</option>
                   <option value="hero-tagline">Hero Tagline</option>
                   <option value="project-short">Project Short Description</option>
@@ -747,39 +799,46 @@
               <div class="form-group"><label for="ai-tone">Tone</label><select id="ai-tone"><option value="professional" selected>Professional</option><option value="friendly">Friendly</option><option value="confident">Confident</option><option value="creative">Creative</option><option value="formal">Formal</option></select></div>
               <div class="form-group"><label for="ai-length">Length</label><select id="ai-length"><option value="short">Short (1-2 sentences)</option><option value="medium" selected>Medium (paragraph)</option><option value="long">Long (multi-paragraph)</option></select></div>
             </div>
-            <div class="form-group"><label for="ai-prompt">What do you need written?</label><textarea id="ai-prompt" rows="4" placeholder="e.g. Write a professional bio for a web developer with 4+ years experience&hellip;"></textarea></div>
             <div class="form-group">
-              <div class="admin-inline-between">
-                <label for="ai-current-text">Current text <small>(optional context)</small></label>
-                <button type="button" id="ai-pull-context" class="btn btn-outline btn-sm">Use Active Field</button>
-              </div>
-              <textarea id="ai-current-text" rows="4" placeholder="Paste existing copy here, or pull it from the last focused field."></textarea>
+              <label for="ai-prompt">What do you need written?</label>
+              <textarea id="ai-prompt" rows="5" placeholder="e.g. Write a professional bio for a web developer with 4+ years experience&hellip;"></textarea>
+              <p id="ai-prompt-help" class="ai-field-note">For stronger drafts, describe the audience, positioning, proof, and result you want the copy to highlight.</p>
             </div>
             <div class="form-group">
-              <label for="ai-context-notes">Extra Context / Instructions <small>(optional)</small></label>
-              <textarea id="ai-context-notes" rows="3" placeholder="Add specifics the AI should follow, such as audience, key selling points, wording to avoid, or details it must mention."></textarea>
+              <label for="ai-context-notes">Extra Context / Requirements <small>(optional)</small></label>
+              <textarea id="ai-context-notes" rows="4" placeholder="Add hard requirements such as wording to avoid, details it must mention, desired CTA strength, or the style you want it to lean into."></textarea>
+              <p class="ai-field-note">Use this for must-have details and guardrails. Current field text and related form values are already pulled in automatically.</p>
             </div>
-            <div class="form-group">
-              <div class="admin-inline-between">
-                <label for="ai-related-context">Related Form Context</label>
-                <button type="button" id="ai-pull-related" class="btn btn-outline btn-sm">Use Active Form</button>
-              </div>
-              <textarea id="ai-related-context" rows="6" placeholder="Other filled fields from the selected form will appear here so the output stays aligned." readonly></textarea>
-            </div>
-            <p id="ai-target-hint" class="ai-meta" hidden></p>
-            <button type="submit" class="btn btn-primary" id="ai-gen-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Run AI</button>
+            <p id="ai-target-hint" class="ai-meta ai-target-meta" hidden></p>
+            <button type="submit" class="btn btn-primary" id="ai-gen-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate 3 Drafts</button>
           </form>
           <div id="ai-output" class="ai-output-box" hidden>
-            <div class="admin-inline-between">
-              <h4>Generated Content</h4>
+            <div class="ai-output-head">
+              <h4>Generated Drafts</h4>
               <p id="ai-meta" class="ai-meta" hidden></p>
             </div>
-            <div id="ai-result" class="ai-result"></div>
-            <div class="admin-actions-row" style="margin-top:0.75rem">
-              <button type="button" id="ai-copy" class="btn btn-outline btn-sm"><i class="fa-solid fa-copy"></i> Copy</button>
-              <button type="button" id="ai-apply" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-down"></i> Use In Active Field</button>
+            <div id="ai-variants" class="ai-variants" role="list"></div>
+            <div class="ai-preview-grid">
+              <section class="ai-preview-panel">
+                <div class="ai-preview-head">
+                  <h5>Selected Draft</h5>
+                  <span id="ai-selected-label" class="ai-selected-label">Draft 1</span>
+                </div>
+                <div id="ai-result" class="ai-result"></div>
+              </section>
+              <section id="ai-diff-box" class="ai-preview-panel" hidden>
+                <div class="ai-preview-head">
+                  <h5>Before / After Diff</h5>
+                  <p id="ai-diff-meta" class="ai-meta" hidden></p>
+                </div>
+                <div id="ai-diff" class="ai-diff"></div>
+              </section>
+            </div>
+            <div class="admin-actions-row ai-output-actions" style="margin-top:0.75rem">
+              <button type="button" id="ai-copy" class="btn btn-outline btn-sm"><i class="fa-solid fa-copy"></i> Copy Selected Draft</button>
+              <button type="button" id="ai-apply" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-down"></i> Apply Selected Draft</button>
               <button type="button" id="ai-undo" class="btn btn-outline btn-sm"><i class="fa-solid fa-rotate-left"></i> Undo Last Replace</button>
-              <button type="button" id="ai-regen" class="btn btn-outline btn-sm"><i class="fa-solid fa-rotate"></i> Regenerate</button>
+              <button type="button" id="ai-regen" class="btn btn-outline btn-sm"><i class="fa-solid fa-rotate"></i> Generate New Set</button>
             </div>
           </div>
           <div id="ai-status" class="admin-status is-error" hidden></div>

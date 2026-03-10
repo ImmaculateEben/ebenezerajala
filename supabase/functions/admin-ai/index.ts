@@ -59,6 +59,42 @@ function normalizeText(value: unknown, maxLength: number) {
   return String(value ?? "").trim().replace(/\u0000/g, "").slice(0, maxLength);
 }
 
+function normalizeInteger(value: unknown, min: number, max: number, fallback: number) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+  return Math.min(max, Math.max(min, Math.round(parsed)));
+}
+
+function normalizeStringList(value: unknown, maxItems: number, maxLength: number) {
+  const rawItems = Array.isArray(value)
+    ? value
+    : String(value ?? "").split(/\r?\n/);
+
+  return rawItems
+    .map((entry) => normalizeText(entry, maxLength))
+    .filter(Boolean)
+    .slice(0, maxItems);
+}
+
+function normalizeOutputText(value: unknown, fieldType: string) {
+  const normalizedFieldType = normalizeText(fieldType, 32).toLowerCase();
+  let text = String(value ?? "").replace(/\u0000/g, "").replace(/\r\n/g, "\n").trim();
+
+  if (normalizedFieldType === "single-line") {
+    text = text.replace(/\s+/g, " ").trim();
+  } else {
+    text = text.replace(/\n{3,}/g, "\n\n");
+  }
+
+  return text;
+}
+
+function normalizeComparableText(value: string) {
+  return String(value || "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
 function getBearerToken(request: Request) {
   const authHeader = request.headers.get("authorization") || "";
   return authHeader.replace(/^Bearer\s+/i, "").trim();
@@ -104,6 +140,84 @@ function getFieldTypeInstruction(fieldType: string) {
   return "Return polished plain text that fits naturally into the target field.";
 }
 
+function getToneInstruction(tone: string) {
+  const value = normalizeText(tone, 40).toLowerCase();
+  if (value === "friendly") {
+    return "Sound warm, approachable, and natural while still credible.";
+  }
+  if (value === "confident") {
+    return "Sound assured and persuasive without becoming boastful or exaggerated.";
+  }
+  if (value === "creative") {
+    return "Use fresh wording and personality, but keep the result clean and professional.";
+  }
+  if (value === "formal") {
+    return "Sound polished, composed, and professional with restrained phrasing.";
+  }
+  return "Sound professional, clear, and modern.";
+}
+
+function getQualityInstruction(fieldType: string) {
+  const value = normalizeText(fieldType, 32).toLowerCase();
+  const rules = [
+    "Prefer concrete specifics, credible positioning, and real differentiators over generic adjectives.",
+    "Avoid weak filler and generic AI-sounding phrasing.",
+    "Do not invent metrics, client names, credentials, technologies, or outcomes that were not provided.",
+    "If the provided context is incomplete, write polished copy that stays accurate instead of making unsupported claims."
+  ];
+
+  if (value === "single-line") {
+    rules.push("Make the wording punchy and economical. Every word should earn its place.");
+  } else if (value === "html") {
+    rules.push("Use short paragraphs and compact lists only when they improve clarity and scanability.");
+  } else if (value === "list") {
+    rules.push("Keep each line distinct, concrete, and non-repetitive.");
+  } else {
+    rules.push("Keep the flow readable, grounded, and easy to skim.");
+  }
+
+  return rules.join(" ");
+}
+
+function getSectionSpecificInstruction(fieldContext: string, fieldLabel: string, sectionContext: string, fieldType: string) {
+  const combined = `${fieldContext} ${fieldLabel} ${sectionContext}`.toLowerCase();
+
+  if (/testimonial|review|feedback/.test(combined)) {
+    return "For testimonials, write in a believable first-person client voice, mention a concrete strength or outcome, and avoid exaggerated praise that sounds fabricated.";
+  }
+
+  if (/case study|project case study|project detail|project description|project long|long description/.test(combined) || (combined.includes("project") && fieldType === "html")) {
+    return "For case studies, structure the draft around the challenge, the approach, and the outcome. Make the execution feel specific and grounded in real work.";
+  }
+
+  if (/call to action|cta/.test(combined)) {
+    return "For CTAs, make the next step explicit, keep the language direct, and create momentum without sounding pushy or hype-driven.";
+  }
+
+  if (/bio|about profile|professional summary|about section/.test(combined)) {
+    return "For bios, build credibility through real strengths, focus areas, and working style. Keep the narrative polished but human, and avoid vague self-praise.";
+  }
+
+  if (/heading|title|headline|tagline|subtitle/.test(combined)) {
+    return "For headings, keep the wording concise, distinctive, and easy to scan. Avoid filler words and generic slogans.";
+  }
+
+  return "";
+}
+
+function getVariantInstruction(variantCount: number, fieldType: string) {
+  if (variantCount <= 1) {
+    return "Return only the final copy for the target field. Do not add headings, explanations, markdown fences, or labels.";
+  }
+
+  return [
+    `Generate ${variantCount} distinct draft variants that all fit the same ${fieldType} field.`,
+    "Vary the opening, rhythm, and emphasis across the variants while keeping the facts consistent.",
+    'Return JSON only in this exact shape: {"variants":["draft 1","draft 2","draft 3"]}.',
+    "Do not wrap the JSON in markdown fences."
+  ].join(" ");
+}
+
 function normalizeRelatedFields(value: unknown) {
   if (!Array.isArray(value)) {
     return [];
@@ -129,6 +243,120 @@ function formatRelatedFields(fields: Array<{ label: string; value: string }>) {
   return fields
     .map((entry) => `- ${entry.label}: ${entry.value}`)
     .join("\n");
+}
+
+function parseVariantPayload(source: string) {
+  const candidates = [
+    source,
+    source.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim()
+  ];
+
+  const objectMatch = source.match(/\{[\s\S]*\}/);
+  if (objectMatch) {
+    candidates.push(objectMatch[0]);
+  }
+
+  const arrayMatch = source.match(/\[[\s\S]*\]/);
+  if (arrayMatch) {
+    candidates.push(arrayMatch[0]);
+  }
+
+  for (const candidate of candidates) {
+    if (!candidate) {
+      continue;
+    }
+
+    try {
+      const parsed = JSON.parse(candidate);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+      if (parsed && typeof parsed === "object") {
+        const payload = parsed as Record<string, unknown>;
+        if (Array.isArray(payload.variants)) {
+          return payload.variants;
+        }
+        if (Array.isArray(payload.drafts)) {
+          return payload.drafts;
+        }
+      }
+    } catch (_error) {
+      // Ignore and continue to the next candidate.
+    }
+  }
+
+  return [];
+}
+
+function splitVariantFallback(source: string) {
+  const labeled = source
+    .split(/(?:^|\n)\s*(?:variant|draft)\s*\d+\s*[:.-]\s*/i)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  if (labeled.length > 1) {
+    return labeled;
+  }
+
+  return source
+    .split(/\n\s*-{3,}\s*\n/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+function dedupeVariants(variants: string[]) {
+  const seen = new Set<string>();
+  const unique: string[] = [];
+
+  for (const variant of variants) {
+    const key = normalizeComparableText(variant);
+    if (!key || seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    unique.push(variant);
+  }
+
+  return unique;
+}
+
+function extractVariantsFromResponse(rawText: string, variantCount: number, fieldType: string) {
+  if (variantCount <= 1) {
+    const single = normalizeOutputText(rawText, fieldType);
+    return single ? [single] : [];
+  }
+
+  const parsed = parseVariantPayload(rawText)
+    .map((entry) => normalizeOutputText(entry, fieldType))
+    .filter(Boolean);
+  const fallback = parsed.length
+    ? []
+    : splitVariantFallback(rawText)
+      .map((entry) => normalizeOutputText(entry, fieldType))
+      .filter(Boolean);
+
+  return dedupeVariants((parsed.length ? parsed : fallback)).slice(0, variantCount);
+}
+
+function collectBlockedMatches(text: string, blockedPhrases: string[], bannedClaims: string[]) {
+  const haystack = normalizeComparableText(text);
+  const matches: string[] = [];
+
+  for (const phrase of blockedPhrases) {
+    const needle = normalizeComparableText(phrase);
+    if (needle && haystack.includes(needle)) {
+      matches.push(`blocked phrase: ${phrase}`);
+    }
+  }
+
+  for (const claim of bannedClaims) {
+    const needle = normalizeComparableText(claim);
+    if (needle && haystack.includes(needle)) {
+      matches.push(`banned claim: ${claim}`);
+    }
+  }
+
+  return matches;
 }
 
 function getProviderErrorMessage(data: unknown, fallback: string) {
@@ -416,8 +644,12 @@ Deno.serve(async (request) => {
   const fieldType = normalizeText(payload.fieldType, 32) || "plain-text";
   const tone = normalizeText(payload.tone, 40).toLowerCase() || "professional";
   const length = normalizeText(payload.length, 24).toLowerCase() || "medium";
+  const variantCount = normalizeInteger(payload.variantCount, 1, 3, 1);
+  const brandVoiceProfile = normalizeText(payload.brandVoiceProfile, 4000);
   const contextNotes = normalizeText(payload.contextNotes, 6000);
   const relatedFields = normalizeRelatedFields(payload.relatedFields);
+  const blockedPhrases = normalizeStringList(payload.blockedPhrases, 30, 120);
+  const bannedClaims = normalizeStringList(payload.bannedClaims, 30, 160);
   const relatedFieldText = formatRelatedFields(relatedFields);
 
   if (!prompt && !currentText) {
@@ -428,17 +660,24 @@ Deno.serve(async (request) => {
     "You are an expert copy assistant for a professional web developer portfolio.",
     getTaskInstruction(task),
     "Use any related form values to keep the result consistent with the rest of the content and avoid contradictions.",
+    "Treat the current text and related form inputs as the source of truth for real details. Preserve accurate facts unless the request explicitly asks you to change direction.",
     `Section: ${sectionContext}.`,
     `Target field: ${fieldLabel}.`,
     `Field context: ${fieldContext}.`,
     getFieldTypeInstruction(fieldType),
+    getToneInstruction(tone),
+    getQualityInstruction(fieldType),
+    getSectionSpecificInstruction(fieldContext, fieldLabel, sectionContext, fieldType),
     `Tone: ${tone}.`,
     getLengthInstruction(length),
+    brandVoiceProfile ? `Brand voice profile:\n${brandVoiceProfile}` : "",
+    blockedPhrases.length ? `Blocked phrases that must not appear:\n${blockedPhrases.map((item) => `- ${item}`).join("\n")}` : "",
+    bannedClaims.length ? `Banned claims that must not appear unless already proven in the provided context:\n${bannedClaims.map((item) => `- ${item}`).join("\n")}` : "",
     relatedFieldText ? `Related form inputs:\n${relatedFieldText}` : "",
     contextNotes ? `Additional user instructions:\n${contextNotes}` : "",
     currentText ? `Current text:\n${currentText}` : "",
     prompt ? `Primary request:\n${prompt}` : "",
-    "Return only the final copy for the target field. Do not add headings, explanations, markdown fences, or labels."
+    getVariantInstruction(variantCount, fieldType)
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -459,13 +698,34 @@ Deno.serve(async (request) => {
     for (const runProvider of providerChain) {
       try {
         const result = await runProvider();
+        const variants = extractVariantsFromResponse(result.text, variantCount, fieldType);
+        const validVariants = variants.filter((variant) => collectBlockedMatches(variant, blockedPhrases, bannedClaims).length === 0);
+        const minimumVariants = variantCount > 1 ? Math.min(2, variantCount) : 1;
+
+        if (validVariants.length < minimumVariants) {
+          const firstInvalidMatch = variants
+            .map((variant) => collectBlockedMatches(variant, blockedPhrases, bannedClaims))
+            .find((matches) => matches.length);
+          const message = firstInvalidMatch?.length
+            ? `The AI response used disallowed wording (${firstInvalidMatch[0]}).`
+            : variantCount > 1
+              ? "The AI provider did not return enough distinct draft variants."
+              : "The AI provider returned an empty response.";
+          throw new ProviderError(result.provider, result.model, message, 502);
+        }
+
+        const responseBody = {
+          ...result,
+          text: validVariants[0],
+          variants: validVariants.slice(0, variantCount)
+        };
 
         if (providerFailures.length) {
           console.warn(
             JSON.stringify({
               event: "admin_ai_fallback_succeeded",
-              provider: result.provider,
-              model: result.model,
+              provider: responseBody.provider,
+              model: responseBody.model,
               previousFailures: providerFailures.map((failure) => ({
                 provider: failure.provider,
                 model: failure.model,
@@ -475,7 +735,7 @@ Deno.serve(async (request) => {
           );
         }
 
-        return jsonResponse(result, 200, corsHeaders);
+        return jsonResponse(responseBody, 200, corsHeaders);
       } catch (error) {
         const failure = error instanceof ProviderError
           ? error

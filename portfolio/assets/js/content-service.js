@@ -99,6 +99,30 @@ function normalizeSearchConsoleSettings(value) {
   };
 }
 
+function normalizeAiWriterList(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => sanitizePlainText(item))
+      .filter(Boolean)
+      .slice(0, 30);
+  }
+
+  return String(value || "")
+    .split(/\r?\n/)
+    .map((item) => sanitizePlainText(item))
+    .filter(Boolean)
+    .slice(0, 30);
+}
+
+function normalizeAiWriterSettings(value) {
+  const source = value || {};
+  return {
+    brandVoiceProfile: sanitizePlainText(source.brandVoiceProfile || ""),
+    blockedPhrases: normalizeAiWriterList(source.blockedPhrases),
+    bannedClaims: normalizeAiWriterList(source.bannedClaims)
+  };
+}
+
 function normalizeSiteContent(siteContent) {
   const base = clone(DEFAULT_SITE_CONTENT);
   const source = siteContent || {};
@@ -127,6 +151,7 @@ function normalizeSiteContent(siteContent) {
     settings: {
       ...base.settings,
       ...(source.settings || {}),
+      aiWriter: normalizeAiWriterSettings(source.settings?.aiWriter || base.settings.aiWriter),
       searchConsole: normalizeSearchConsoleSettings(source.settings?.searchConsole || base.settings.searchConsole)
     },
     projectCategories: normalizeArray(source.projectCategories || base.projectCategories)
@@ -499,6 +524,7 @@ function applySiteContentSectionPayload(siteContent, section, payload) {
       next.settings = {
         ...next.settings,
         ...(typeof data === "object" && data ? data : {}),
+        aiWriter: normalizeAiWriterSettings(data?.aiWriter || next.settings.aiWriter),
         searchConsole: normalizeSearchConsoleSettings(data?.searchConsole || next.settings.searchConsole)
       };
       break;
@@ -1690,6 +1716,7 @@ export async function generateAdminAiText(input) {
     throw new Error("Supabase is not configured.");
   }
 
+  const variantCount = Math.min(3, Math.max(1, Number(input?.variantCount) || 1));
   const relatedFields = Array.isArray(input?.relatedFields)
     ? input.relatedFields
       .map((entry) => ({
@@ -1699,6 +1726,8 @@ export async function generateAdminAiText(input) {
       .filter((entry) => entry.label && entry.value)
       .slice(0, 20)
     : [];
+  const blockedPhrases = normalizeAiWriterList(input?.blockedPhrases);
+  const bannedClaims = normalizeAiWriterList(input?.bannedClaims);
 
   const payload = {
     task: sanitizePlainText(input?.task || "generate").toLowerCase(),
@@ -1711,7 +1740,11 @@ export async function generateAdminAiText(input) {
     contextNotes: sanitizePlainText(input?.contextNotes || ""),
     relatedFields,
     tone: sanitizePlainText(input?.tone || "professional").toLowerCase(),
-    length: sanitizePlainText(input?.length || "medium").toLowerCase()
+    length: sanitizePlainText(input?.length || "medium").toLowerCase(),
+    variantCount,
+    brandVoiceProfile: sanitizePlainText(input?.brandVoiceProfile || ""),
+    blockedPhrases,
+    bannedClaims
   };
 
   if (!payload.prompt && !payload.currentText) {
@@ -1727,13 +1760,20 @@ export async function generateAdminAiText(input) {
     throw new Error(await parseFunctionError(error, "Unable to generate AI copy."));
   }
 
-  const text = String(data?.text || "").trim();
+  const variants = Array.isArray(data?.variants)
+    ? data.variants
+      .map((entry) => sanitizePlainText(entry))
+      .filter(Boolean)
+      .slice(0, variantCount)
+    : [];
+  const text = String(data?.text || variants[0] || "").trim();
   if (!text) {
     throw new Error("The AI response was empty.");
   }
 
   return {
     text,
+    variants: variants.length ? variants : [text],
     provider: sanitizePlainText(data?.provider || "google-gemini"),
     model: sanitizePlainText(data?.model || "")
   };

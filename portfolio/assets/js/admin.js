@@ -518,8 +518,11 @@ let adminUsers = [];
 let hasLoadedDashboard = false;
 let lastFocusedAdminField = null;
 let lastAiRequest = null;
+let lastAiResult = null;
 let lastAiReplacement = null;
 let currentAiTargetFieldId = "";
+let aiWriterStandaloneMode = false;
+let selectedAiVariantIndex = 0;
 
 const VERSION_SCOPES = [
   { value: "hero", label: "Hero Section", entityType: "site_content", entityId: "main" },
@@ -1859,39 +1862,73 @@ function renderMediaPanel() {
 /* ================================================================
    SETTINGS
    ================================================================ */
+function parseAiRulesTextarea(value) {
+  return String(value || "")
+    .split(/\r?\n/)
+    .map((entry) => sanitizePlainText(entry))
+    .filter(Boolean)
+    .slice(0, 30);
+}
+
+function formatAiRulesTextarea(items) {
+  return Array.isArray(items) ? items.filter(Boolean).join("\n") : "";
+}
+
+function getAiWriterPolicySettings() {
+  const aiWriter = siteContent?.settings?.aiWriter || {};
+  return {
+    brandVoiceProfile: String(aiWriter.brandVoiceProfile || "").trim(),
+    blockedPhrases: Array.isArray(aiWriter.blockedPhrases) ? aiWriter.blockedPhrases.filter(Boolean) : [],
+    bannedClaims: Array.isArray(aiWriter.bannedClaims) ? aiWriter.bannedClaims.filter(Boolean) : []
+  };
+}
+
 function populateSettingsForm() {
   const s = siteContent?.settings || {};
+  const aiWriter = s.aiWriter || {};
   const searchConsole = s.searchConsole || {};
   setVal("set-email", s.contactRecipientEmail);
   setVal("set-sender", s.notificationSenderName);
   setVal("set-site-url", s.siteUrl);
   setVal("set-analytics", s.analyticsMeasurementId);
   setVal("set-label", s.adminContactLabel);
+  setVal("set-ai-voice", aiWriter.brandVoiceProfile);
+  setVal("set-ai-blocked", formatAiRulesTextarea(aiWriter.blockedPhrases));
+  setVal("set-ai-banned", formatAiRulesTextarea(aiWriter.bannedClaims));
   setVal("set-sc-tags", searchConsole.verificationTags);
   setVal("set-sc-sitemap", searchConsole.sitemapUrl);
   setVal("set-sc-notes", searchConsole.indexingNotes);
   updateSearchConsoleSummary(searchConsole);
 
-  $("#settings-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    siteContent.settings.contactRecipientEmail = getVal("set-email");
-    siteContent.settings.notificationSenderName = getVal("set-sender");
-    siteContent.settings.siteUrl = getVal("set-site-url");
-    siteContent.settings.analyticsMeasurementId = getVal("set-analytics");
-    siteContent.settings.adminContactLabel = getVal("set-label");
-    await saveSiteContent(siteContent, {
-      section: "settings",
-      summary: "Updated site settings"
+  const settingsForm = $("#settings-form");
+  if (settingsForm && settingsForm.dataset.bound !== "true") {
+    settingsForm.dataset.bound = "true";
+    settingsForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      siteContent.settings.contactRecipientEmail = getVal("set-email");
+      siteContent.settings.notificationSenderName = getVal("set-sender");
+      siteContent.settings.siteUrl = getVal("set-site-url");
+      siteContent.settings.analyticsMeasurementId = getVal("set-analytics");
+      siteContent.settings.adminContactLabel = getVal("set-label");
+      siteContent.settings.aiWriter = {
+        brandVoiceProfile: getVal("set-ai-voice"),
+        blockedPhrases: parseAiRulesTextarea(getVal("set-ai-blocked")),
+        bannedClaims: parseAiRulesTextarea(getVal("set-ai-banned"))
+      };
+      await saveSiteContent(siteContent, {
+        section: "settings",
+        summary: "Updated site settings"
+      });
+      applySeo({
+        siteUrl: siteContent.settings.siteUrl,
+        title: document.title,
+        description: getCurrentAdminDescription(),
+        robots: "noindex,nofollow,noarchive"
+      });
+      injectAnalytics(siteContent.settings.analyticsMeasurementId);
+      flash("settings-status", "Settings saved!");
     });
-    applySeo({
-      siteUrl: siteContent.settings.siteUrl,
-      title: document.title,
-      description: getCurrentAdminDescription(),
-      robots: "noindex,nofollow,noarchive"
-    });
-    injectAnalytics(siteContent.settings.analyticsMeasurementId);
-    flash("settings-status", "Settings saved!");
-  });
+  }
 
   const searchConsoleForm = $("#search-console-form");
   if (searchConsoleForm && searchConsoleForm.dataset.bound !== "true") {
@@ -2456,43 +2493,73 @@ const AI_PRESETS = {
     fieldContext: "custom portfolio copy",
     prompt: "",
     promptPlaceholder: "Describe what you want written or improved.",
-    currentPlaceholder: "Paste existing copy here, or pull it from the last focused field."
+    promptHelp: "Explain the audience, offer, proof, and the result you want the copy to emphasize.",
+    fieldType: "paragraph",
+    tone: "professional",
+    length: "medium"
+  },
+  heading: {
+    fieldContext: "portfolio heading or section title",
+    prompt: "Write a concise, high-impact heading that sounds specific, credible, and premium.",
+    promptPlaceholder: "Describe the section, audience, and the impression the heading should create.",
+    promptHelp: "Keep the brief focused. Mention the section purpose, visitor intent, and the kind of positioning the heading should communicate quickly.",
+    fieldType: "single-line",
+    tone: "confident",
+    length: "short"
   },
   bio: {
     fieldContext: "professional multi-paragraph bio for a web developer portfolio",
     prompt: "Write a polished professional bio for a web developer with strong WordPress, frontend, SEO, and performance experience.",
     promptPlaceholder: "Describe the background, strengths, and outcomes the bio should highlight.",
-    currentPlaceholder: "Paste the current bio to improve, shorten, or expand it."
+    promptHelp: "Mention differentiators, experience depth, services, and the kind of trust signals the bio should communicate.",
+    fieldType: "multi-paragraph",
+    tone: "professional",
+    length: "long"
   },
   "hero-tagline": {
     fieldContext: "homepage hero tagline for a web developer portfolio",
     prompt: "Write a confident homepage hero tagline for a web developer who builds fast, conversion-focused websites.",
     promptPlaceholder: "Describe the positioning or audience the tagline should target.",
-    currentPlaceholder: "Paste the current tagline if you want it rewritten."
+    promptHelp: "Keep the brief sharp. Mention audience, value proposition, and the impression the headline should leave immediately.",
+    fieldType: "single-line",
+    tone: "confident",
+    length: "short"
   },
   "project-short": {
     fieldContext: "short project description for a portfolio card",
     prompt: "Write a concise project summary that explains the outcome, business value, and technical focus.",
     promptPlaceholder: "Describe the project, client, and main result.",
-    currentPlaceholder: "Paste the current short description to improve it."
+    promptHelp: "Focus on what was built, who it was for, and the clearest business or user impact.",
+    fieldType: "paragraph",
+    tone: "professional",
+    length: "short"
   },
   "project-case-study": {
     fieldContext: "detailed project case study for a portfolio",
     prompt: "Write a detailed project case study with the problem, approach, and outcome for a portfolio page.",
     promptPlaceholder: "Describe the project, scope, stack, challenges, and results.",
-    currentPlaceholder: "Paste the current case study to expand, tighten, or rewrite it."
+    promptHelp: "Include constraints, execution details, and outcomes. The stronger the facts, the stronger the case study.",
+    fieldType: "html",
+    tone: "professional",
+    length: "long"
   },
   testimonial: {
     fieldContext: "client testimonial for a web developer portfolio",
     prompt: "Write a believable client testimonial that highlights communication, delivery quality, and business impact.",
     promptPlaceholder: "Describe the client relationship, work delivered, and visible result.",
-    currentPlaceholder: "Paste the existing testimonial if you want it refined."
+    promptHelp: "Give the client perspective, project outcome, and the qualities the testimonial should reinforce.",
+    fieldType: "paragraph",
+    tone: "friendly",
+    length: "medium"
   },
   cta: {
     fieldContext: "portfolio call to action paragraph",
     prompt: "Write a clear call to action that encourages visitors to get in touch about web projects or collaboration.",
     promptPlaceholder: "Describe the action you want visitors to take.",
-    currentPlaceholder: "Paste the current call to action to shorten or improve it."
+    promptHelp: "Mention the visitor intent, next step, and how direct or persuasive the CTA should feel.",
+    fieldType: "paragraph",
+    tone: "confident",
+    length: "medium"
   }
 };
 
@@ -2551,6 +2618,7 @@ const AI_FIELD_OVERRIDES = {
     fieldType: "multi-paragraph"
   },
   "proj-title": {
+    preset: "heading",
     fieldContext: "project title for a portfolio case study",
     tone: "confident",
     length: "short",
@@ -2590,6 +2658,7 @@ const AI_FIELD_OVERRIDES = {
     fieldType: "paragraph"
   },
   "pg-cta-title": {
+    preset: "heading",
     fieldContext: "short call-to-action heading for a portfolio page",
     tone: "confident",
     length: "short",
@@ -2602,31 +2671,37 @@ const AI_FIELD_OVERRIDES = {
     fieldType: "paragraph"
   },
   "pg-about-title": {
+    preset: "heading",
     fieldContext: "about section heading for a portfolio page",
     length: "short",
     fieldType: "single-line"
   },
   "pg-about-sub": {
+    preset: "heading",
     fieldContext: "about section subtitle for a portfolio page",
     length: "short",
     fieldType: "single-line"
   },
   "pg-projects-title": {
+    preset: "heading",
     fieldContext: "projects section heading for a portfolio page",
     length: "short",
     fieldType: "single-line"
   },
   "pg-projects-sub": {
+    preset: "heading",
     fieldContext: "projects section subtitle for a portfolio page",
     length: "short",
     fieldType: "single-line"
   },
   "pg-feedback-title": {
+    preset: "heading",
     fieldContext: "testimonials section heading for a portfolio page",
     length: "short",
     fieldType: "single-line"
   },
   "pg-feedback-sub": {
+    preset: "heading",
     fieldContext: "testimonials section subtitle for a portfolio page",
     length: "short",
     fieldType: "single-line"
@@ -2704,8 +2779,13 @@ function getAiTargetField() {
   return isAiEditableField(lastFocusedAdminField) ? lastFocusedAdminField : null;
 }
 
+function getAiWriterTargetField() {
+  return aiWriterStandaloneMode ? null : getAiTargetField();
+}
+
 function setAiTargetField(field) {
   currentAiTargetFieldId = field?.id || "";
+  aiWriterStandaloneMode = false;
   if (field) {
     lastFocusedAdminField = field;
   }
@@ -2713,16 +2793,38 @@ function setAiTargetField(field) {
 
 function updateAiTargetHint() {
   const hint = $("#ai-target-hint");
+  const targetName = $("#ai-target-name");
+  const targetDetail = $("#ai-target-detail");
   if (!hint) return;
 
-  const target = getAiTargetField();
+  const target = getAiWriterTargetField();
   if (target && document.body.contains(target)) {
-    hint.textContent = `Target field: ${getFieldLabel(target)} | ${getAiSectionLabel(target)}`;
+    const config = getAiFieldConfig(target);
+    if (targetName) {
+      targetName.textContent = getFieldLabel(target);
+    }
+    if (targetDetail) {
+      targetDetail.textContent = `${getAiSectionLabel(target)}. The assistant will reuse the current field content automatically and keep the draft aligned with this form.`;
+    }
+    updateAiRelatedContextPreview(target);
+    hint.textContent = `Smart mode: using ${config.fieldType} guidance with a ${config.tone} baseline for ${getFieldLabel(target)}.`;
     hint.hidden = false;
     return;
   }
 
-  hint.hidden = true;
+  if (targetName) {
+    targetName.textContent = aiWriterStandaloneMode ? "Standalone draft" : "No active field selected";
+  }
+  if (targetDetail) {
+    targetDetail.textContent = aiWriterStandaloneMode
+      ? "AI Writer is ignoring field-specific context right now. Click Use Active Field when you want to reattach it to a form field."
+      : "Focus any editable field in the dashboard to personalize the draft automatically, or leave it free to draft standalone copy.";
+  }
+  updateAiRelatedContextPreview(null);
+  hint.textContent = aiWriterStandaloneMode
+    ? "Standalone mode keeps the draft independent from any field until you reattach one."
+    : "Tip: focus a content field first if you want the draft tailored to an existing section automatically.";
+  hint.hidden = false;
 }
 
 function getAiPresetConfig(key) {
@@ -2859,57 +2961,339 @@ function formatAiRelatedFields(fields) {
   return fields.map((entry) => `${entry.label}: ${entry.value}`).join("\n\n");
 }
 
-function updateAiRelatedContextPreview(field = getAiTargetField()) {
-  const relatedInput = $("#ai-related-context");
-  if (!relatedInput) {
-    return [];
+function formatAiRelatedFieldSummary(fields) {
+  const labels = fields
+    .slice(0, 4)
+    .map((entry) => entry.label)
+    .filter(Boolean);
+
+  if (!labels.length) {
+    return "";
   }
 
+  return labels.join(", ") + (fields.length > labels.length ? ` and ${fields.length - labels.length} more` : "");
+}
+
+function updateAiRelatedContextPreview(field = getAiWriterTargetField()) {
+  const countEl = $("#ai-context-count");
+  const detailEl = $("#ai-context-detail");
+
   if (!field) {
-    relatedInput.value = "";
+    if (countEl) {
+      countEl.textContent = aiWriterStandaloneMode ? "Standalone draft mode" : "Waiting for a target field";
+    }
+    if (detailEl) {
+      detailEl.textContent = aiWriterStandaloneMode
+        ? "The assistant will only use your preset, brief, and extra requirements until you attach a field again."
+        : "When a target field is active, the assistant will include its current content and other filled values from the same form.";
+    }
     return [];
   }
 
   const relatedFields = collectAiRelatedFields(field);
-  relatedInput.value = formatAiRelatedFields(relatedFields);
+  const currentText = normalizeAiContextValue(field.value);
+
+  if (countEl) {
+    countEl.textContent = relatedFields.length
+      ? `${relatedFields.length} related form value${relatedFields.length === 1 ? "" : "s"} synced`
+      : currentText
+        ? "Current field text ready"
+        : "Light context only";
+  }
+
+  if (detailEl) {
+    detailEl.textContent = relatedFields.length
+      ? `Also includes ${formatAiRelatedFieldSummary(relatedFields)}.`
+      : currentText
+        ? "The assistant will still reuse the current field content and your brief."
+        : "No other filled fields were found in the same form yet.";
+  }
+
   return relatedFields;
 }
 
-function syncAiPresetFields() {
-  const preset = getAiPresetConfig(getVal("ai-preset"));
+function syncAiPresetFields(options = {}) {
+  const applyDefaults = Boolean(options.applyDefaults);
+  const presetKey = getVal("ai-preset");
+  const preset = getAiPresetConfig(presetKey);
   const promptInput = $("#ai-prompt");
-  const currentInput = $("#ai-current-text");
+  const promptHelp = $("#ai-prompt-help");
+  const toneInput = $("#ai-tone");
+  const lengthInput = $("#ai-length");
 
   if (promptInput) {
+    const previousPreset = getAiPresetConfig(promptInput.dataset.presetKey || "custom");
+    const currentPrompt = promptInput.value.trim();
+    const shouldReplacePrompt = !currentPrompt || currentPrompt === previousPreset.prompt;
     promptInput.placeholder = preset.promptPlaceholder;
-    if (!promptInput.value.trim() && preset.prompt) {
+    if (shouldReplacePrompt && preset.prompt) {
       promptInput.value = preset.prompt;
+    }
+    promptInput.dataset.presetKey = presetKey;
+  }
+
+  if (promptHelp) {
+    promptHelp.textContent = preset.promptHelp || "Describe the outcome you want, and the assistant will handle the drafting direction.";
+  }
+
+  if (applyDefaults) {
+    if (toneInput && preset.tone) {
+      toneInput.value = preset.tone;
+    }
+    if (lengthInput && preset.length) {
+      lengthInput.value = preset.length;
+    }
+  }
+}
+
+function getAiVariantList(result = lastAiResult) {
+  const variants = Array.isArray(result?.variants)
+    ? result.variants
+      .map((entry) => String(entry || "").trim())
+      .filter(Boolean)
+    : [];
+
+  if (variants.length) {
+    return variants;
+  }
+
+  const text = String(result?.text || "").trim();
+  return text ? [text] : [];
+}
+
+function getSelectedAiText() {
+  const variants = getAiVariantList();
+  return variants[selectedAiVariantIndex] || variants[0] || "";
+}
+
+function summarizeAiVariant(text, index) {
+  const compact = String(text || "").replace(/\s+/g, " ").trim();
+  if (!compact) {
+    return `Draft ${index + 1}`;
+  }
+
+  return compact.length > 120 ? `${compact.slice(0, 117)}...` : compact;
+}
+
+function tokenizeAiDiff(value, mode = "word") {
+  const source = String(value || "");
+  if (!source) {
+    return [];
+  }
+
+  if (mode === "line") {
+    return source.match(/[^\n]*\n|[^\n]+$/g) || [source];
+  }
+
+  return source.match(/\s+|[^\s]+/g) || [source];
+}
+
+function buildAiDiffMatrix(beforeTokens, afterTokens) {
+  const matrix = Array.from({ length: beforeTokens.length + 1 }, () => new Uint16Array(afterTokens.length + 1));
+
+  for (let i = beforeTokens.length - 1; i >= 0; i -= 1) {
+    for (let j = afterTokens.length - 1; j >= 0; j -= 1) {
+      matrix[i][j] = beforeTokens[i] === afterTokens[j]
+        ? matrix[i + 1][j + 1] + 1
+        : Math.max(matrix[i + 1][j], matrix[i][j + 1]);
     }
   }
 
-  if (currentInput) {
-    currentInput.placeholder = preset.currentPlaceholder;
+  return matrix;
+}
+
+function buildAiDiffParts(beforeText, afterText) {
+  const safeBefore = String(beforeText || "");
+  const safeAfter = String(afterText || "");
+  const mode = safeBefore.includes("\n") || safeAfter.includes("\n") || safeBefore.length + safeAfter.length > 1800 ? "line" : "word";
+  const beforeTokens = tokenizeAiDiff(safeBefore, mode);
+  const afterTokens = tokenizeAiDiff(safeAfter, mode);
+
+  if (beforeTokens.length * afterTokens.length > 60000) {
+    return {
+      beforeParts: safeBefore ? [{ value: safeBefore, kind: safeBefore === safeAfter ? "same" : "removed" }] : [],
+      afterParts: safeAfter ? [{ value: safeAfter, kind: safeBefore === safeAfter ? "same" : "added" }] : []
+    };
   }
+
+  const matrix = buildAiDiffMatrix(beforeTokens, afterTokens);
+  const beforeParts = [];
+  const afterParts = [];
+  let i = 0;
+  let j = 0;
+
+  while (i < beforeTokens.length && j < afterTokens.length) {
+    if (beforeTokens[i] === afterTokens[j]) {
+      beforeParts.push({ value: beforeTokens[i], kind: "same" });
+      afterParts.push({ value: afterTokens[j], kind: "same" });
+      i += 1;
+      j += 1;
+      continue;
+    }
+
+    if (matrix[i + 1][j] >= matrix[i][j + 1]) {
+      beforeParts.push({ value: beforeTokens[i], kind: "removed" });
+      i += 1;
+      continue;
+    }
+
+    afterParts.push({ value: afterTokens[j], kind: "added" });
+    j += 1;
+  }
+
+  while (i < beforeTokens.length) {
+    beforeParts.push({ value: beforeTokens[i], kind: "removed" });
+    i += 1;
+  }
+
+  while (j < afterTokens.length) {
+    afterParts.push({ value: afterTokens[j], kind: "added" });
+    j += 1;
+  }
+
+  return { beforeParts, afterParts };
+}
+
+function renderAiDiffMarkup(parts) {
+  return parts
+    .map((part) => {
+      const safeValue = escapeHtml(part.value);
+      if (part.kind === "added") {
+        return `<span class="ai-diff-token is-added">${safeValue}</span>`;
+      }
+      if (part.kind === "removed") {
+        return `<span class="ai-diff-token is-removed">${safeValue}</span>`;
+      }
+      return safeValue;
+    })
+    .join("");
+}
+
+function renderAiDiffPreview(nextText) {
+  const diffBox = $("#ai-diff-box");
+  const diffEl = $("#ai-diff");
+  const diffMeta = $("#ai-diff-meta");
+  if (!diffBox || !diffEl || !diffMeta) {
+    return;
+  }
+
+  const targetField = getAiWriterTargetField();
+  if (!targetField) {
+    diffBox.hidden = true;
+    diffEl.innerHTML = "";
+    diffMeta.hidden = true;
+    return;
+  }
+
+  const currentText = String(targetField.value || "");
+  const { beforeParts, afterParts } = buildAiDiffParts(currentText, nextText);
+  const beforeMarkup = currentText
+    ? renderAiDiffMarkup(beforeParts)
+    : '<p class="ai-diff-empty">No current text in the target field yet.</p>';
+  const afterMarkup = nextText
+    ? renderAiDiffMarkup(afterParts)
+    : '<p class="ai-diff-empty">No selected draft yet.</p>';
+
+  diffEl.innerHTML = `
+    <div class="ai-diff-column">
+      <h6>Before</h6>
+      <div class="ai-diff-body">${beforeMarkup}</div>
+    </div>
+    <div class="ai-diff-column">
+      <h6>After</h6>
+      <div class="ai-diff-body">${afterMarkup}</div>
+    </div>
+  `;
+  diffMeta.textContent = `Comparing against ${getFieldLabel(targetField)} in ${getAiSectionLabel(targetField)}.`;
+  diffMeta.hidden = false;
+  diffBox.hidden = false;
+}
+
+function renderAiSelectedPreview() {
+  const resultBox = $("#ai-result");
+  const selectedLabel = $("#ai-selected-label");
+  const variants = getAiVariantList();
+  if (!variants.length) {
+    if (resultBox) {
+      resultBox.textContent = "";
+    }
+    if (selectedLabel) {
+      selectedLabel.textContent = "Draft";
+    }
+    renderAiDiffPreview("");
+    return;
+  }
+
+  selectedAiVariantIndex = Math.max(0, Math.min(selectedAiVariantIndex, variants.length - 1));
+  const selectedText = variants[selectedAiVariantIndex];
+  if (resultBox) {
+    resultBox.textContent = selectedText;
+  }
+  if (selectedLabel) {
+    selectedLabel.textContent = variants.length > 1
+      ? `Draft ${selectedAiVariantIndex + 1} of ${variants.length}`
+      : "Draft 1";
+  }
+  renderAiDiffPreview(selectedText);
+}
+
+function renderAiVariantCards() {
+  const variantsEl = $("#ai-variants");
+  if (!variantsEl) {
+    return;
+  }
+
+  const variants = getAiVariantList();
+  variantsEl.innerHTML = "";
+
+  variants.forEach((text, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `ai-variant-card${index === selectedAiVariantIndex ? " is-active" : ""}`;
+    button.setAttribute("aria-pressed", index === selectedAiVariantIndex ? "true" : "false");
+
+    const title = document.createElement("div");
+    title.className = "ai-variant-title";
+    title.innerHTML = `<span>Draft ${index + 1}</span><span class="ai-variant-badge">${index + 1}</span>`;
+
+    const snippet = document.createElement("p");
+    snippet.className = "ai-variant-snippet";
+    snippet.textContent = summarizeAiVariant(text, index);
+
+    button.append(title, snippet);
+    button.addEventListener("click", () => {
+      selectedAiVariantIndex = index;
+      renderAiVariantCards();
+      renderAiSelectedPreview();
+    });
+    variantsEl.appendChild(button);
+  });
 }
 
 function setAiResultState(result) {
   const output = $("#ai-output");
-  const resultBox = $("#ai-result");
   const meta = $("#ai-meta");
-  const targetField = getAiTargetField();
+  const targetField = getAiWriterTargetField();
+  const variants = getAiVariantList(result);
 
-  if (resultBox) {
-    resultBox.textContent = result.text;
-  }
+  lastAiResult = {
+    ...result,
+    variants
+  };
+  selectedAiVariantIndex = 0;
 
   if (meta) {
     const parts = [];
     if (targetField) parts.push(`Target: ${getFieldLabel(targetField)}`);
+    if (variants.length > 1) parts.push(`Drafts: ${variants.length}`);
     if (result.provider) parts.push(`Provider: ${result.provider}`);
     if (result.model) parts.push(`Model: ${result.model}`);
     meta.textContent = parts.join(" | ");
     meta.hidden = parts.length === 0;
   }
+
+  renderAiVariantCards();
+  renderAiSelectedPreview();
 
   if (output) {
     output.hidden = false;
@@ -2917,6 +3301,7 @@ function setAiResultState(result) {
 }
 
 async function requestAiResult(request) {
+  const policy = getAiWriterPolicySettings();
   const payload = {
     task: request.task || "generate",
     prompt: request.prompt || "",
@@ -2928,10 +3313,19 @@ async function requestAiResult(request) {
     contextNotes: request.contextNotes || "",
     relatedFields: Array.isArray(request.relatedFields) ? request.relatedFields : [],
     tone: request.tone || "professional",
-    length: request.length || "medium"
+    length: request.length || "medium",
+    variantCount: Math.min(3, Math.max(1, Number(request.variantCount) || 1)),
+    brandVoiceProfile: request.brandVoiceProfile || policy.brandVoiceProfile || "",
+    blockedPhrases: Array.isArray(request.blockedPhrases) ? request.blockedPhrases : policy.blockedPhrases,
+    bannedClaims: Array.isArray(request.bannedClaims) ? request.bannedClaims : policy.bannedClaims
   };
 
-  lastAiRequest = { ...payload };
+  lastAiRequest = {
+    ...payload,
+    relatedFields: payload.relatedFields.map((entry) => ({ ...entry })),
+    blockedPhrases: [...payload.blockedPhrases],
+    bannedClaims: [...payload.bannedClaims]
+  };
   const result = await generateAdminAiText(payload);
   setAiResultState(result);
   return result;
@@ -2975,6 +3369,7 @@ function undoLastAiReplacement() {
   setAiTargetField(field);
   lastAiReplacement = null;
   updateAiTargetHint();
+  renderAiSelectedPreview();
   return getFieldLabel(field);
 }
 
@@ -2986,6 +3381,7 @@ function prepareAiWriterForField(field, options = {}) {
   const config = getAiFieldConfig(field);
   const task = options.task || (String(field.value || "").trim() ? "improve" : "generate");
 
+  aiWriterStandaloneMode = false;
   setAiTargetField(field);
   setVal("ai-preset", options.preset || config.preset || "custom");
   syncAiPresetFields();
@@ -2993,7 +3389,6 @@ function prepareAiWriterForField(field, options = {}) {
   setVal("ai-tone", options.tone || config.tone || "professional");
   setVal("ai-length", options.length || config.length || "medium");
   setVal("ai-prompt", options.prompt || buildAiFieldPrompt(field, task, config));
-  setVal("ai-current-text", String(field.value || ""));
   setVal("ai-context-notes", options.contextNotes || "");
   updateAiRelatedContextPreview(field);
   updateAiTargetHint();
@@ -3013,6 +3408,7 @@ function getInlineAiRequest(field, options = {}) {
   const config = getAiFieldConfig(field);
   const currentText = String(field.value || "");
   const task = options.task || (currentText.trim() ? "improve" : "generate");
+  const policy = getAiWriterPolicySettings();
 
   return {
     task,
@@ -3025,7 +3421,11 @@ function getInlineAiRequest(field, options = {}) {
     contextNotes: options.contextNotes || "",
     relatedFields: collectAiRelatedFields(field),
     tone: options.tone || config.tone || "professional",
-    length: options.length || config.length || "medium"
+    length: options.length || config.length || "medium",
+    variantCount: 1,
+    brandVoiceProfile: policy.brandVoiceProfile,
+    blockedPhrases: policy.blockedPhrases,
+    bannedClaims: policy.bannedClaims
   };
 }
 
@@ -3121,23 +3521,28 @@ function installAiFieldTriggers() {
 
 function buildAiWriterRequest() {
   const preset = getAiPresetConfig(getVal("ai-preset"));
-  const targetField = getAiTargetField();
+  const targetField = getAiWriterTargetField();
   const targetConfig = targetField ? getAiFieldConfig(targetField) : null;
   const relatedFields = targetField ? updateAiRelatedContextPreview(targetField) : [];
-  const currentText = getVal("ai-current-text");
+  const currentText = targetField ? String(targetField.value || "") : "";
+  const policy = getAiWriterPolicySettings();
 
   return {
     task: getVal("ai-task") || (currentText.trim() ? "improve" : "generate"),
     prompt: getVal("ai-prompt") || preset.prompt,
     currentText,
     fieldContext: targetConfig?.fieldContext || preset.fieldContext || "portfolio copy",
-    fieldLabel: targetField ? getFieldLabel(targetField) : "",
-    sectionContext: targetField ? getAiSectionLabel(targetField) : "",
-    fieldType: targetConfig?.fieldType || "paragraph",
+    fieldLabel: targetField ? getFieldLabel(targetField) : "AI Writer draft",
+    sectionContext: targetField ? getAiSectionLabel(targetField) : "AI Writer",
+    fieldType: targetConfig?.fieldType || preset.fieldType || "paragraph",
     contextNotes: getVal("ai-context-notes"),
     relatedFields,
-    tone: getVal("ai-tone") || targetConfig?.tone || "professional",
-    length: getVal("ai-length") || targetConfig?.length || "medium"
+    tone: getVal("ai-tone") || targetConfig?.tone || preset.tone || "professional",
+    length: getVal("ai-length") || targetConfig?.length || preset.length || "medium",
+    variantCount: 3,
+    brandVoiceProfile: policy.brandVoiceProfile,
+    blockedPhrases: policy.blockedPhrases,
+    bannedClaims: policy.bannedClaims
   };
 }
 
@@ -3148,51 +3553,40 @@ function setupAIWriter() {
   form.dataset.bound = "true";
 
   const output = $("#ai-output");
-  const resultBox = $("#ai-result");
   const statusBox = $("#ai-status");
   const genBtn = $("#ai-gen-btn");
   const presetSelect = $("#ai-preset");
-  const currentInput = $("#ai-current-text");
-  const relatedInput = $("#ai-related-context");
+  const useActiveTargetBtn = $("#ai-use-active-target");
+  const useStandaloneBtn = $("#ai-use-standalone");
 
   installAiFieldTriggers();
   updateAiTargetHint();
-  syncAiPresetFields();
-  if (relatedInput) {
-    relatedInput.value = "";
-  }
+  syncAiPresetFields({ applyDefaults: true });
 
   presetSelect?.addEventListener("change", () => {
-    syncAiPresetFields();
-  });
-
-  $("#ai-pull-context")?.addEventListener("click", () => {
-    const targetField = getAiTargetField();
-    if (!targetField) {
-      flash("ai-status", "Focus a content field first, then pull its text here.", true);
-      return;
-    }
-
-    currentInput.value = targetField.value || "";
+    syncAiPresetFields({ applyDefaults: true });
     updateAiTargetHint();
-    flash("ai-status", `Loaded context from ${getFieldLabel(targetField)}.`, false);
   });
 
-  $("#ai-pull-related")?.addEventListener("click", () => {
+  useActiveTargetBtn?.addEventListener("click", () => {
     const targetField = getAiTargetField();
     if (!targetField) {
-      flash("ai-status", "Focus a content field first, then load its related form context.", true);
+      flash("ai-status", "Focus a content field first, then attach it here.", true);
       return;
     }
 
-    const relatedFields = updateAiRelatedContextPreview(targetField);
-    flash(
-      "ai-status",
-      relatedFields.length
-        ? `Loaded ${relatedFields.length} related field${relatedFields.length === 1 ? "" : "s"} from ${getAiSectionLabel(targetField)}.`
-        : "No other filled fields were found in that form yet.",
-      false
-    );
+    aiWriterStandaloneMode = false;
+    setAiTargetField(targetField);
+    updateAiTargetHint();
+    renderAiSelectedPreview();
+    flash("ai-status", `AI Writer is now targeting ${getFieldLabel(targetField)}.`, false);
+  });
+
+  useStandaloneBtn?.addEventListener("click", () => {
+    aiWriterStandaloneMode = true;
+    updateAiTargetHint();
+    renderAiSelectedPreview();
+    flash("ai-status", "AI Writer switched to standalone drafting mode.", false);
   });
 
   form.addEventListener("submit", async (e) => {
@@ -3205,42 +3599,44 @@ function setupAIWriter() {
     }
 
     genBtn.disabled = true;
-    genBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Running AI...`;
+    genBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generating drafts...`;
     statusBox.hidden = true;
     output.hidden = true;
 
     try {
-      await requestAiResult(request);
-      flash("ai-status", "AI draft ready.", false);
+      const result = await requestAiResult(request);
+      const count = getAiVariantList(result).length;
+      flash("ai-status", `${count} AI draft${count === 1 ? "" : "s"} ready. Review the diff before applying one.`, false);
     } catch (err) {
       statusBox.textContent = "Generation failed: " + (err.message || "Unknown error.");
       statusBox.hidden = false;
     } finally {
       genBtn.disabled = false;
-      genBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Run AI`;
+      genBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Generate 3 Drafts`;
     }
   });
 
   $("#ai-copy")?.addEventListener("click", () => {
-    const text = resultBox?.textContent || "";
+    const text = getSelectedAiText();
     if (!text.trim()) {
       flash("ai-status", "Nothing to copy yet.", true);
       return;
     }
-    navigator.clipboard.writeText(text).then(() => flash("ai-status", "AI draft copied.", false));
+    navigator.clipboard.writeText(text).then(() => flash("ai-status", "Selected draft copied.", false));
   });
 
   $("#ai-apply")?.addEventListener("click", () => {
-    const text = resultBox?.textContent || "";
+    const text = getSelectedAiText();
     if (!text.trim()) {
       flash("ai-status", "Generate content before applying it.", true);
       return;
     }
 
     try {
-      const targetField = getAiTargetField();
+      const targetField = getAiWriterTargetField();
       applyAiTextToField(targetField, text);
       flash("ai-status", `Inserted AI copy into ${getFieldLabel(targetField)}.`, false);
+      renderAiSelectedPreview();
     } catch (err) {
       flash("ai-status", err.message || "Unable to apply AI copy.", true);
     }
@@ -3262,18 +3658,19 @@ function setupAIWriter() {
     }
 
     genBtn.disabled = true;
-    genBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Regenerating...`;
+    genBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generating drafts...`;
     statusBox.hidden = true;
+    output.hidden = true;
 
     try {
-      await requestAiResult(lastAiRequest);
-      flash("ai-status", "AI draft refreshed.", false);
+      const result = await requestAiResult(lastAiRequest);
+      flash("ai-status", `${getAiVariantList(result).length} fresh draft options generated.`, false);
     } catch (err) {
       statusBox.textContent = "Generation failed: " + (err.message || "Unknown error.");
       statusBox.hidden = false;
     } finally {
       genBtn.disabled = false;
-      genBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Run AI`;
+      genBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Generate 3 Drafts`;
     }
   });
 

@@ -162,11 +162,57 @@
 .admin-runtime-banner{padding:.5rem 1rem;border-radius:var(--rad);font-size:.78rem;margin-bottom:1rem;background:rgba(59,130,246,.1);color:#3b82f6;border:1px solid rgba(59,130,246,.25)}
 .admin-runtime-banner:empty{display:none}
 
+/* --- Settings ---------------------------------------------------- */
+.settings-rule-block{display:grid;gap:1rem;padding:1rem 1.1rem;border:1px solid var(--border-color);border-radius:var(--rad);background:var(--bg-secondary)}
+.settings-rule-head{display:grid;gap:.35rem}
+.settings-rule-head h3{margin:0;font-size:1rem}
+.settings-rule-head p{margin:0}
+.settings-rule-grid{align-items:start}
+
 /* --- AI Writer --------------------------------------------------- */
-.ai-output-box{margin-top:1.25rem;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--rad);padding:1.25rem}
-.ai-result{white-space:pre-wrap;line-height:1.7;font-size:.88rem;color:var(--text-primary)}
+.ai-writer-card{display:grid;gap:1rem}
+.ai-writer-intro{display:grid;gap:.85rem;padding:1rem 1.1rem;border:1px solid var(--border-color);border-radius:var(--rad);background:linear-gradient(135deg,rgba(var(--accent-rgb,.15),.08),transparent 60%),var(--bg-secondary)}
+.ai-writer-intro h3{margin:0;font-size:1rem}
+.ai-writer-intro p{margin:.35rem 0 0;color:var(--text-muted);line-height:1.65}
+.ai-context-badges{display:flex;flex-wrap:wrap;gap:.5rem}
+.ai-context-badges span{display:inline-flex;align-items:center;padding:.38rem .7rem;border-radius:999px;border:1px solid var(--border-color);background:var(--bg-primary);font-size:.76rem;font-weight:600;color:var(--text-secondary)}
+.ai-context-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.85rem}
+.ai-context-card{min-width:0;padding:1rem;border:1px solid var(--border-color);border-radius:var(--rad);background:var(--bg-secondary)}
+.ai-context-label{margin:0 0 .45rem;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)}
+.ai-context-card h4{margin:0 0 .4rem;font-size:.95rem;line-height:1.35;color:var(--text-primary)}
+.ai-context-copy{margin:0;color:var(--text-muted);font-size:.84rem;line-height:1.6}
+.ai-context-actions{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:.85rem}
+.ai-context-actions .btn{flex:1 1 160px;justify-content:center}
+.ai-writer-form{gap:1rem}
+.ai-writer-form .form-group{min-width:0}
+.ai-writer-form #ai-prompt{min-height:170px}
+.ai-field-note{margin:.5rem 0 0;color:var(--text-muted);font-size:.78rem;line-height:1.55}
+.ai-target-meta{padding:.8rem 1rem;border-radius:var(--rad);border:1px solid var(--border-color);background:var(--bg-secondary)}
+.ai-output-box{margin-top:1.25rem;display:grid;gap:.85rem;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--rad);padding:1.25rem}
+.ai-output-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.ai-output-head h4{margin:0}
+.ai-variants{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem}
+.ai-variant-card{display:grid;gap:.45rem;width:100%;padding:.95rem 1rem;border:1px solid var(--border-color);border-radius:var(--rad);background:var(--bg-primary);text-align:left;cursor:pointer;transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease}
+.ai-variant-card:hover{border-color:rgba(var(--accent-rgb,.15),.45);transform:translateY(-1px)}
+.ai-variant-card.is-active{border-color:var(--accent);box-shadow:0 0 0 3px rgba(var(--accent-rgb,.15),.14)}
+.ai-variant-title{display:flex;align-items:center;justify-content:space-between;gap:.75rem;font-size:.82rem;font-weight:700;color:var(--text-primary)}
+.ai-variant-badge{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 .55rem;border-radius:999px;background:rgba(var(--accent-rgb,.15),.12);color:var(--accent);font-size:.75rem;font-weight:700}
+.ai-variant-snippet{margin:0;color:var(--text-muted);font-size:.8rem;line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ai-preview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.ai-preview-panel{display:grid;gap:.75rem;min-width:0;padding:1rem;border:1px solid var(--border-color);border-radius:var(--rad);background:var(--bg-primary)}
+.ai-preview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.ai-preview-head h5{margin:0;font-size:.92rem}
+.ai-selected-label{display:inline-flex;align-items:center;padding:.35rem .7rem;border-radius:999px;background:rgba(var(--accent-rgb,.15),.12);border:1px solid rgba(var(--accent-rgb,.15),.2);color:var(--accent);font-size:.76rem;font-weight:700}
+.ai-result{white-space:pre-wrap;line-height:1.75;font-size:.9rem;color:var(--text-primary);padding:1rem;border:1px solid var(--border-color);border-radius:var(--rad);background:var(--bg-primary)}
 .ai-meta{margin:0;color:var(--text-muted);font-size:.78rem;line-height:1.5}
-#ai-related-context{font-size:.82rem;line-height:1.55}
+.ai-diff{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+.ai-diff-column{display:grid;gap:.45rem;min-width:0}
+.ai-diff-column h6{margin:0;font-size:.78rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted)}
+.ai-diff-body{min-height:180px;padding:1rem;border:1px solid var(--border-color);border-radius:var(--rad);background:var(--bg-secondary);white-space:pre-wrap;line-height:1.75;font-size:.85rem;color:var(--text-primary)}
+.ai-diff-empty{margin:0;color:var(--text-muted)}
+.ai-diff-token.is-added{background:rgba(34,197,94,.14);color:#15803d;border-radius:4px;padding:0 .12rem}
+.ai-diff-token.is-removed{background:rgba(239,68,68,.12);color:#b91c1c;border-radius:4px;padding:0 .12rem;text-decoration:line-through}
+.ai-output-actions .btn{flex:1 1 180px;justify-content:center}
 
 /* ================================================================
    ICON PICKER
@@ -253,6 +299,15 @@
   .admin-card h3{font-size:.98rem}
   .admin-actions-row{gap:.4rem}
   .admin-actions-row .btn,.admin-actions-row label.btn{font-size:.82rem;padding:.45rem .8rem}
+  .settings-rule-block{padding:.95rem}
+  .ai-context-grid{grid-template-columns:1fr}
+  .ai-writer-intro{padding:.9rem}
+  .ai-context-actions .btn{width:100%}
+  .ai-output-head{flex-direction:column;align-items:flex-start}
+  .ai-preview-grid{grid-template-columns:1fr}
+  .ai-diff{grid-template-columns:1fr}
+  .ai-variants{grid-template-columns:1fr}
+  .ai-output-actions .btn{width:100%}
 
   /* Responsive table → card rows */
   .admin-table thead{display:none}

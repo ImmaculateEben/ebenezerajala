@@ -202,6 +202,24 @@ export const DEFAULT_SITE_CONTENT = {
     siteUrl: "https://immaculatedesigns.com.ng",
     analyticsMeasurementId: "",
     adminContactLabel: "Primary inbox",
+    aiWriter: {
+      brandVoiceProfile: "Clear, credible, conversion-focused copy for a professional portfolio. Sound modern, capable, and grounded in real outcomes. Prefer specifics over hype and keep the tone polished without sounding generic.",
+      blockedPhrases: [
+        "passionate about",
+        "results-driven",
+        "cutting-edge",
+        "world-class",
+        "best-in-class",
+        "innovative solutions"
+      ],
+      bannedClaims: [
+        "guaranteed results",
+        "number one",
+        "industry-leading",
+        "award-winning unless verified",
+        "100% conversion increase unless proven"
+      ]
+    },
     searchConsole: {
       verificationTags: "",
       sitemapUrl: "",
