@@ -16,5 +16,8 @@ verify_jwt = false
 [functions.admin-invite]
 verify_jwt = false
 
+[functions.github-activity]
+verify_jwt = false
+
 [functions.admin-search-console]
 verify_jwt = false

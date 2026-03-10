@@ -2684,6 +2684,374 @@ footer {
     scroll-snap-align: start;
 }
 
+/* =========================================
+   GITHUB CONTRIBUTIONS
+   ========================================= */
+.github-contrib {
+    --gh-level-0: rgba(148, 163, 184, 0.18);
+    --gh-level-1: #0e4429;
+    --gh-level-2: #006d32;
+    --gh-level-3: #26a641;
+    --gh-level-4: #39d353;
+    margin-top: clamp(2.25rem, 5vw, 3.25rem);
+    display: grid;
+    gap: 0.95rem;
+}
+
+[data-theme="light"] .github-contrib {
+    --gh-level-0: #ebedf0;
+    --gh-level-1: #9be9a8;
+    --gh-level-2: #40c463;
+    --gh-level-3: #30a14e;
+    --gh-level-4: #216e39;
+}
+
+[data-theme="gold"] .github-contrib {
+    --gh-level-0: rgba(254, 243, 208, 0.12);
+    --gh-level-1: #5f6f27;
+    --gh-level-2: #7c8f2f;
+    --gh-level-3: #a7bf3f;
+    --gh-level-4: #d4e157;
+}
+
+.github-contrib-heading {
+    font-size: clamp(1.3rem, 2.8vw, 1.75rem);
+    line-height: 1.2;
+}
+
+.github-contrib-sub {
+    color: var(--text-secondary);
+    max-width: 42rem;
+}
+
+.github-contrib-card {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    padding: clamp(1rem, 2.2vw, 1.45rem);
+}
+
+.gh-cal {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-hover) transparent;
+    padding-bottom: 0.45rem;
+}
+
+.gh-cal::-webkit-scrollbar {
+    height: 10px;
+}
+
+.gh-cal::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.gh-cal::-webkit-scrollbar-thumb {
+    background: var(--border-hover);
+    border-radius: 999px;
+}
+
+.gh-cal>*,
+.gh-cal .js-yearly-contributions,
+.gh-cal .position-relative,
+.gh-cal .js-calendar-graph,
+.gh-cal .ContributionCalendar-grid,
+.gh-cal svg {
+    min-width: max-content;
+}
+
+.gh-cal .border,
+.gh-cal .graph-before-activity-overview {
+    border: 0 !important;
+}
+
+.gh-cal .js-calendar-graph {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 0.9rem;
+}
+
+.gh-cal .js-calendar-graph>div {
+    max-width: none !important;
+    overflow: visible !important;
+}
+
+.gh-cal .sr-only,
+.gh-cal .hide-sm.hide-md.hide-lg,
+.gh-cal tool-tip.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.gh-cal #js-contribution-activity-description {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: left;
+}
+
+.gh-cal .ContributionCalendar-grid {
+    border-collapse: separate;
+    border-spacing: 4px;
+    color: var(--text-muted);
+}
+
+.gh-cal thead td,
+.gh-cal tbody td {
+    padding: 0;
+    vertical-align: top;
+}
+
+.gh-cal .ContributionCalendar-grid thead td:first-child,
+.gh-cal .ContributionCalendar-grid tbody td:first-child {
+    width: 2rem;
+    min-width: 2rem;
+}
+
+.gh-cal .ContributionCalendar-grid td:not(:first-child):not(.ContributionCalendar-label):not(.ContributionCalendar-day) {
+    width: 11px;
+    min-width: 11px;
+}
+
+.gh-cal .ContributionCalendar-label {
+    position: relative;
+    min-width: 2rem;
+    height: 1rem;
+    padding-right: 0.35rem;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    line-height: 1;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.gh-cal thead .ContributionCalendar-label {
+    height: 1.15rem;
+}
+
+.gh-cal thead .ContributionCalendar-label span[aria-hidden="true"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.gh-cal tbody .ContributionCalendar-label {
+    width: 2rem;
+}
+
+.gh-cal tbody .ContributionCalendar-label span[aria-hidden="true"] {
+    position: absolute;
+    right: 0.2rem;
+    bottom: -0.15rem;
+}
+
+.gh-cal .ContributionCalendar-day {
+    width: 11px;
+    min-width: 11px;
+    height: 11px;
+    border-radius: 3px;
+    background: var(--gh-level-0);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.gh-cal .ContributionCalendar-day[data-level="0"] {
+    background: var(--gh-level-0) !important;
+}
+
+.gh-cal .ContributionCalendar-day[data-level="1"] {
+    background: var(--gh-level-1) !important;
+}
+
+.gh-cal .ContributionCalendar-day[data-level="2"] {
+    background: var(--gh-level-2) !important;
+}
+
+.gh-cal .ContributionCalendar-day[data-level="3"] {
+    background: var(--gh-level-3) !important;
+}
+
+.gh-cal .ContributionCalendar-day[data-level="4"] {
+    background: var(--gh-level-4) !important;
+}
+
+.gh-cal rect[data-date][data-level="0"] {
+    fill: var(--gh-level-0) !important;
+}
+
+.gh-cal rect[data-date][data-level="1"] {
+    fill: var(--gh-level-1) !important;
+}
+
+.gh-cal rect[data-date][data-level="2"] {
+    fill: var(--gh-level-2) !important;
+}
+
+.gh-cal rect[data-date][data-level="3"] {
+    fill: var(--gh-level-3) !important;
+}
+
+.gh-cal rect[data-date][data-level="4"] {
+    fill: var(--gh-level-4) !important;
+}
+
+.gh-cal svg {
+    display: block;
+    height: auto;
+    overflow: visible;
+}
+
+.gh-loading,
+.gh-unavailable {
+    min-height: clamp(11rem, 24vw, 14rem);
+    display: grid;
+    place-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.gh-loading i,
+.gh-unavailable i {
+    font-size: 1.35rem;
+    color: var(--accent);
+}
+
+.gh-unavailable p,
+.gh-loading p {
+    margin: 0;
+}
+
+.gh-scroll-hint {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    margin-top: 0.8rem;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+}
+
+.gh-scroll-hint[hidden] {
+    display: none !important;
+}
+
+.github-contrib.is-scrollable .gh-scroll-hint:not([hidden]) {
+    display: flex;
+}
+
+.gh-legend {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.95rem;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
+.gh-legend-label {
+    line-height: 1;
+}
+
+.gh-legend-box {
+    width: 11px;
+    height: 11px;
+    border-radius: 3px;
+    display: inline-block;
+    background: var(--gh-level-0);
+}
+
+.gh-legend-box[data-level="0"] {
+    background: var(--gh-level-0);
+}
+
+.gh-legend-box[data-level="1"] {
+    background: var(--gh-level-1);
+}
+
+.gh-legend-box[data-level="2"] {
+    background: var(--gh-level-2);
+}
+
+.gh-legend-box[data-level="3"] {
+    background: var(--gh-level-3);
+}
+
+.gh-legend-box[data-level="4"] {
+    background: var(--gh-level-4);
+}
+
+.github-contrib-link {
+    width: fit-content;
+}
+
+@media (max-width: 900px) {
+    .github-contrib-card {
+        padding: 1rem;
+    }
+
+    .gh-cal #js-contribution-activity-description {
+        font-size: 0.92rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .gh-cal {
+        padding-bottom: 0.6rem;
+    }
+
+    .gh-cal .js-yearly-contributions,
+    .gh-cal .ContributionCalendar-grid,
+    .gh-cal svg {
+        min-width: 720px;
+    }
+
+    .gh-legend {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .github-contrib-heading {
+        font-size: 1.2rem;
+    }
+
+    .gh-cal .ContributionCalendar-label {
+        font-size: 0.68rem;
+    }
+
+    .gh-cal .ContributionCalendar-day,
+    .gh-legend-box {
+        width: 10px;
+        min-width: 10px;
+        height: 10px;
+    }
+
+    .gh-cal .ContributionCalendar-grid td:not(:first-child):not(.ContributionCalendar-label):not(.ContributionCalendar-day) {
+        width: 10px;
+        min-width: 10px;
+    }
+
+    .gh-scroll-hint {
+        font-size: 0.75rem;
+    }
+}
+
 
 
 /* =========================================

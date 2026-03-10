@@ -1,79 +1,83 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-/* ── Constants ──────────────────────────────────────────────────── */
-const CACHE_TTL_SECONDS = 6 * 60 * 60; // 6 hours
+const CACHE_TTL_SECONDS = 6 * 60 * 60;
 const FETCH_TIMEOUT_MS = 8_000;
-const MAX_MARKUP_BYTES = 300_000; // 300 KB safety cap on GitHub response
-// GitHub's public contributions endpoint (no auth required, unauthenticated)
+const MAX_MARKUP_BYTES = 300_000;
 const GITHUB_CONTRIBUTIONS_BASE = "https://github.com";
-// Strict username validation: 1-39 chars, alphanumeric + hyphens, no leading/trailing hyphen
 const GITHUB_USERNAME_RE = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
 
-/* ── CORS ───────────────────────────────────────────────────────── */
 const BASE_CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   Vary: "Origin",
 };
 
+type CacheRow = {
+  markup: string;
+  expires_at: string;
+  fetched_at: string;
+  source_url: string;
+};
+
 function parseAllowedOrigins(value: string): string[] {
   return value
     .split(",")
-    .map((s) => s.trim())
+    .map((entry) => entry.trim())
     .filter(Boolean);
 }
 
-function isAllowedOrigin(origin: string, allowed: string[]): boolean {
-  if (!origin) return true;
-  if (!allowed.length) return true;
-  return allowed.includes(origin);
-}
-
-function buildCorsHeaders(
-  origin: string,
-  allowed: string[]
-): Record<string, string> {
-  const ok = isAllowedOrigin(origin, allowed);
-  return ok && origin
+function buildCorsHeaders(origin: string): Record<string, string> {
+  return origin
     ? { ...BASE_CORS_HEADERS, "Access-Control-Allow-Origin": origin }
     : { ...BASE_CORS_HEADERS };
 }
 
-/* ── HTTP helpers ───────────────────────────────────────────────── */
 function jsonResponse(
   body: Record<string, unknown>,
   status = 200,
-  corsHeaders: Record<string, string> = {}
+  headers: Record<string, string> = {},
 ): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: {
+      ...headers,
+      "Content-Type": "application/json",
+    },
   });
 }
 
-/* ── Input validation ───────────────────────────────────────────── */
 function validateUsername(raw: unknown): string {
   const username = String(raw ?? "").trim();
-  if (!username) throw new Error("username is required.");
+  if (!username) {
+    throw new Error("username is required.");
+  }
   if (!GITHUB_USERNAME_RE.test(username)) {
     throw new Error(
-      "Invalid GitHub username. Only letters, numbers, and hyphens are allowed (1-39 chars, no leading/trailing hyphens)."
+      "Invalid GitHub username. Only letters, numbers, and hyphens are allowed (1-39 chars, no leading/trailing hyphens).",
     );
   }
   return username;
 }
 
-/* ── SSRF-safe GitHub fetch ─────────────────────────────────────── */
-async function fetchGitHubContributions(username: string): Promise<string> {
-  // Construct URL deterministically — never from user input in the path
-  const url = `${GITHUB_CONTRIBUTIONS_BASE}/users/${encodeURIComponent(username)}/contributions`;
+function buildSourceUrl(username: string): string {
+  return `${GITHUB_CONTRIBUTIONS_BASE}/users/${encodeURIComponent(username)}/contributions`;
+}
 
+function isFreshCache(cache: CacheRow | null): boolean {
+  if (!cache?.expires_at) {
+    return false;
+  }
+  return new Date(cache.expires_at).getTime() > Date.now();
+}
+
+async function fetchGitHubContributions(username: string): Promise<string> {
+  const sourceUrl = buildSourceUrl(username);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
   let response: Response;
   try {
-    response = await fetch(url, {
+    response = await fetch(sourceUrl, {
       signal: controller.signal,
       redirect: "follow",
       headers: {
@@ -81,7 +85,6 @@ async function fetchGitHubContributions(username: string): Promise<string> {
           "Mozilla/5.0 (compatible; PortfolioCalendarBot/2.0; +https://immaculatedesigns.com.ng)",
         Accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.5",
-        // Tell GitHub this is an XHR so it only returns the fragment
         "X-Requested-With": "XMLHttpRequest",
       },
     });
@@ -89,15 +92,18 @@ async function fetchGitHubContributions(username: string): Promise<string> {
     clearTimeout(timeoutId);
   }
 
-  // SSRF guard: ensure the final URL is still github.com after any redirect
-  const finalUrl = String(response.url || url);
-  if (!finalUrl.startsWith(GITHUB_CONTRIBUTIONS_BASE + "/")) {
+  const finalUrl = String(response.url || sourceUrl);
+  if (!finalUrl.startsWith(`${GITHUB_CONTRIBUTIONS_BASE}/`)) {
     throw new Error("Response URL does not match expected GitHub origin.");
   }
 
   if (!response.ok) {
-    if (response.status === 404) throw new Error(`GitHub user "${username}" not found.`);
-    if (response.status === 429) throw new Error("GitHub rate limit reached. Try again soon.");
+    if (response.status === 404) {
+      throw new Error(`GitHub user "${username}" not found.`);
+    }
+    if (response.status === 429) {
+      throw new Error("GitHub rate limit reached. Try again soon.");
+    }
     throw new Error(`GitHub returned HTTP ${response.status}.`);
   }
 
@@ -110,115 +116,164 @@ async function fetchGitHubContributions(username: string): Promise<string> {
     throw new Error("Unexpected content-type in GitHub response.");
   }
 
-  const text = await response.text();
-  if (!text || !text.trim()) throw new Error("GitHub returned an empty response.");
-  if (text.length > MAX_MARKUP_BYTES) throw new Error("GitHub response exceeded size limit.");
+  const markup = (await response.text()).trim();
+  if (!markup) {
+    throw new Error("GitHub returned an empty response.");
+  }
+  if (markup.length > MAX_MARKUP_BYTES) {
+    throw new Error("GitHub response exceeded size limit.");
+  }
 
-  return text.trim();
+  return markup;
 }
 
-/* ── DB cache helpers ───────────────────────────────────────────── */
-type CacheRow = { markup: string; expires_at: string };
-
-async function getCached(
+async function getCacheEntry(
   supabase: ReturnType<typeof createClient>,
-  username: string
-): Promise<string | null> {
-  const { data } = await supabase
+  username: string,
+): Promise<CacheRow | null> {
+  const { data, error } = await supabase
     .from("github_activity_cache")
-    .select("markup, expires_at")
+    .select("markup, expires_at, fetched_at, source_url")
     .eq("username", username)
     .maybeSingle<CacheRow>();
 
-  if (!data) return null;
-  if (new Date(data.expires_at) <= new Date()) return null; // stale
-  return data.markup;
+  if (error && error.code !== "PGRST116") {
+    throw error;
+  }
+
+  return data ?? null;
 }
 
 async function upsertCache(
   supabase: ReturnType<typeof createClient>,
   username: string,
   markup: string,
-  now: Date
+  now: Date,
 ): Promise<void> {
+  const sourceUrl = buildSourceUrl(username);
   const expiresAt = new Date(now.getTime() + CACHE_TTL_SECONDS * 1_000).toISOString();
+
   await supabase.from("github_activity_cache").upsert(
     {
       username,
       markup,
       fetched_at: now.toISOString(),
       expires_at: expiresAt,
-      source_url: `${GITHUB_CONTRIBUTIONS_BASE}/users/${username}/contributions`,
+      source_url: sourceUrl,
       metadata: {},
     },
-    { onConflict: "username" }
+    { onConflict: "username" },
   );
 }
 
-/* ── Main handler ───────────────────────────────────────────────── */
 Deno.serve(async (req: Request) => {
   const origin = String(req.headers.get("origin") || "").trim();
   const allowedOrigins = parseAllowedOrigins(Deno.env.get("ALLOWED_ORIGINS") || "");
-  const cors = buildCorsHeaders(origin, allowedOrigins);
+
+  if (origin) {
+    if (!allowedOrigins.length) {
+      return jsonResponse({ error: "Allowed origins are not configured." }, 500, BASE_CORS_HEADERS);
+    }
+    if (!allowedOrigins.includes(origin)) {
+      return jsonResponse({ error: "Origin not allowed." }, 403, BASE_CORS_HEADERS);
+    }
+  }
+
+  const corsHeaders = buildCorsHeaders(origin);
 
   if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: cors });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   if (req.method !== "GET") {
-    return jsonResponse({ error: "Method not allowed." }, 405, cors);
+    return jsonResponse({ error: "Method not allowed." }, 405, corsHeaders);
   }
 
-  // Require a valid Supabase anon or service-role token to prevent open abuse
   const authHeader = String(req.headers.get("authorization") || "").trim();
   const apikeyHeader = String(req.headers.get("apikey") || "").trim();
   if (!authHeader && !apikeyHeader) {
-    return jsonResponse({ error: "Missing authorization." }, 401, cors);
+    return jsonResponse({ error: "Missing authorization." }, 401, corsHeaders);
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
   if (!supabaseUrl || !serviceKey) {
-    return jsonResponse({ error: "Server configuration error." }, 500, cors);
+    return jsonResponse({ error: "Server configuration error." }, 500, corsHeaders);
   }
 
-  const supabase = createClient(supabaseUrl, serviceKey);
+  const supabase = createClient(supabaseUrl, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 
-  // Parse + validate username
   let username: string;
   try {
-    const params = new URL(req.url).searchParams;
-    username = validateUsername(params.get("username"));
-  } catch (err) {
-    return jsonResponse({ error: (err as Error).message }, 400, cors);
+    username = validateUsername(new URL(req.url).searchParams.get("username"));
+  } catch (error) {
+    return jsonResponse({ error: (error as Error).message }, 400, corsHeaders);
+  }
+
+  let cachedEntry: CacheRow | null = null;
+  try {
+    cachedEntry = await getCacheEntry(supabase, username);
+  } catch (_error) {
+    cachedEntry = null;
+  }
+
+  if (isFreshCache(cachedEntry)) {
+    return jsonResponse(
+      {
+        username,
+        markup: cachedEntry?.markup || "",
+        cached: true,
+        stale: false,
+        fetchedAt: cachedEntry?.fetched_at || "",
+        sourceUrl: cachedEntry?.source_url || buildSourceUrl(username),
+      },
+      200,
+      corsHeaders,
+    );
   }
 
   const now = new Date();
 
-  // Try cache first
   try {
-    const cached = await getCached(supabase, username);
-    if (cached) {
-      return jsonResponse({ markup: cached, cached: true }, 200, cors);
+    const markup = await fetchGitHubContributions(username);
+
+    try {
+      await upsertCache(supabase, username, markup, now);
+    } catch (_error) {
+      // Cache writes are best-effort.
     }
-  } catch (_cacheErr) {
-    // Non-fatal — fall through to live fetch
-  }
 
-  // Live fetch from GitHub
-  let markup: string;
-  try {
-    markup = await fetchGitHubContributions(username);
-  } catch (err) {
-    return jsonResponse({ error: (err as Error).message }, 502, cors);
-  }
+    return jsonResponse(
+      {
+        username,
+        markup,
+        cached: false,
+        stale: false,
+        fetchedAt: now.toISOString(),
+        sourceUrl: buildSourceUrl(username),
+      },
+      200,
+      corsHeaders,
+    );
+  } catch (error) {
+    if (cachedEntry?.markup) {
+      return jsonResponse(
+        {
+          username,
+          markup: cachedEntry.markup,
+          cached: true,
+          stale: true,
+          fetchedAt: cachedEntry.fetched_at || "",
+          sourceUrl: cachedEntry.source_url || buildSourceUrl(username),
+          message: (error as Error).message,
+        },
+        200,
+        corsHeaders,
+      );
+    }
 
-  // Write to cache (non-fatal if this fails)
-  try {
-    await upsertCache(supabase, username, markup, now);
-  } catch (_writeErr) {
-    // Ignore cache write errors
+    return jsonResponse({ error: (error as Error).message }, 502, corsHeaders);
   }
-
-  return jsonResponse({ markup, cached: false }, 200, cors);
 });

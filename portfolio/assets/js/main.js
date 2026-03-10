@@ -968,6 +968,24 @@ function highlightTitle(text) {
 // ── GitHub Contributions ─────────────────────────────────────────────────────
 
 const _GH_USERNAME_RE = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
+const _GH_MOBILE_MEDIA_QUERY = "(max-width: 768px)";
+const _GH_OVERFLOW_TOLERANCE = 4;
+const _ghCalendarStates = new WeakMap();
+
+function _getGhCalendarState(cal) {
+  let state = _ghCalendarStates.get(cal);
+  if (!state) {
+    state = {
+      requestId: 0,
+      rafId: 0,
+      resizeHandler: null,
+      scrollHandler: null,
+      userScrolled: false
+    };
+    _ghCalendarStates.set(cal, state);
+  }
+  return state;
+}
 
 function _resolveGitHubUsername(siteContent) {
   const raw = String(siteContent?.profile?.githubUsername || siteContent?.profile?.github || "").trim();
@@ -976,73 +994,175 @@ function _resolveGitHubUsername(siteContent) {
   return _GH_USERNAME_RE.test(candidate) ? candidate : "";
 }
 
-function _setGhUnavailable(cal, msg) {
+function _hideGhScrollHint(section) {
+  const scrollHint = section.querySelector(".gh-scroll-hint");
+  if (scrollHint) {
+    scrollHint.hidden = true;
+  }
+}
+
+function _teardownGhCalendar(section, cal) {
+  const state = _getGhCalendarState(cal);
+  if (state.rafId) {
+    cancelAnimationFrame(state.rafId);
+    state.rafId = 0;
+  }
+  if (state.resizeHandler) {
+    window.removeEventListener("resize", state.resizeHandler);
+    state.resizeHandler = null;
+  }
+  if (state.scrollHandler) {
+    cal.removeEventListener("scroll", state.scrollHandler);
+    state.scrollHandler = null;
+  }
+  state.userScrolled = false;
+  section.classList.remove("is-scrollable", "is-unavailable");
+  _hideGhScrollHint(section);
+}
+
+function _applyGhCalendarLayout(section, cal, options = {}) {
+  const state = _getGhCalendarState(cal);
+  state.rafId = 0;
+
+  const maxScrollLeft = Math.max(0, cal.scrollWidth - cal.clientWidth);
+  const overflow = maxScrollLeft > _GH_OVERFLOW_TOLERANCE;
+  const isMobile = window.matchMedia(_GH_MOBILE_MEDIA_QUERY).matches;
+  const scrollHint = section.querySelector(".gh-scroll-hint");
+
+  section.classList.toggle("is-scrollable", overflow);
+
+  if (!overflow) {
+    cal.scrollLeft = 0;
+    if (scrollHint) {
+      scrollHint.hidden = true;
+    }
+    return;
+  }
+
+  if (isMobile && options.jumpToRecent && !state.userScrolled) {
+    cal.scrollLeft = maxScrollLeft;
+  } else if (!isMobile && cal.scrollLeft !== 0) {
+    cal.scrollLeft = 0;
+  }
+
+  if (scrollHint) {
+    scrollHint.hidden = !(isMobile && !state.userScrolled);
+  }
+}
+
+function _scheduleGhCalendarLayout(section, cal, options = {}) {
+  const state = _getGhCalendarState(cal);
+  if (state.rafId) {
+    cancelAnimationFrame(state.rafId);
+  }
+  state.rafId = requestAnimationFrame(() => {
+    state.rafId = requestAnimationFrame(() => {
+      _applyGhCalendarLayout(section, cal, options);
+    });
+  });
+}
+
+function _bindGhCalendarInteractions(section, cal) {
+  const state = _getGhCalendarState(cal);
+
+  const resizeHandler = () => {
+    _scheduleGhCalendarLayout(section, cal, {
+      jumpToRecent: !state.userScrolled
+    });
+  };
+
+  const scrollHandler = () => {
+    if (cal.scrollLeft <= _GH_OVERFLOW_TOLERANCE) {
+      return;
+    }
+    state.userScrolled = true;
+    _hideGhScrollHint(section);
+  };
+
+  state.resizeHandler = resizeHandler;
+  state.scrollHandler = scrollHandler;
+
+  window.addEventListener("resize", resizeHandler, { passive: true });
+  cal.addEventListener("scroll", scrollHandler, { passive: true });
+}
+
+function _updateGhProfileLink(section, username, profileUrl) {
+  const profileLink = section.querySelector("[data-github-profile-link]");
+  if (!profileLink) {
+    return;
+  }
+
+  const fallbackUrl = username
+    ? `https://github.com/${encodeURIComponent(username)}`
+    : "https://github.com";
+
+  profileLink.setAttribute("href", profileUrl || fallbackUrl);
+}
+
+function _setGhUnavailable(section, cal, msg) {
+  _teardownGhCalendar(section, cal);
+  section.classList.add("is-unavailable");
   safeSetHtml(
     cal,
     `<div class="gh-unavailable"><i class="fa-brands fa-github"></i><p>${escapeHtml(msg)}</p></div>`
   );
 }
 
-async function _renderGitHubCalendar(cal, username) {
-  const markup = await loadGitHubContributions(username);
-  const safe = sanitizeImportedHtmlFragment(markup);
-  if (!safe || !safe.querySelector(".ContributionCalendar-day, rect[data-date]")) {
-    _setGhUnavailable(cal, "No contribution data available right now.");
-    return false;
+async function _renderGitHubCalendar(section, cal, username) {
+  const state = _getGhCalendarState(cal);
+  state.requestId += 1;
+  const requestId = state.requestId;
+
+  try {
+    const markup = await loadGitHubContributions(username);
+    if (_getGhCalendarState(cal).requestId !== requestId) {
+      return false;
+    }
+
+    const safe = sanitizeImportedHtmlFragment(markup);
+    if (!safe || !safe.querySelector(".ContributionCalendar-day, rect[data-date]")) {
+      _setGhUnavailable(section, cal, "No contribution data available right now.");
+      return false;
+    }
+
+    cal.innerHTML = "";
+    cal.appendChild(safe);
+    applyExternalLinkSafety(cal);
+    section.classList.remove("is-unavailable");
+    _bindGhCalendarInteractions(section, cal);
+    _scheduleGhCalendarLayout(section, cal, { jumpToRecent: true });
+    return true;
+  } catch (error) {
+    if (_getGhCalendarState(cal).requestId !== requestId) {
+      return false;
+    }
+    throw error;
   }
-  cal.innerHTML = "";
-  cal.appendChild(safe);
-  return true;
 }
 
 async function initGitHubContributions(siteContent) {
   const section = document.getElementById("github-contributions");
   if (!section) return;
 
-  const username = _resolveGitHubUsername(siteContent);
   const cal = section.querySelector(".gh-cal");
   if (!cal) return;
 
-  // Update the profile link href if the admin has set a GitHub URL
-  const profileLink = section.querySelector("[data-github-profile-link]");
-  if (profileLink && siteContent?.profile?.github) {
-    const safe = sanitizeUrl(siteContent.profile.github);
-    if (safe) profileLink.setAttribute("href", safe);
-  }
+  const username = _resolveGitHubUsername(siteContent);
+  const safeProfileUrl = sanitizeUrl(siteContent?.profile?.github || "");
+  _updateGhProfileLink(section, username, safeProfileUrl);
+  _teardownGhCalendar(section, cal);
 
   if (!username) {
-    _setGhUnavailable(cal, "GitHub username not configured.");
+    _setGhUnavailable(section, cal, "GitHub username not configured.");
     return;
   }
 
+  cal.dataset.githubUsername = username;
+
   try {
-    const ok = await _renderGitHubCalendar(cal, username);
-    if (!ok) return;
-
-    // Show scroll hint on mobile/overflow
-    const scrollHint = section.querySelector(".gh-scroll-hint");
-    if (scrollHint) scrollHint.style.display = "flex";
-
-    // Apply configured scroll position
-    const scrollPos = String(siteContent?.settings?.githubChartScrollPosition || "right").trim();
-    requestAnimationFrame(() => {
-      if (scrollPos === "right") {
-        cal.scrollLeft = cal.scrollWidth;
-      } else if (scrollPos === "left") {
-        cal.scrollLeft = 0;
-      } else if (scrollPos === "center") {
-        cal.scrollLeft = Math.max(0, (cal.scrollWidth - cal.clientWidth) / 2);
-      }
-      // "default" → do nothing (browser default, i.e. left)
-
-      // Hide scroll hint after user first scrolls
-      if (scrollHint) {
-        const hideHint = () => { scrollHint.style.display = "none"; cal.removeEventListener("scroll", hideHint); };
-        cal.addEventListener("scroll", hideHint, { once: true, passive: true });
-      }
-    });
+    await _renderGitHubCalendar(section, cal, username);
   } catch (_err) {
-    _setGhUnavailable(cal, "Could not load contribution data.");
+    _setGhUnavailable(section, cal, "Could not load contribution data.");
   }
 }
 
@@ -1071,6 +1191,10 @@ async function initPage() {
     await renderHomePage(cachedContent, cachedProjects, cachedTestimonials);
   }
 
+  if (document.getElementById("github-contributions")) {
+    initGitHubContributions(cachedContent).catch(() => {});
+  }
+
   if (document.getElementById("contactForm")) {
     await hydrateContactDetails();
     initContactForm();
@@ -1085,11 +1209,16 @@ async function initPage() {
 
   // ── Phase 2: silent background refresh from Supabase ──
   // Only runs if Supabase is configured; silently re-renders with fresh data.
-  const [siteContent, projects, testimonials] = await Promise.all([
+  const refreshResults = await Promise.allSettled([
     loadSiteContent(),
     loadProjects(),
     loadTestimonials()
   ]);
+
+  const siteContent = refreshResults[0].status === "fulfilled" ? refreshResults[0].value : cachedContent;
+  const projects = refreshResults[1].status === "fulfilled" ? refreshResults[1].value : cachedProjects;
+  const testimonials = refreshResults[2].status === "fulfilled" ? refreshResults[2].value : cachedTestimonials;
+  const hasRefreshFailure = refreshResults.some((result) => result.status === "rejected");
 
   renderAll(siteContent, projects, testimonials);
 
@@ -1097,12 +1226,18 @@ async function initPage() {
     await renderHomePage(siteContent, projects, testimonials);
   }
 
-  // GitHub contributions (home page only, after fresh data is available)
   if (document.getElementById("github-contributions")) {
-    await initGitHubContributions(siteContent).catch(() => {});
+    initGitHubContributions(siteContent).catch(() => {});
   }
 
-  // Re-run observers so any newly rendered elements also animate
+  const status = document.getElementById("page-status");
+  if (status) {
+    status.hidden = !hasRefreshFailure;
+    if (hasRefreshFailure) {
+      status.textContent = "Some live content could not be loaded. Default content is still available.";
+    }
+  }
+
   initRevealObserver();
   applyExternalLinkSafety();
   attachImageFallbacks();

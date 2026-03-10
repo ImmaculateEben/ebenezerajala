@@ -5,7 +5,7 @@ This repo now uses Supabase for:
 - Auth (email/password)
 - Database (Postgres with RLS)
 - Storage (public bucket for uploaded assets)
-- Edge Functions (`submit-contact`, `admin-ai`, `admin-invite`, `admin-search-console`)
+- Edge Functions (`submit-contact`, `admin-ai`, `admin-invite`, `github-activity`, `admin-search-console`)
 
 ## Required runtime values
 
@@ -31,6 +31,8 @@ If you generate this file from environment variables, use:
    - `20260304182000_portfolio_seed.sql`
    - `20260309120000_security_refresh.sql`
    - `20260309193000_admin_history_assets_search_console.sql`
+   - `20260310101500_remove_github_contributions.sql`
+   - `20260310120000_restore_github_contributions.sql`
 3. The second migration seeds the default site content, projects, and testimonials automatically.
 4. Insert your admin email into `public.admin_users`:
 
@@ -88,6 +90,7 @@ Deploy the functions:
 supabase functions deploy submit-contact --no-verify-jwt
 supabase functions deploy admin-ai --no-verify-jwt
 supabase functions deploy admin-invite --no-verify-jwt
+supabase functions deploy github-activity --no-verify-jwt
 supabase functions deploy admin-search-console --no-verify-jwt
 ```
 
@@ -99,5 +102,6 @@ If you prefer the SQL editor instead of `supabase db push`, run both migration f
 - All writes are protected by RLS and require an authenticated admin in `public.admin_users`.
 - The contact form uses the public `submit-contact` Edge Function with honeypot validation and per-email rate limiting.
 - `admin-ai` and `admin-invite` also require an authenticated admin, but they validate the bearer token inside the function instead of relying on gateway JWT verification.
+- `github-activity` is a public, origin-restricted Edge Function that fetches GitHub contributions server-side and caches the markup in `public.github_activity_cache`.
 - `admin-search-console` is an authenticated admin helper. It checks that your sitemap is reachable, and if you provide Search Console service-account credentials it also submits the sitemap through the official Search Console API.
 - The service role key is used only inside the Edge Function, never in frontend code.
