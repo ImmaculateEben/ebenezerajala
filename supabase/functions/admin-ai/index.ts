@@ -5,6 +5,29 @@ const baseCorsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   Vary: "Origin"
 };
+const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
+const DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile";
+const PROVIDER_TIMEOUT_MS = 20_000;
+
+type ProviderResult = {
+  text: string;
+  provider: string;
+  model: string;
+};
+
+class ProviderError extends Error {
+  provider: string;
+  model: string;
+  status: number;
+
+  constructor(provider: string, model: string, message: string, status = 502) {
+    super(message);
+    this.name = "ProviderError";
+    this.provider = provider;
+    this.model = model;
+    this.status = status;
+  }
+}
 
 function parseAllowedOrigins(value: string) {
   return value
@@ -108,6 +131,199 @@ function formatRelatedFields(fields: Array<{ label: string; value: string }>) {
     .join("\n");
 }
 
+function getProviderErrorMessage(data: unknown, fallback: string) {
+  const source = data && typeof data === "object" ? data as Record<string, unknown> : {};
+  const providerError = source.error && typeof source.error === "object"
+    ? source.error as Record<string, unknown>
+    : null;
+
+  if (typeof providerError?.message === "string" && providerError.message.trim()) {
+    return providerError.message.trim();
+  }
+
+  if (typeof source.message === "string" && source.message.trim()) {
+    return source.message.trim();
+  }
+
+  return fallback;
+}
+
+async function fetchJsonWithTimeout(url: string, init: RequestInit) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(url, {
+      ...init,
+      signal: controller.signal
+    });
+
+    let data: unknown = null;
+    try {
+      data = await response.json();
+    } catch (_error) {
+      data = null;
+    }
+
+    return { response, data };
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("The AI provider timed out.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+function extractGeminiText(data: unknown) {
+  const source = data && typeof data === "object" ? data as Record<string, unknown> : {};
+  const candidates = Array.isArray(source.candidates)
+    ? source.candidates as Array<{ content?: { parts?: Array<{ text?: string }> } }>
+    : [];
+
+  return candidates
+    .flatMap((candidate) => candidate.content?.parts || [])
+    .map((part) => String(part?.text || ""))
+    .join("\n")
+    .trim();
+}
+
+function extractChatCompletionText(data: unknown) {
+  const source = data && typeof data === "object" ? data as Record<string, unknown> : {};
+  const choices = Array.isArray(source.choices)
+    ? source.choices as Array<{ message?: { content?: unknown } }>
+    : [];
+
+  return choices
+    .map((choice) => {
+      const content = choice.message?.content;
+      if (typeof content === "string") {
+        return content;
+      }
+      if (Array.isArray(content)) {
+        return content
+          .map((part) => {
+            if (typeof part === "string") {
+              return part;
+            }
+            if (part && typeof part === "object" && typeof (part as Record<string, unknown>).text === "string") {
+              return String((part as Record<string, unknown>).text);
+            }
+            return "";
+          })
+          .join("\n");
+      }
+      return "";
+    })
+    .join("\n")
+    .trim();
+}
+
+async function generateWithGemini(
+  instruction: string,
+  maxOutputTokens: number,
+  apiKey: string,
+  model: string
+): Promise<ProviderResult> {
+  if (!apiKey) {
+    throw new ProviderError("google-gemini", model, "Gemini is not configured.", 500);
+  }
+
+  const { response, data } = await fetchJsonWithTimeout(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: instruction }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          topP: 0.9,
+          maxOutputTokens
+        }
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const message = response.status === 429
+      ? "Gemini quota has been reached."
+      : getProviderErrorMessage(data, "The Gemini request failed.");
+    throw new ProviderError("google-gemini", model, message, response.status);
+  }
+
+  const text = extractGeminiText(data);
+  if (!text) {
+    throw new ProviderError("google-gemini", model, "Gemini returned an empty response.", 502);
+  }
+
+  return {
+    text,
+    provider: "google-gemini",
+    model
+  };
+}
+
+async function generateWithGroq(
+  instruction: string,
+  maxOutputTokens: number,
+  apiKey: string,
+  model: string
+): Promise<ProviderResult> {
+  if (!apiKey) {
+    throw new ProviderError("groq", model, "Groq is not configured.", 500);
+  }
+
+  const { response, data } = await fetchJsonWithTimeout(
+    "https://api.groq.com/openai/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: "user",
+            content: instruction
+          }
+        ],
+        temperature: 0.7,
+        top_p: 0.9,
+        max_completion_tokens: Math.min(maxOutputTokens, 4096)
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const message = response.status === 429
+      ? "Groq free-tier quota has been reached."
+      : getProviderErrorMessage(data, "The Groq request failed.");
+    throw new ProviderError("groq", model, message, response.status);
+  }
+
+  const text = extractChatCompletionText(data);
+  if (!text) {
+    throw new ProviderError("groq", model, "Groq returned an empty response.", 502);
+  }
+
+  return {
+    text,
+    provider: "groq",
+    model
+  };
+}
+
 async function requireAdminEmail(
   supabase: ReturnType<typeof createClient>,
   request: Request
@@ -166,9 +382,11 @@ Deno.serve(async (request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
   const geminiApiKey = Deno.env.get("GEMINI_API_KEY") || "";
-  const geminiModel = Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash";
+  const geminiModel = Deno.env.get("GEMINI_MODEL") || DEFAULT_GEMINI_MODEL;
+  const groqApiKey = Deno.env.get("GROQ_API_KEY") || "";
+  const groqModel = Deno.env.get("GROQ_MODEL") || DEFAULT_GROQ_MODEL;
 
-  if (!supabaseUrl || !serviceRoleKey || !geminiApiKey) {
+  if (!supabaseUrl || !serviceRoleKey || (!geminiApiKey && !groqApiKey)) {
     return jsonResponse({ error: "Admin AI is not configured on the server." }, 500, corsHeaders);
   }
 
@@ -225,74 +443,67 @@ Deno.serve(async (request) => {
     .filter(Boolean)
     .join("\n\n");
 
+  const maxOutputTokens = getMaxOutputTokens(length);
+  const providerChain = [
+    geminiApiKey
+      ? () => generateWithGemini(instruction, maxOutputTokens, geminiApiKey, geminiModel)
+      : null,
+    groqApiKey
+      ? () => generateWithGroq(instruction, maxOutputTokens, groqApiKey, groqModel)
+      : null
+  ].filter(Boolean) as Array<() => Promise<ProviderResult>>;
+
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(geminiModel)}:generateContent?key=${encodeURIComponent(geminiApiKey)}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: instruction }]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.7,
-            topP: 0.9,
-            maxOutputTokens: getMaxOutputTokens(length)
-          }
-        })
+    const providerFailures: Array<ProviderError> = [];
+
+    for (const runProvider of providerChain) {
+      try {
+        const result = await runProvider();
+
+        if (providerFailures.length) {
+          console.warn(
+            JSON.stringify({
+              event: "admin_ai_fallback_succeeded",
+              provider: result.provider,
+              model: result.model,
+              previousFailures: providerFailures.map((failure) => ({
+                provider: failure.provider,
+                model: failure.model,
+                status: failure.status
+              }))
+            })
+          );
+        }
+
+        return jsonResponse(result, 200, corsHeaders);
+      } catch (error) {
+        const failure = error instanceof ProviderError
+          ? error
+          : new ProviderError("unknown", "unknown", error instanceof Error ? error.message : "Unknown AI provider error.", 502);
+
+        providerFailures.push(failure);
+        console.error(
+          JSON.stringify({
+            event: "admin_ai_provider_failed",
+            provider: failure.provider,
+            model: failure.model,
+            status: failure.status,
+            error: failure.message
+          })
+        );
       }
-    );
-
-    const data = await response.json();
-    if (!response.ok) {
-      console.error(
-        JSON.stringify({
-          event: "admin_ai_provider_failed",
-          status: response.status,
-          error: data?.error?.message || "Unknown Gemini error"
-        })
-      );
-
-      const errorMessage = response.status === 429
-        ? "AI quota has been reached. Try again later."
-        : data?.error?.message || "The AI provider request failed.";
-      return jsonResponse({ error: errorMessage }, response.status === 429 ? 429 : 502, corsHeaders);
     }
 
-    const candidates = Array.isArray(data?.candidates)
-      ? (data.candidates as Array<{ content?: { parts?: Array<{ text?: string }> }; finishReason?: string }>)
-      : [];
-    const text = candidates
-      .flatMap((candidate) => candidate.content?.parts || [])
-      .map((part) => String(part?.text || ""))
-      .join("\n")
-      .trim();
-
-    if (!text) {
-      console.error(
-        JSON.stringify({
-          event: "admin_ai_empty_response",
-          finishReason: candidates[0]?.finishReason || "unknown"
-        })
-      );
-      return jsonResponse({ error: "The AI response was empty." }, 502, corsHeaders);
+    const lastFailure = providerFailures[providerFailures.length - 1];
+    if (lastFailure) {
+      const quotaFailure = providerFailures.some((failure) => failure.status === 429);
+      const errorMessage = quotaFailure
+        ? "AI quota has been reached on the available providers. Try again later."
+        : lastFailure.message || "Unable to generate AI copy right now.";
+      return jsonResponse({ error: errorMessage }, quotaFailure ? 429 : 502, corsHeaders);
     }
 
-    return jsonResponse(
-      {
-        text,
-        provider: "google-gemini",
-        model: geminiModel
-      },
-      200,
-      corsHeaders
-    );
+    return jsonResponse({ error: "Unable to generate AI copy right now." }, 502, corsHeaders);
   } catch (error) {
     console.error(
       JSON.stringify({

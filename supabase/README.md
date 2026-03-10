@@ -59,6 +59,8 @@ Set these secrets in Supabase:
 - `ALLOWED_ORIGINS`
 - `GEMINI_API_KEY`
 - `GEMINI_MODEL` (optional, defaults to `gemini-2.5-flash`)
+- `GROQ_API_KEY` (optional fallback for `admin-ai`)
+- `GROQ_MODEL` (optional, defaults to `llama-3.3-70b-versatile`)
 - `RESEND_API_KEY`
 - `RESEND_FROM_EMAIL`
 - `SEARCH_CONSOLE_SERVICE_ACCOUNT_EMAIL` (optional, needed only for automatic Google sitemap submission)
@@ -67,6 +69,8 @@ Set these secrets in Supabase:
 Local example values are in `supabase/.env.example`.
 
 If you use the Search Console submission helper, add that service-account email as an owner on the Search Console property first.
+
+`admin-ai` uses Gemini first and automatically falls back to Groq when Gemini is unavailable or rate-limited, as long as `GROQ_API_KEY` is configured.
 
 ## Edge Function deployment
 
