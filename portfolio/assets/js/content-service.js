@@ -450,7 +450,8 @@ function extractSiteContentSectionPayload(siteContent, section) {
         "avgTrafficIncrease",
         "availableForFreelance",
         "linkedin",
-        "github"
+        "github",
+        "show3dHero"
       ]);
     case "profile":
       return pickObject(profile, [
@@ -495,7 +496,8 @@ function applySiteContentSectionPayload(siteContent, section, payload) {
     case "profile":
       next.profile = {
         ...next.profile,
-        ...data
+        ...data,
+        show3dHero: data.show3dHero !== undefined ? data.show3dHero : next.profile.show3dHero
       };
       break;
     case "project-categories":
