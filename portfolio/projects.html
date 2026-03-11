@@ -1,10 +1,13 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
+  <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Projects | Ebenezer Ajala</title>
-  <meta name="description" content="A selection of projects delivered across WordPress development, performance optimization, and business-focused redesign work.">
+  <meta name="description"
+    content="A selection of projects delivered across WordPress development, performance optimization, and business-focused redesign work.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta property="og:title" content="Projects | Ebenezer Ajala">
   <meta property="og:description" content="Browse selected client projects and implementation highlights.">
@@ -26,15 +29,18 @@
         var theme = localStorage.getItem("ea_theme");
         var resolvedTheme = theme === "light" || theme === "gold" || theme === "dark" ? theme : "light";
         document.documentElement.setAttribute("data-theme", resolvedTheme);
-      } catch (error) {}
+      } catch (error) { }
     })();
   </script>
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
   <nav id="navbar" class="scrolled">
     <div class="nav-container">
@@ -71,12 +77,15 @@
       <div class="projects-toolbar">
         <div id="project-filter-list" class="filter-bar"></div>
         <div class="projects-view-toggle">
-          <button type="button" class="view-btn active" data-view="grid" title="Grid view"><i class="fa-solid fa-grid-2"></i></button>
-          <button type="button" class="view-btn" data-view="list" title="List view"><i class="fa-solid fa-list"></i></button>
+          <button type="button" class="view-btn active" data-view="grid" title="Grid view"><i
+              class="fa-solid fa-grid-2"></i></button>
+          <button type="button" class="view-btn" data-view="list" title="List view"><i
+              class="fa-solid fa-list"></i></button>
         </div>
       </div>
       <div id="projects-container" class="projects-grid"></div>
-      <p id="projects-empty" class="projects-empty" hidden><i class="fa-solid fa-filter-circle-xmark"></i> No projects match that filter.</p>
+      <p id="projects-empty" class="projects-empty" hidden><i class="fa-solid fa-filter-circle-xmark"></i> No projects
+        match that filter.</p>
     </div>
   </section>
 
@@ -108,4 +117,5 @@
   <script src="assets/js/theme.js"></script>
   <script type="module" src="assets/js/main.js"></script>
 </body>
+
 </html>

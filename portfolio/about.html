@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
+  <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>About | Ebenezer Ajala</title>
-  <meta name="description" content="Learn more about Ebenezer Ajala, his work background, education, and approach to building modern WordPress experiences.">
+  <meta name="description"
+    content="Learn more about Ebenezer Ajala, his work background, education, and approach to building modern WordPress experiences.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta property="og:title" content="About | Ebenezer Ajala">
   <meta property="og:description" content="Experience, background, and professional focus.">
@@ -26,15 +29,18 @@
         var theme = localStorage.getItem("ea_theme");
         var resolvedTheme = theme === "light" || theme === "gold" || theme === "dark" ? theme : "light";
         document.documentElement.setAttribute("data-theme", resolvedTheme);
-      } catch (error) {}
+      } catch (error) { }
     })();
   </script>
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
   <nav id="navbar" class="scrolled">
     <div class="nav-container">
@@ -71,9 +77,11 @@
         <div class="about-text reveal">
           <h2 class="section-title">Who I Am</h2>
           <div id="profile-bio-container">
-            <p>I help businesses ship clearer, faster websites that support credibility, search visibility, and conversion.</p>
+            <p>I help businesses ship clearer, faster websites that support credibility, search visibility, and
+              conversion.</p>
           </div>
-          <a id="about-resume-link" href="assets/docs/resume.docx" class="btn btn-primary" download>Download Resume <i class="fa-solid fa-download"></i></a>
+          <a id="about-resume-link" href="assets/docs/resume.docx" class="btn btn-primary" download>Download Resume <i
+              class="fa-solid fa-download"></i></a>
         </div>
         <div class="about-image reveal delay-1">
           <div class="profile-card">
@@ -85,9 +93,13 @@
               <p class="accent-text" data-animated-title>WordPress Website Developer</p>
               <ul class="profile-details">
                 <li><i class="fa-solid fa-location-dot"></i> <span id="profile-location">Lagos, Nigeria</span></li>
-                <li><i class="fa-solid fa-envelope"></i> <span id="profile-email">ebenezerajala1305@gmail.com</span></li>
-                <li><i class="fa-brands fa-linkedin"></i> <a id="profile-linkedin" href="https://www.linkedin.com/in/ebenezer-ajala13" target="_blank" rel="noopener noreferrer">linkedin.com/in/ebenezer-ajala13</a></li>
-                <li><i class="fa-brands fa-github"></i> <a id="profile-github" href="https://github.com/ImmaculateEben" target="_blank" rel="noopener noreferrer">github.com/ImmaculateEben</a></li>
+                <li><i class="fa-solid fa-envelope"></i> <span id="profile-email">ebenezerajala1305@gmail.com</span>
+                </li>
+                <li><i class="fa-brands fa-linkedin"></i> <a id="profile-linkedin"
+                    href="https://www.linkedin.com/in/ebenezer-ajala13" target="_blank"
+                    rel="noopener noreferrer">linkedin.com/in/ebenezer-ajala13</a></li>
+                <li><i class="fa-brands fa-github"></i> <a id="profile-github" href="https://github.com/ImmaculateEben"
+                    target="_blank" rel="noopener noreferrer">github.com/ImmaculateEben</a></li>
               </ul>
             </div>
           </div>
@@ -160,4 +172,5 @@
   <script src="assets/js/theme.js"></script>
   <script type="module" src="assets/js/main.js"></script>
 </body>
+
 </html>

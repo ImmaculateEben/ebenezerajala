@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
+  <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contact | Ebenezer Ajala</title>
-  <meta name="description" content="Send a project enquiry, freelance request, or collaboration message to Ebenezer Ajala.">
+  <meta name="description"
+    content="Send a project enquiry, freelance request, or collaboration message to Ebenezer Ajala.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta property="og:title" content="Contact | Ebenezer Ajala">
   <meta property="og:description" content="Send a project enquiry and get a direct response from Ebenezer Ajala.">
@@ -26,15 +29,18 @@
         var theme = localStorage.getItem("ea_theme");
         var resolvedTheme = theme === "light" || theme === "gold" || theme === "dark" ? theme : "light";
         document.documentElement.setAttribute("data-theme", resolvedTheme);
-      } catch (error) {}
+      } catch (error) { }
     })();
   </script>
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
   <nav id="navbar" class="scrolled">
     <div class="nav-container">
@@ -82,7 +88,8 @@
               <div class="contact-channel-icon"><i class="fa-solid fa-envelope"></i></div>
               <div class="contact-channel-body">
                 <span class="contact-channel-label">Email</span>
-                <a id="contact-email-link" class="contact-channel-value" href="mailto:ebenezerajala1305@gmail.com">ebenezerajala1305@gmail.com</a>
+                <a id="contact-email-link" class="contact-channel-value"
+                  href="mailto:ebenezerajala1305@gmail.com">ebenezerajala1305@gmail.com</a>
               </div>
             </div>
 
@@ -90,8 +97,10 @@
               <div class="contact-channel-icon"><i class="fa-solid fa-phone"></i></div>
               <div class="contact-channel-body">
                 <span class="contact-channel-label">Phone</span>
-                <a id="contact-phone-primary" class="contact-channel-value" href="tel:+2348152178472">+234 815 217 8472</a>
-                <a id="contact-phone-secondary" class="contact-channel-value contact-phone-alt" href="tel:+2349120037255">+234 912 003 7255</a>
+                <a id="contact-phone-primary" class="contact-channel-value" href="tel:+2348152178472">+234 815 217
+                  8472</a>
+                <a id="contact-phone-secondary" class="contact-channel-value contact-phone-alt"
+                  href="tel:+2349120037255">+234 912 003 7255</a>
               </div>
             </div>
 
@@ -99,7 +108,9 @@
               <div class="contact-channel-icon"><i class="fa-brands fa-linkedin"></i></div>
               <div class="contact-channel-body">
                 <span class="contact-channel-label">LinkedIn</span>
-                <a id="contact-linkedin-link" class="contact-channel-value" href="https://www.linkedin.com/in/ebenezer-ajala13" target="_blank" rel="noopener noreferrer">linkedin.com/in/ebenezer-ajala13</a>
+                <a id="contact-linkedin-link" class="contact-channel-value"
+                  href="https://www.linkedin.com/in/ebenezer-ajala13" target="_blank"
+                  rel="noopener noreferrer">linkedin.com/in/ebenezer-ajala13</a>
               </div>
             </div>
 
@@ -138,7 +149,8 @@
               </div>
               <div class="c-field">
                 <label for="form-message">Message</label>
-                <textarea id="form-message" name="message" rows="5" required placeholder="Tell me about the project, timeline, and what you need."></textarea>
+                <textarea id="form-message" name="message" rows="5" required
+                  placeholder="Tell me about the project, timeline, and what you need."></textarea>
               </div>
               <div id="turnstile-container" class="c-turnstile" hidden>
                 <label class="c-turnstile-label">Spam Protection</label>
@@ -175,5 +187,5 @@
   <script src="assets/js/theme.js"></script>
   <script type="module" src="assets/js/main.js"></script>
 </body>
-</html>
 
+</html>
