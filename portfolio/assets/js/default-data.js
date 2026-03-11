@@ -59,7 +59,8 @@ export const DEFAULT_SITE_CONTENT = {
     clientsServed: "30+",
     avgSpeedImprovement: "40%",
     avgTrafficIncrease: "30%",
-    availableForFreelance: true
+    availableForFreelance: true,
+    show3dHero: true
   },
   techStacks: ["html5", "css3", "javascript", "wordpress", "php", "mysql", "figma", "github"],
   skills: {

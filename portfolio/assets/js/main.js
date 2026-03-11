@@ -244,7 +244,9 @@ function renderProfileBlocks(siteContent) {
 
   const hero3dWrapper = document.getElementById("hero-3d-wrapper");
   if (hero3dWrapper) {
-    hero3dWrapper.hidden = profile.show3dHero === false;
+    // If running locally without state, default to showing the 3D wrapper. 
+    // Otherwise rely on the profile toggle.
+    hero3dWrapper.hidden = profile ? profile.show3dHero === false : false;
   }
 
   // Render bio: split on blank lines to produce multiple <p> tags
