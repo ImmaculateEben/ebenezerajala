@@ -241,14 +241,6 @@ function renderProfileBlocks(siteContent) {
   setText("hero-name", profile.name);
   setText("hero-tagline", profile.tagline);
   setText("hero-location", profile.location);
-
-  const hero3dWrapper = document.getElementById("hero-3d-wrapper");
-  if (hero3dWrapper) {
-    // If running locally without state, default to showing the 3D wrapper. 
-    // Otherwise rely on the profile toggle.
-    hero3dWrapper.hidden = profile ? profile.show3dHero === false : false;
-  }
-
   // Render bio: split on blank lines to produce multiple <p> tags
   const bioParagraphs = (profile.bio || "")
     .split(/\n{2,}/)
@@ -1319,4 +1311,3 @@ document.addEventListener("DOMContentLoaded", () => {
     attachImageFallbacks();
   });
 });
-
