@@ -75,6 +75,28 @@ export function getSupabaseClient() {
   return client;
 }
 
+export async function verifyAdminAccess() {
+  if (!ready || !client) {
+    throw new Error("Supabase is not configured.");
+  }
+
+  const { data: sessionData, error: sessionError } = await client.auth.getSession();
+  if (sessionError) {
+    throw new Error(sessionError.message || "Unable to resolve the current session.");
+  }
+
+  if (!sessionData.session?.user) {
+    return false;
+  }
+
+  const { data, error } = await client.rpc("is_admin");
+  if (error) {
+    throw new Error(error.message || "Unable to verify admin access.");
+  }
+
+  return Boolean(data);
+}
+
 export async function signInAdmin(email, password) {
   if (ready && client) {
     const { data, error } = await client.auth.signInWithPassword({

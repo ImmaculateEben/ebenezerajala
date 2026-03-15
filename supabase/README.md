@@ -33,8 +33,10 @@ If you generate this file from environment variables, use:
    - `20260309193000_admin_history_assets_search_console.sql`
    - `20260310101500_remove_github_contributions.sql`
    - `20260310120000_restore_github_contributions.sql`
+   - `20260315120000_seed_primary_admin.sql`
 3. The second migration seeds the default site content, projects, and testimonials automatically.
-4. Insert your admin email into `public.admin_users`:
+4. The latest migration also seeds the primary admin email in this repo (`ebenezerajala1305@gmail.com`) as an `admin`.
+5. If you need to add another admin email, insert it into `public.admin_users`:
 
 ```sql
 insert into public.admin_users (email)

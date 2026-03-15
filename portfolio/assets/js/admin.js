@@ -36,7 +36,8 @@ import {
   signOutAdmin,
   changeAdminPassword,
   onAdminAuthChanged,
-  isSupabaseReady
+  isSupabaseReady,
+  verifyAdminAccess
 } from "./supabase-config.js";
 
 import { escapeHtml, sanitizePlainText } from "./security.js";
@@ -523,6 +524,7 @@ let lastAiReplacement = null;
 let currentAiTargetFieldId = "";
 let aiWriterStandaloneMode = false;
 let selectedAiVariantIndex = 0;
+let authStateRevision = 0;
 
 const VERSION_SCOPES = [
   { value: "hero", label: "Hero Section", entityType: "site_content", entityId: "main" },
@@ -586,9 +588,13 @@ function setupAuth() {
     overlay.setAttribute("aria-hidden", isSignedIn ? "true" : "false");
   };
 
-  if (!isSupabaseReady()) {
-    errBox.textContent = "Admin sign-in is unavailable until Supabase is configured.";
+  const showAuthError = (message) => {
+    errBox.textContent = message;
     errBox.hidden = false;
+  };
+
+  if (!isSupabaseReady()) {
+    showAuthError("Admin sign-in is unavailable until Supabase is configured.");
     const submitBtn = $("#admin-login-submit");
     if (submitBtn) submitBtn.disabled = true;
     return;
@@ -604,13 +610,9 @@ function setupAuth() {
     const email = $("#admin-email").value.trim();
     const pw = $("#admin-password").value;
     try {
-      const authData = await signInAdmin(email, pw);
-      if (authData?.user || authData?.session?.user) {
-        setAuthVisibility(true);
-      }
+      await signInAdmin(email, pw);
     } catch (err) {
-      errBox.textContent = err.message || "Sign-in failed.";
-      errBox.hidden = false;
+      showAuthError(err.message || "Sign-in failed.");
     } finally {
       submitBtn.innerHTML = origLabel;
       submitBtn.disabled = false;
@@ -637,19 +639,47 @@ function setupAuth() {
     window.location.href = "/";
   });
 
-  onAdminAuthChanged((user) => {
+  onAdminAuthChanged(async (user) => {
+    const currentRevision = ++authStateRevision;
     const prevEmail = currentUser?.email || "";
-    currentUser = user;
-    if (user) {
+    currentUser = null;
+
+    if (!user) {
+      hasLoadedDashboard = false;
+      setAuthVisibility(false);
+      return;
+    }
+
+    errBox.hidden = true;
+
+    try {
+      const hasAdminAccess = await verifyAdminAccess();
+      if (currentRevision !== authStateRevision) {
+        return;
+      }
+
+      if (!hasAdminAccess) {
+        hasLoadedDashboard = false;
+        setAuthVisibility(false);
+        await signOutAdmin().catch(() => undefined);
+        showAuthError("This account is not on the admin allowlist yet. Add it to public.admin_users, then sign in again.");
+        return;
+      }
+
+      currentUser = user;
       setAuthVisibility(true);
       showRuntimeBanner();
       if (!hasLoadedDashboard || prevEmail !== (user.email || "")) {
         hasLoadedDashboard = true;
-        loadAll();
+        await loadAll();
       }
-    } else {
+    } catch (err) {
+      if (currentRevision !== authStateRevision) {
+        return;
+      }
       hasLoadedDashboard = false;
       setAuthVisibility(false);
+      showAuthError(err.message || "Unable to verify admin access.");
     }
   });
 
