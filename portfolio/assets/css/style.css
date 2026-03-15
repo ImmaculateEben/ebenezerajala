@@ -3528,6 +3528,12 @@ footer {
         gap: 2.5rem;
     }
 
+    .profile-image-wrap {
+        aspect-ratio: auto;
+        height: min(500px, 78vh);
+        max-height: none;
+    }
+
     /* Reduce default card padding on mobile */
     .card-glass {
         padding: 1.25rem;
