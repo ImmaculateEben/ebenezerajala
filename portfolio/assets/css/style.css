@@ -942,6 +942,22 @@ img {
     transform: scale(1.015);
 }
 
+@media (min-width: 769px) and (max-width: 1024px) {
+    .profile-image-wrap {
+        aspect-ratio: auto;
+        height: min(640px, 72vh);
+        max-height: none;
+    }
+}
+
+@media (min-width: 1025px) {
+    .profile-image-wrap {
+        aspect-ratio: auto;
+        height: min(480px, 60vh);
+        max-height: none;
+    }
+}
+
 /* Fallback: icon placeholder if no image */
 .image-placeholder {
     width: 100%;
