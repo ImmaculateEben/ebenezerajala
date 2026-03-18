@@ -845,23 +845,17 @@ export async function saveSiteContent(content, options = {}) {
 }
 
 export async function loadProjects() {
-  return withRemote(
-    async () => {
-      const client = getClient();
-      const { data, error } = await client.from("projects").select("id, payload");
-      if (error) {
-        throw new Error(error.message || "Unable to load projects.");
-      }
-
-      const items = (data || []).map((row) => mapPayloadRow(row, normalizeProject)).filter(Boolean);
-      const normalized = sortProjects(items.length ? items : DEFAULT_PROJECTS.map(normalizeProject));
-      const state = readLocalState();
-      state.projects = normalized;
-      writeLocalState(state);
-      return normalized;
-    },
-    async () => sortProjects(readLocalState().projects)
-  );
+  // For now, treat projects as a local-only collection backed by localStorage.
+  // This avoids Supabase RLS/auth issues affecting the admin dashboard while still
+  // keeping the existing normalization and sorting behavior.
+  const state = readLocalState();
+  const projects = Array.isArray(state.projects) && state.projects.length
+    ? state.projects
+    : DEFAULT_PROJECTS.map(normalizeProject);
+  const normalized = sortProjects(projects);
+  state.projects = normalized;
+  writeLocalState(state);
+  return normalized;
 }
 
 export async function loadProject(id) {
@@ -893,19 +887,6 @@ export async function saveProject(project, options = {}) {
   nextProjects.push(normalized);
   state.projects = sortProjects(nextProjects);
   writeLocalState(state);
-
-  let remoteSaved = false;
-  if (isSupabaseReady()) {
-    try {
-      await upsertPayloadRow("projects", normalized.id, normalized);
-      remoteSaved = true;
-    } catch (error) {
-      if (options.requireRemote) {
-        throw error instanceof Error ? error : new Error(String(error || "Remote save failed."));
-      }
-      console.warn("Saving the project remotely failed; cached local state was kept.", error);
-    }
-  }
 
   if (existing && hasChanged && !options.skipVersionSnapshot) {
     await insertContentVersion({
@@ -940,9 +921,6 @@ export async function saveProject(project, options = {}) {
     });
   }
 
-  if (options.returnMeta) {
-    return { project: normalized, remoteSaved };
-  }
   return normalized;
 }
 
@@ -953,14 +931,6 @@ export async function deleteProject(projectId) {
   const actorEmail = await getCurrentActorEmail();
   state.projects = state.projects.filter((item) => item.id !== safeId);
   writeLocalState(state);
-
-  if (isSupabaseReady()) {
-    try {
-      await deletePayloadRow("projects", safeId);
-    } catch (error) {
-      console.warn("Deleting the project remotely failed; cached local state was kept.", error);
-    }
-  }
 
   if (existing) {
     await insertContentVersion({

@@ -1026,15 +1026,10 @@ function renderProjectsTable() {
       const proj = projects.find((x) => x.id === id);
       if (!proj) return;
       proj.featured = !proj.featured;
-      try {
-        await saveProject(proj, { requireRemote: true });
-        projects = await loadProjects();
-        renderProjectsTable();
-        renderOverview();
-      } catch (error) {
-        proj.featured = !proj.featured; // revert toggle
-        flash("proj-status", error?.message || "Unable to save changes to Supabase. Check admin access and Supabase config.", true);
-      }
+      await saveProject(proj);
+      projects = await loadProjects();
+      renderProjectsTable();
+      renderOverview();
     });
     row.querySelector(".proj-edit")?.addEventListener("click", () => editProject(id));
     row.querySelector(".proj-del")?.addEventListener("click", async () => {
@@ -1124,16 +1119,12 @@ function setupProjectForm() {
       featured: getChecked("proj-featured")
     };
 
-    try {
-      await saveProject(proj, { requireRemote: true });
-      projects = await loadProjects();
-      renderProjectsTable();
-      resetProjectForm();
-      flash("proj-status", editingId ? "Project updated!" : "Project created!");
-      renderOverview();
-    } catch (error) {
-      flash("proj-status", error?.message || "Unable to save to Supabase. Make sure you're signed in with an admin email in public.admin_users.", true);
-    }
+    await saveProject(proj);
+    projects = await loadProjects();
+    renderProjectsTable();
+    resetProjectForm();
+    flash("proj-status", editingId ? "Project updated!" : "Project created!");
+    renderOverview();
   });
 }
 
@@ -1166,13 +1157,9 @@ function editProject(id) {
         const proj = projects.find((x) => x.id === getVal("proj-id"));
         if (!proj) return;
         proj.gallery = (proj.gallery || []).filter((u) => u !== urlToRemove);
-        try {
-          await saveProject(proj, { requireRemote: true });
-          projects = await loadProjects();
-          editProject(id); // refresh form
-        } catch (error) {
-          flash("proj-status", error?.message || "Unable to save to Supabase. Check admin access.", true);
-        }
+        await saveProject(proj);
+        projects = await loadProjects();
+        editProject(id); // refresh form
       });
     });
   }
