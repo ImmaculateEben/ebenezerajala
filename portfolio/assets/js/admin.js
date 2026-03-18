@@ -720,6 +720,7 @@ async function loadAll() {
   populateHeroForm();
   populateProfileForm();
   renderProjectsTable();
+  setupProjectForm();
   renderFilterCategories();
   populateSkillsForm();
   renderExpTable();
