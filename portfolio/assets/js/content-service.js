@@ -894,10 +894,15 @@ export async function saveProject(project, options = {}) {
   state.projects = sortProjects(nextProjects);
   writeLocalState(state);
 
+  let remoteSaved = false;
   if (isSupabaseReady()) {
     try {
       await upsertPayloadRow("projects", normalized.id, normalized);
+      remoteSaved = true;
     } catch (error) {
+      if (options.requireRemote) {
+        throw error instanceof Error ? error : new Error(String(error || "Remote save failed."));
+      }
       console.warn("Saving the project remotely failed; cached local state was kept.", error);
     }
   }
@@ -935,6 +940,9 @@ export async function saveProject(project, options = {}) {
     });
   }
 
+  if (options.returnMeta) {
+    return { project: normalized, remoteSaved };
+  }
   return normalized;
 }
 
