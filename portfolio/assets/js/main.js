@@ -833,25 +833,111 @@ async function renderProjectDetailPage(siteContentForSeo, prefetchedProjects = n
   `;
 
   // Gallery (if project has additional images)
-  const gallery = project.gallery || [];
-  if (gallery.length > 0) {
-    const gallerySection = document.createElement("section");
-    gallerySection.className = "section";
-    gallerySection.style.paddingTop = "0";
-    gallerySection.innerHTML = `
-      <div class="container">
-        <h3 style="margin-bottom:1rem;font-size:1.1rem"><i class="fa-solid fa-images" style="opacity:.6;margin-right:.4rem"></i>Gallery</h3>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">
-          ${gallery.map((url) => `
-            <figure style="margin:0;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border)">
-              <img src="${escapeHtml(url)}" alt="${escapeHtml(project.title)} screenshot"
-                style="width:100%;height:220px;object-fit:cover;display:block;cursor:pointer"
-                onclick="this.closest('figure').requestFullscreen?.()">
-            </figure>`).join("")}
-        </div>
-      </div>`;
-    container.appendChild(gallerySection);
+  const gallery = (project.gallery || []).filter(Boolean);
+  const gallerySection = document.createElement("section");
+  gallerySection.className = "section project-gallery";
+  gallerySection.innerHTML = `
+    <div class="container">
+      <div class="project-gallery-head">
+        <h2 class="project-gallery-title"><i class="fa-solid fa-images"></i> Gallery</h2>
+        <p class="project-gallery-sub">${escapeHtml(project.title)} screenshots and deliverables.</p>
+      </div>
+      <div class="project-gallery-grid" id="project-gallery-grid"></div>
+    </div>
+  `;
+  container.appendChild(gallerySection);
+
+  const galleryGrid = gallerySection.querySelector("#project-gallery-grid");
+  if (!gallery.length) {
+    galleryGrid.innerHTML = `<div class="project-gallery-empty card-glass">
+      <i class="fa-regular fa-image"></i>
+      <p>No gallery images have been added for this project yet.</p>
+    </div>`;
+  } else {
+    galleryGrid.innerHTML = gallery
+      .map((url, idx) => `
+        <button type="button" class="project-gallery-item" data-index="${idx}" aria-label="Open image ${idx + 1} of ${gallery.length}">
+          <img src="${escapeHtml(url)}" alt="${escapeHtml(project.title)} image ${idx + 1}" loading="lazy">
+          <span class="project-gallery-zoom" aria-hidden="true"><i class="fa-solid fa-magnifying-glass-plus"></i></span>
+        </button>
+      `)
+      .join("");
   }
+
+  // Lightweight lightbox (no dependencies)
+  let lightboxEl = document.getElementById("project-lightbox");
+  if (!lightboxEl) {
+    lightboxEl = document.createElement("div");
+    lightboxEl.id = "project-lightbox";
+    lightboxEl.className = "project-lightbox";
+    lightboxEl.hidden = true;
+    lightboxEl.innerHTML = `
+      <div class="project-lightbox-backdrop" data-close="true"></div>
+      <div class="project-lightbox-dialog" role="dialog" aria-modal="true" aria-label="Project image viewer">
+        <button type="button" class="project-lightbox-close" data-close="true" aria-label="Close viewer"><i class="fa-solid fa-xmark"></i></button>
+        <button type="button" class="project-lightbox-nav is-prev" data-nav="-1" aria-label="Previous image"><i class="fa-solid fa-chevron-left"></i></button>
+        <button type="button" class="project-lightbox-nav is-next" data-nav="1" aria-label="Next image"><i class="fa-solid fa-chevron-right"></i></button>
+        <figure class="project-lightbox-figure">
+          <img class="project-lightbox-img" alt="">
+          <figcaption class="project-lightbox-caption"></figcaption>
+        </figure>
+      </div>
+    `;
+    document.body.appendChild(lightboxEl);
+  }
+
+  const lightboxImg = lightboxEl.querySelector(".project-lightbox-img");
+  const lightboxCaption = lightboxEl.querySelector(".project-lightbox-caption");
+  let activeIndex = 0;
+
+  const setLightboxImage = (idx) => {
+    if (!gallery.length) return;
+    activeIndex = (idx + gallery.length) % gallery.length;
+    const url = gallery[activeIndex];
+    lightboxImg.src = url;
+    lightboxImg.alt = `${project.title} image ${activeIndex + 1}`;
+    lightboxCaption.textContent = `Image ${activeIndex + 1} of ${gallery.length}`;
+  };
+
+  const openLightbox = (idx) => {
+    if (!gallery.length) return;
+    setLightboxImage(idx);
+    lightboxEl.hidden = false;
+    document.body.classList.add("is-lightbox-open");
+    lightboxEl.querySelector(".project-lightbox-dialog")?.focus?.();
+  };
+
+  const closeLightbox = () => {
+    lightboxEl.hidden = true;
+    document.body.classList.remove("is-lightbox-open");
+    lightboxImg.removeAttribute("src");
+  };
+
+  const handleKeydown = (event) => {
+    if (lightboxEl.hidden) return;
+    if (event.key === "Escape") closeLightbox();
+    if (event.key === "ArrowLeft") setLightboxImage(activeIndex - 1);
+    if (event.key === "ArrowRight") setLightboxImage(activeIndex + 1);
+  };
+
+  window.addEventListener("keydown", handleKeydown);
+  lightboxEl.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (target.closest("[data-close='true']")) {
+      closeLightbox();
+      return;
+    }
+    const nav = target.closest("[data-nav]");
+    if (nav) {
+      const delta = Number(nav.getAttribute("data-nav")) || 0;
+      setLightboxImage(activeIndex + delta);
+    }
+  });
+
+  galleryGrid?.querySelectorAll(".project-gallery-item").forEach((button) => {
+    button.addEventListener("click", () => openLightbox(Number(button.dataset.index) || 0));
+  });
 
   // Rich content (image now lives in the screenshot section above)
   const copy = document.getElementById("project-rich-copy");
