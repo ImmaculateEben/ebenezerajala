@@ -1007,14 +1007,13 @@ function renderProjectsTable() {
   tbody.innerHTML = projects
     .map((p) => {
       const typeBadge = p.featured ? `<span class="badge-sm badge-featured">Featured</span>` : `<span class="badge-sm badge-draft">Standard</span>`;
-      const starIcon = p.featured ? "fa-solid fa-star" : "fa-regular fa-star";
       const starTitle = p.featured ? "Remove from featured" : "Mark as featured";
       return `<tr data-id="${escapeHtml(p.id)}">
         <td data-label="Project">${escapeHtml(p.title)}</td>
         <td data-label="Tags">${(p.tags || []).map((t) => escapeHtml(t)).join(", ")}</td>
         <td data-label="Type">${typeBadge}</td>
         <td class="row-actions">
-          <button title="${starTitle}" class="proj-star${p.featured ? " active" : ""}"><i class="${starIcon}"></i></button>
+          <button title="${starTitle}" class="proj-star${p.featured ? " active" : ""}"><i class="fa-solid fa-star"></i></button>
           <button title="Edit" class="proj-edit"><i class="fa-solid fa-pen"></i></button>
           <button title="Delete" class="proj-del danger"><i class="fa-solid fa-trash"></i></button>
         </td></tr>`;
@@ -1120,8 +1119,17 @@ function setupProjectForm() {
       featured: getChecked("proj-featured")
     };
 
-    await saveProject(proj);
-    projects = await loadProjects();
+    try {
+      await saveProject(proj);
+    } catch (err) {
+      flash("proj-status", "Save failed: " + err.message, true);
+      return;
+    }
+    try {
+      projects = await loadProjects();
+    } catch (err) {
+      console.error("Failed to reload projects after save:", err);
+    }
     renderProjectsTable();
     resetProjectForm();
     flash("proj-status", editingId ? "Project updated!" : "Project created!");

@@ -896,14 +896,10 @@ export async function saveProject(project, options = {}) {
   const existing = await loadProject(normalized.id);
   const hasChanged = !existing || !areJsonValuesEqual(existing, normalized);
 
-  await upsertPayloadRow("projects", normalized.id, normalized);
-
-  if (isSupabaseReady()) {
-    try {
-      await upsertPayloadRow("projects", normalized.id, normalized);
-    } catch (error) {
-      console.warn("Saving the project remotely failed; cached local state was kept.", error);
-    }
+  try {
+    await upsertPayloadRow("projects", normalized.id, normalized);
+  } catch (error) {
+    throw new Error(`Unable to save project: ${error.message || error}`);
   }
 
   if (existing && hasChanged && !options.skipVersionSnapshot) {
@@ -951,14 +947,10 @@ export async function deleteProject(projectId) {
   const existing = await loadProject(safeId);
   const actorEmail = await getCurrentActorEmail();
 
-  await deletePayloadRow("projects", safeId);
-
-  if (isSupabaseReady()) {
-    try {
-      await deletePayloadRow("projects", safeId);
-    } catch (error) {
-      console.warn("Deleting the project remotely failed; cached local state was kept.", error);
-    }
+  try {
+    await deletePayloadRow("projects", safeId);
+  } catch (error) {
+    throw new Error(`Unable to delete project: ${error.message || error}`);
   }
 
   if (existing) {
