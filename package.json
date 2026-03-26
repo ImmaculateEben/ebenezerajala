@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "generate-config": "node -e \"const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || ''; const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || ''; const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || ''; const cfg = { supabase: { url: supabaseUrl, anonKey: supabaseAnonKey }, adminEmail: process.env.ADMIN_EMAIL || '', storageBucket: process.env.STORAGE_BUCKET || 'portfolio-assets', turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || '', siteUrl }; console.log('window.EA_RUNTIME_CONFIG = ' + JSON.stringify(cfg, null, 2) + ';');\" > portfolio/assets/js/runtime-config.js"
+    "generate-config": "node -e \"const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || ''; const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || ''; const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || ''; const cfg = { supabase: { url: supabaseUrl, anonKey: supabaseAnonKey }, adminEmail: process.env.ADMIN_EMAIL || '', storageBucket: process.env.STORAGE_BUCKET || 'portfolio-assets', turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || '', siteUrl }; console.log('window.EA_RUNTIME_CONFIG = ' + JSON.stringify(cfg, null, 2) + ';');\" > portfolio/assets/js/runtime-config.js",
+    "minify:css": "npx clean-css-cli -o portfolio/assets/css/style.css portfolio/assets/css/style.css && npx clean-css-cli -o portfolio/assets/css/admin.css portfolio/assets/css/admin.css",
+    "minify:js": "npx terser portfolio/assets/js/main.js -o portfolio/assets/js/main.js -c -m && npx terser portfolio/assets/js/content-service.js -o portfolio/assets/js/content-service.js -c -m && npx terser portfolio/assets/js/contact.js -o portfolio/assets/js/contact.js -c -m && npx terser portfolio/assets/js/security.js -o portfolio/assets/js/security.js -c -m && npx terser portfolio/assets/js/seo.js -o portfolio/assets/js/seo.js -c -m && npx terser portfolio/assets/js/default-data.js -o portfolio/assets/js/default-data.js -c -m && npx terser portfolio/assets/js/supabase-config.js -o portfolio/assets/js/supabase-config.js -c -m && npx terser portfolio/assets/js/theme.js -o portfolio/assets/js/theme.js -c -m && npx terser portfolio/assets/js/admin.js -o portfolio/assets/js/admin.js -c -m",
+    "build": "npm run minify:css && npm run minify:js"
   },
   "repository": {
     "type": "git",
@@ -20,6 +23,8 @@
   },
   "homepage": "https://github.com/ImmaculateEben/ebenezerajala#readme",
   "devDependencies": {
-    "supabase": "^2.76.16"
+    "clean-css-cli": "^5.6.3",
+    "supabase": "^2.76.16",
+    "terser": "^5.46.1"
   }
 }
