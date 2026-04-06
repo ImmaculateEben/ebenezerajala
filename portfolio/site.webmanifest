@@ -7,20 +7,12 @@
   "scope": "/",
   "display": "standalone",
   "background_color": "#0a0a0c",
-  "theme_color": "#3b82f6",
-  "categories": ["portfolio", "web development"],
+  "theme_color": "#0a0a0c",
   "icons": [
     {
       "src": "assets/images/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "assets/images/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
+      "sizes": "64x64",
+      "type": "image/svg+xml"
     }
   ]
 }
