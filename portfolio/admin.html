@@ -199,7 +199,7 @@
       <section class="admin-section" data-panel="projects" hidden>
         <div class="panel-header"><h1><i class="fa-solid fa-diagram-project"></i> Projects</h1><p>Manage all portfolio projects.</p></div>
         <div class="panel-split">
-          <div class="admin-card table-wrap"><table class="admin-table"><thead><tr><th>Project</th><th>Category</th><th>Type</th><th>Actions</th></tr></thead><tbody id="proj-tbody"></tbody></table></div>
+          <div class="admin-card table-wrap"><table class="admin-table"><thead><tr><th>Project</th><th>Category</th><th>Visibility</th><th>Actions</th></tr></thead><tbody id="proj-tbody"></tbody></table></div>
           <div class="admin-card">
             <h3 id="proj-form-title">New Project</h3>
             <form id="proj-form" class="admin-form-grid">
@@ -225,7 +225,10 @@
                   <div id="proj-gallery-preview" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem"></div>
                 </div>
               </div>
-              <label class="check-label"><input type="checkbox" id="proj-featured"> Featured</label>
+              <div class="form-row-2">
+                <label class="check-label"><input type="checkbox" id="proj-published" checked> Published <small>(visible on website)</small></label>
+                <label class="check-label"><input type="checkbox" id="proj-featured"> Featured</label>
+              </div>
               <div class="admin-actions-row">
                 <button type="submit" class="btn btn-primary">Save Project</button>
                 <button type="button" id="proj-reset" class="btn btn-outline">New</button>
